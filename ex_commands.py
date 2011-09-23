@@ -18,9 +18,9 @@ class ExWriteFile(sublime_plugin.TextCommand):
                 v = self.view.window().new_file()
                 v.set_name(file_name)
                 # get lines a,b
-                r = sublime.Region(self.view.text_point(a, 0),
+                r = sublime.Region(self.view.text_point(a - 1, 0),
                                     self.view.line(
-                                            self.view.text_point(b, 0)).end())
+                                            self.view.text_point(b - 1, 0)).end())
                 v_edit = v.begin_edit()
                 v.insert(v_edit, 0, self.view.substr(r))
                 v.end_edit(v_edit)
