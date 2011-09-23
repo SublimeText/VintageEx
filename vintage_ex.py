@@ -7,7 +7,7 @@ import re
 
 # holds info about an ex command
 EX_CMD = namedtuple('ex_command', 'name command forced range args')
-EX_RANGE_REGEXP = re.compile(r'^(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
+EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
 EX_COMMANDS = {
     ('write', 'w'): {'command': 'ex_write_file', 'args': ['file_name']},
     ('wall', 'wa'): {'command': 'ex_write_all', 'args': []},
