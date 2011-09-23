@@ -6,7 +6,7 @@ import ex_range
 
 
 class ExPrintWorkingDir(sublime_plugin.TextCommand):
-    def run(self, edit):
+    def run(self, edit, **kwargs):
         sublime.status_message(os.getcwd())
 
 
@@ -35,6 +35,6 @@ class ExWriteFile(sublime_plugin.TextCommand):
 
 
 class ExWriteAll(sublime_plugin.TextCommand):
-    def run(self, edit):
+    def run(self, edit, **kwargs):
         for v in self.view.window().views():
             v.run_command('save')
