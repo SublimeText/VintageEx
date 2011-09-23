@@ -7,7 +7,7 @@ import re
 
 # holds info about an ex command
 EX_CMD = namedtuple('ex_command', 'name command forced range args')
-EX_RANGE_REGEXP = re.compile(r'^(([.$]|(/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)([,;](([.$]|(/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
+EX_RANGE_REGEXP = re.compile(r'^(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
 EX_COMMANDS = {
     ('write', 'w'): {'command': 'ex_write_file', 'args': ['file_name']},
     ('wall', 'wa'): {'command': 'ex_write_all', 'args': []},
@@ -75,7 +75,10 @@ class ViColonInput(sublime_plugin.TextCommand):
     def on_done(self, cmd_line):
         ex_cmd = parse_command(cmd_line)
         if ex_cmd:
-            self.view.run_command(ex_cmd.command)
+            args = ex_cmd._asdict()
+            del args['args']
+            args.update(ex_cmd.args)
+            self.view.run_command(ex_cmd.command, args)
         else:
             self.view.window().show_input_panel('', ':', self.on_done, None,
                                                                         None)
