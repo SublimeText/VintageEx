@@ -17,20 +17,26 @@ class ExGoto(sublime_plugin.TextCommand):
 
 class ExShellOut(sublime_plugin.TextCommand):
     def run(self, edit, args='', **kwargs):
-        term = os.path.expandvars("$COLORTERM")
-        if ' ' in args:
-            args = "'" + args + "'"
-        subprocess.Popen([term, '-e', "bash -c %s;read" % args])
+        if os.name == 'posix':
+            term = os.path.expandvars("$COLORTERM")
+            if ' ' in args:
+                args = "'" + args + "'"
+            subprocess.Popen([term, '-e', "bash -c %s;read" % args])
+        else:
+            sublime.status_message('VintageEx: Not implemented.')
 
 
 class ExReadShellOut(sublime_plugin.TextCommand):
     def run(self, edit, shell_cmd='', forced=False, **kwargs):
-        if forced:
-            shell = os.path.expandvars("$SHELL")
-            p = subprocess.Popen([shell, '-c', shell_cmd],
-                                                stdout=subprocess.PIPE)
-            self.view.insert(edit, self.view.sel()[0].begin(),
-                                                        p.communicate()[0])
+        if os.name == 'posix':
+            if forced:
+                shell = os.path.expandvars("$SHELL")
+                p = subprocess.Popen([shell, '-c', shell_cmd],
+                                                    stdout=subprocess.PIPE)
+                self.view.insert(edit, self.view.sel()[0].begin(),
+                                                            p.communicate()[0])
+        else:
+            sublime.status_message('VintageEx: Not implemented.')
 
 
 class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
