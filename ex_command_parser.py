@@ -9,7 +9,7 @@ import re
 # holds info about an ex command
 EX_CMD = namedtuple('ex_command', 'name command forced range args')
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
-EX_ONLY_RANGE_REGEXP = re.compile(r'(?:([%$.]|\d+|/.*?/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*$)')
+EX_ONLY_RANGE_REGEXP = re.compile(r'(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*$)')
 
 
 EX_COMMANDS = {
