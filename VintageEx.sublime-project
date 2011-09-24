@@ -3,6 +3,9 @@
 	[
 		{
 			"path": "/home/guillermo/.config/sublime-text-2/Packages/VintageEx"
+		},
+		{
+			"path": "/home/guillermo/.config/sublime-text-2/Packages/Vintage"
 		}
 	]
 }
