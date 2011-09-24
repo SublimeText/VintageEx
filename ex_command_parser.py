@@ -53,6 +53,16 @@ def parse_command(cmd):
     # strip :
     cmd_name = cmd[1:]
 
+    # first the odd commands
+    if is_only_range(cmd_name):
+        print "XXX"
+        return EX_CMD(name=':',
+                        command='ex_goto',
+                        forced=False,
+                        range=cmd_name,
+                        args=''
+                        )
+
     if cmd_name.startswith('!'):
         cmd_name = '!'
         args = cmd[2:]

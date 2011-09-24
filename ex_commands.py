@@ -7,6 +7,14 @@ import subprocess
 import ex_range
 
 
+class ExGoto(sublime_plugin.TextCommand):
+    def run(self, edit, range='', **kwargs):
+        assert range, 'Range required.'
+        a, b = ex_range.calculate_range(self.view, range, is_only_range=True)
+        target = (max(a, b) if all((a, b)) else (a or b)) or 0
+        self.view.run_command('vi_goto_line', {'repeat': target})
+
+
 class ExShellOut(sublime_plugin.TextCommand):
     def run(self, edit, args='', **kwargs):
         term = os.path.expandvars("$COLORTERM")

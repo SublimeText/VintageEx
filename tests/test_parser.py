@@ -29,5 +29,3 @@ def test_is_only_range_regexp():
 
     assert EX_ONLY_RANGE_REGEXP.search(r'/foo\//').groups() == (r'/foo\//', None, None, None, None, None)
 
-
-

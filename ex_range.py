@@ -3,12 +3,31 @@
 
 from collections import namedtuple
 
-from vintage_ex import EX_RANGE_REGEXP
+from ex_command_parser import EX_RANGE_REGEXP, EX_ONLY_RANGE_REGEXP
 import location
 
 
 EX_RANGE = namedtuple('ex_range', 'left left_offset separator right right_offset')
 
+
+def partition_raw_only_range(range):
+    parts = EX_ONLY_RANGE_REGEXP.search(range).groups()
+    if parts[-1]:
+        return EX_RANGE(
+                    left=parts[-1],
+                    left_offset='0',
+                    separator='',
+                    right='',
+                    right_offset='0'
+                    )
+    else:
+        return EX_RANGE(
+                    left=parts[0],
+                    left_offset=parts[1] or '0',
+                    separator=parts[2],
+                    right=parts[3],
+                    right_offset=parts[4] or '0',
+                    )
 
 def partition_raw_range(range):
     """takes a text range and breaks it up into its constituents:
@@ -49,11 +68,15 @@ def calculate_range_part(view, range_part):
         return location.calculate_relative_ref(view, range_part)
 
         
-def calculate_range(view, raw_range):
+def calculate_range(view, raw_range, is_only_range=False):
     """takes an unparsed :ex range in text and returns the actual lines it
     refers to, 1-based
     """
-    parsed_range = partition_raw_range(raw_range)
+    # xxx ugly quick solution. .groups() are different for the REGEXES used.
+    if not is_only_range:
+        parsed_range = partition_raw_range(raw_range)
+    else:
+        parsed_range = partition_raw_only_range(raw_range)
     if parsed_range.left == '%':
         left, left_offset = '1', '0'
         right, right_offset = '$', '0'
