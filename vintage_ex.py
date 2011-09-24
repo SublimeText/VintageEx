@@ -12,6 +12,8 @@ EX_COMMANDS = {
     ('write', 'w'): {'command': 'ex_write_file', 'args': ['file_name']},
     ('wall', 'wa'): {'command': 'ex_write_all', 'args': []},
     ('pwd', 'pw'): {'command': 'ex_print_working_dir', 'args': []},
+    ('buffers', 'buffers'): {'command': 'ex_prompt_select_open_file', 'args': []},
+    ('ls', 'ls'): {'command': 'ex_prompt_select_open_file', 'args': []},
 }
 
 
@@ -74,14 +76,15 @@ class ViColonInput(sublime_plugin.TextCommand):
     
     def on_done(self, cmd_line):
         ex_cmd = parse_command(cmd_line)
-        if ex_cmd.name:
+        if ex_cmd and ex_cmd.name:
             args = ex_cmd._asdict()
             del args['args']
             args.update(ex_cmd.args)
             self.view.run_command(ex_cmd.command, args)
-        elif ex_cmd.range and ex_cmd.range.isdigit():
+        elif ex_cmd and ex_cmd.range and ex_cmd.range.isdigit():
             self.view.run_command('vi_goto_line', {'repeat': ex_cmd.range})
         else:
             self.view.window().show_input_panel('', ':', self.on_done, None,
                                                                         None)
-            sublime.status_message('VintageEx: unknown command')
+            sublime.status_message('VintageEx: unknown command (%s)' % 
+                                                                    cmd_line)

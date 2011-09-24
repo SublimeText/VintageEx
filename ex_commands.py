@@ -5,6 +5,19 @@ import os
 import ex_range
 
 
+class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
+    def run(self, edit, **kwargs):
+        self.file_names = [list(os.path.split(v.file_name()))[::-1]
+                                        for v in self.view.window().views()]
+        self.view.window().show_quick_panel(self.file_names, self.on_done)
+
+    def on_done(self, idx):
+        sought_fname = self.file_names[idx]
+        for v in self.view.window().views():
+            if v.file_name == sought_fname:
+                self.view.window().focus(v)
+
+
 class ExPrintWorkingDir(sublime_plugin.TextCommand):
     def run(self, edit, **kwargs):
         sublime.status_message(os.getcwd())
@@ -14,13 +27,14 @@ class ExWriteFile(sublime_plugin.TextCommand):
     def run(self, edit, file_name='', range=None, **kwargs):
         if range:
             a,b = ex_range.calculate_range(self.view, range)
-            if file_name and file_name != os.path.basename(self.view.file_name()):
+            if file_name and file_name != os.path.basename(
+                                                        self.view.file_name()):
                 v = self.view.window().new_file()
                 v.set_name(file_name)
                 # get lines a,b
                 r = sublime.Region(self.view.text_point(a - 1, 0),
                                     self.view.line(
-                                            self.view.text_point(b - 1, 0)).end())
+                                        self.view.text_point(b - 1, 0)).end())
                 v_edit = v.begin_edit()
                 v.insert(v_edit, 0, self.view.substr(r))
                 v.end_edit(v_edit)

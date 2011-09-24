@@ -63,7 +63,7 @@ def calculate_range(view, raw_range):
     elif parsed_range.left:
         return calculate_range_part(view, 
                             parsed_range.left) + \
-                                            int(parsed_range.left_offset),
+                                            int(parsed_range.left_offset), \
                                                                         None
     
     return calculate_range_part(view, left) + int(left_offset), \
