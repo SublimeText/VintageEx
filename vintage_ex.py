@@ -1,9 +1,6 @@
 import sublime
 import sublime_plugin
 
-from collections import namedtuple
-import re
-
 from ex_command_parser import parse_command
 
 
