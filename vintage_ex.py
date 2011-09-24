@@ -14,6 +14,9 @@ EX_COMMANDS = {
     ('pwd', 'pw'): {'command': 'ex_print_working_dir', 'args': []},
     ('buffers', 'buffers'): {'command': 'ex_prompt_select_open_file', 'args': []},
     ('ls', 'ls'): {'command': 'ex_prompt_select_open_file', 'args': []},
+    ('map', 'map'): {'command': 'ex_map', 'args': []},
+    ('abbreviate', 'ab'): {'command': 'ex_abbreviate', 'args': []},
+    ('read', 'r'): {'command': 'ex_read_shell_out', 'args': ['shell_cmd']},
 }
 
 
@@ -41,6 +44,16 @@ def get_cmd_line_range(cmd_line):
 def parse_command(cmd):
     # strip :
     cmd_name = cmd[1:]
+
+    if cmd_name.startswith('!'):
+        cmd_name = '!'
+        args = cmd[2:]
+        return EX_CMD(name=cmd_name,
+                        command=None,
+                        forced=False,
+                        range=None,
+                        args=args                
+                        )
 
     range = get_cmd_line_range(cmd_name)
     if range: cmd_name = cmd_name[len(range):]
@@ -76,13 +89,15 @@ class ViColonInput(sublime_plugin.TextCommand):
     
     def on_done(self, cmd_line):
         ex_cmd = parse_command(cmd_line)
-        if ex_cmd and ex_cmd.name:
+        if ex_cmd and ex_cmd.name and ex_cmd.name.isalpha():
             args = ex_cmd._asdict()
             del args['args']
             args.update(ex_cmd.args)
             self.view.run_command(ex_cmd.command, args)
         elif ex_cmd and ex_cmd.range and ex_cmd.range.isdigit():
             self.view.run_command('vi_goto_line', {'repeat': ex_cmd.range})
+        elif ex_cmd and ex_cmd.name == '!':
+            self.view.run_command('ex_shell_out', {'args': ex_cmd.args})
         else:
             self.view.window().show_input_panel('', ':', self.on_done, None,
                                                                         None)

@@ -1,8 +1,26 @@
 import sublime
 import sublime_plugin
+
 import os
+import subprocess
 
 import ex_range
+
+
+class ExShellOut(sublime_plugin.TextCommand):
+    def run(self, edit, **kwargs):
+        term = os.path.expandvars("$COLORTERM")
+        subprocess.Popen([term, '-e', "bash -c %s;read" % kwargs['args']])
+
+
+class ExReadShellOut(sublime_plugin.TextCommand):
+    def run(self, edit, shell_cmd='', forced=False, **kwargs):
+        if forced:
+            shell = os.path.expandvars("$SHELL")
+            p = subprocess.Popen([shell, '-c', shell_cmd],
+                                                stdout=subprocess.PIPE)
+            self.view.insert(edit, self.view.sel()[0].begin(),
+                                                        p.communicate()[0])
 
 
 class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
@@ -16,6 +34,34 @@ class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
         for v in self.view.window().views():
             if v.file_name == sought_fname:
                 self.view.window().focus(v)
+
+
+class ExMap(sublime_plugin.TextCommand):
+    # do at least something moderately useful: open the user's .sublime-keymap
+    # file
+    def run(self, edit, **kwargs):
+        if os.name == 'nt':
+            plat = 'Windows'
+        elif os.name == 'posix':
+            plat = 'Linux'
+        else:
+            plat = 'OSX'
+        self.view.window().run_command('open_file', {'file':
+                                        '${packages}/User/Default (%s).sublime-keymap' % plat})        
+
+
+class ExAbbreviate(sublime_plugin.TextCommand):
+    # for them moment, just open a completions file.
+    def run(self, edit, **kwargs):
+        abbreviations_file = os.path.join(
+                                    sublime.packages_path(),
+                                    'User/Vintage Abbreviations.sublime-completions'
+                                    )
+        if not os.path.exists(abbreviations_file):
+            with open(abbreviations_file, 'w'):
+                pass
+        
+        self.view.window().run_command('open_file', {'file': abbreviations_file})
 
 
 class ExPrintWorkingDir(sublime_plugin.TextCommand):
