@@ -8,9 +8,11 @@ import ex_range
 
 
 class ExShellOut(sublime_plugin.TextCommand):
-    def run(self, edit, **kwargs):
+    def run(self, edit, args='', **kwargs):
         term = os.path.expandvars("$COLORTERM")
-        subprocess.Popen([term, '-e', "bash -c %s;read" % kwargs['args']])
+        if ' ' in args:
+            args = "'" + args + "'"
+        subprocess.Popen([term, '-e', "bash -c %s;read" % args])
 
 
 class ExReadShellOut(sublime_plugin.TextCommand):
