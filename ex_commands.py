@@ -8,6 +8,8 @@ import ex_range
 
 
 def gather_buffer_info(v):
+    """gathers data to be displayed by :ls/:buffers
+    """
     path = v.file_name()
     parent, leaf = os.path.split(path)
     parent = os.path.basename(parent)
