@@ -11,11 +11,18 @@ def gather_buffer_info(v):
     """gathers data to be displayed by :ls/:buffers
     """
     path = v.file_name()
-    parent, leaf = os.path.split(path)
-    parent = os.path.basename(parent)
-    path = os.path.join(parent, leaf)
+    if path:
+        parent, leaf = os.path.split(path)
+        parent = os.path.basename(parent)
+        path = os.path.join(parent, leaf)
+    else:
+        path = v.name() or '<unknown>'
+        leaf = v.name() or '<unknown>'
 
     status = [] 
+    # xxx improve detection of non-existent and transient files
+    if not v.file_name():
+        status.append("t")
     if v.is_dirty():
         status.append("*")
     if v.is_read_only():
