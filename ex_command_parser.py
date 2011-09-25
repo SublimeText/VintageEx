@@ -38,8 +38,8 @@ def find_command(cmd_name):
 
 
 def is_only_range(cmd_line):
-    return EX_ONLY_RANGE_REGEXP.search(cmd_line) and not \
-                EX_RANGE_REGEXP.search(cmd_line).span()[1] + 1 <= len(cmd_line)
+    return EX_ONLY_RANGE_REGEXP.search(cmd_line) and \
+                EX_RANGE_REGEXP.search(cmd_line).span()[1] == len(cmd_line)
 
 
 def get_cmd_line_range(cmd_line):
