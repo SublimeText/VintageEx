@@ -7,6 +7,23 @@ import subprocess
 import ex_range
 
 
+def gather_buffer_info(v):
+    path = v.file_name()
+    parent, leaf = os.path.split(path)
+    parent = os.path.basename(parent)
+    path = os.path.join(parent, leaf)
+
+    status = [] 
+    if v.is_dirty():
+        status.append("*")
+    if v.is_read_only():
+        status.append("r")
+    
+    if status:
+        leaf += ' (%s)' % ', '.join(status)
+    return [leaf, path]
+
+
 class ExGoto(sublime_plugin.TextCommand):
     def run(self, edit, range='', **kwargs):
         assert range, 'Range required.'
@@ -41,7 +58,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
 
 class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
     def run(self, edit, **kwargs):
-        self.file_names = [list(os.path.split(v.file_name()))[::-1]
+        self.file_names = [gather_buffer_info(v)
                                         for v in self.view.window().views()]
         self.view.window().show_quick_panel(self.file_names, self.on_done)
 
