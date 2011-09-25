@@ -65,6 +65,7 @@ class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
         self.view.window().show_quick_panel(self.file_names, self.on_done)
 
     def on_done(self, idx):
+        if idx == -1: return
         # focus the chosen file
         sought_fname = self.file_names[idx]
         for v in self.view.window().views():
@@ -127,10 +128,12 @@ class ExWriteFile(sublime_plugin.TextCommand):
             v.set_name(file_name)
             return
         
-        self.view.run_command('save')
+        if self.view.is_dirty():
+            self.view.run_command('save')
 
 
 class ExWriteAll(sublime_plugin.TextCommand):
     def run(self, edit, **kwargs):
         for v in self.view.window().views():
-            v.run_command('save')
+            if v.is_dirty():
+                v.run_command('save')
