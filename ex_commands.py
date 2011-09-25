@@ -65,10 +65,11 @@ class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
         self.view.window().show_quick_panel(self.file_names, self.on_done)
 
     def on_done(self, idx):
+        # focus the chosen file
         sought_fname = self.file_names[idx]
         for v in self.view.window().views():
-            if v.file_name == sought_fname:
-                self.view.window().focus(v)
+            if v.file_name().endswith(sought_fname[1]):
+                self.view.window().focus_view(v)
 
 
 class ExMap(sublime_plugin.TextCommand):
