@@ -55,7 +55,6 @@ def parse_command(cmd):
 
     # first the odd commands
     if is_only_range(cmd_name):
-        print "XXX"
         return EX_CMD(name=':',
                         command='ex_goto',
                         forced=False,
@@ -99,4 +98,3 @@ def parse_command(cmd):
                     range=range,
                     args=cmd_args
                     )
-

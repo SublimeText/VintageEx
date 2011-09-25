@@ -41,7 +41,7 @@ def partition_raw_range(range):
             right_offset: -15
     """
     parts = EX_RANGE_REGEXP.search(range).groups()
-    # try to make the regexp capture the desired groups only.
+    # xxx try to make the regexp capture the desired groups only.
     return EX_RANGE(
                 left=parts[1],
                 left_offset=parts[3] or '0',
@@ -61,9 +61,9 @@ def calculate_range_part(view, range_part):
         return int(range_part)
     if range_part.startswith('/') or range_part.startswith('?'):
         if range_part.startswith('?'):
-            return location.reverse_search(view, range_part[1:-1],
+            return location.reverse_search(view, range_part[1:],
                                             end=view.sel()[0].begin())
-        return location.search(view, range_part[1:-1])
+        return location.search(view, range_part[1:])
     if range_part in ('$', '.'):
         return location.calculate_relative_ref(view, range_part)
 
