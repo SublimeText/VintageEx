@@ -9,7 +9,7 @@ import re
 # holds info about an ex command
 EX_CMD = namedtuple('ex_command', 'name command forced range args args_extra')
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
-EX_ONLY_RANGE_REGEXP = re.compile(r'(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*$)')
+EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
 
 
 EX_COMMANDS = {
@@ -25,15 +25,17 @@ EX_COMMANDS = {
 
 
 def find_command(cmd_name):
-    names = [x for x in EX_COMMANDS.keys() if x[0].startswith(cmd_name)]
+    names = [name for name in EX_COMMANDS.keys()
+                                            if name[0].startswith(cmd_name)]
     # unknown command name
     if not names: return None
     # check for matches in known aliases and full names
-    full_match = [(x, y) for (x, y) in names if cmd_name in (x, y)]
+    full_match = [(long_, short_) for (long_, short_) in names
+                                                if cmd_name in (long_, short_)]
     if full_match:
         return full_match[0]
     else:
-        # partial match, but not a known alias
+        # unambiguous partial match, but not a known alias
         return names[0]
 
 
@@ -78,8 +80,8 @@ def parse_command(cmd):
                         args_extra=''
                         )
 
-    range = get_cmd_line_range(cmd_name)
-    if range: cmd_name = cmd_name[len(range):]
+    range_ = get_cmd_line_range(cmd_name)
+    if range_: cmd_name = cmd_name[len(range_):]
 
     cmd_name, _, args = cmd_name.partition(' ')
     args = re.sub(r' {2,}', ' ', args)
@@ -104,7 +106,7 @@ def parse_command(cmd):
     return EX_CMD(name=cmd_name,
                     command=cmd_data['command'],
                     forced=bang,
-                    range=range,
+                    range=range_,
                     args=cmd_args,
                     args_extra=cmd_args_extra
                     )
