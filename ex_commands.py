@@ -48,8 +48,12 @@ class ExShellOut(sublime_plugin.TextCommand):
             if ' ' in args:
                 args = "'" + args + "'"
             subprocess.Popen([term, '-e', "bash -c %s;read" % args])
-        else:
-            sublime.status_message('VintageEx: Not implemented.')
+            return
+        elif os.name == 'nt':
+            subprocess.Popen(['cmd.exe', '/c', args + '&& pause'])
+            return 
+
+        sublime.status_message('VintageEx: Not implemented.')
 
 
 class ExReadShellOut(sublime_plugin.TextCommand):
