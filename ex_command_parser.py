@@ -7,7 +7,7 @@ import re
 
 
 # holds info about an ex command
-EX_CMD = namedtuple('ex_command', 'name command forced range args')
+EX_CMD = namedtuple('ex_command', 'name command forced range args args_extra')
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*$)')
 
@@ -63,7 +63,8 @@ def parse_command(cmd):
                         command='ex_goto',
                         forced=False,
                         range=cmd_name,
-                        args=''
+                        args='',
+                        args_extra=''
                         )
 
     if cmd_name.startswith('!'):
@@ -73,7 +74,8 @@ def parse_command(cmd):
                         command=None,
                         forced=False,
                         range=None,
-                        args=args                
+                        args=args,
+                        args_extra=''
                         )
 
     range = get_cmd_line_range(cmd_name)
@@ -93,12 +95,16 @@ def parse_command(cmd):
     cmd_data = EX_COMMANDS[cmd_data]
 
     cmd_args = {}
+    cmd_args_extra = ''
     if cmd_data['args'] and args:
         cmd_args = dict(zip(cmd_data['args'], args))
+    if len(args) > len(cmd_data['args']):
+        cmd_args['_extra'] = ' '.join(args[len(cmd_data['args']):])
 
     return EX_CMD(name=cmd_name,
                     command=cmd_data['command'],
                     forced=bang,
                     range=range,
-                    args=cmd_args
+                    args=cmd_args,
+                    args_extra=cmd_args_extra
                     )

@@ -8,7 +8,7 @@ import ex_range
 
 
 def gather_buffer_info(v):
-    """gathers data to be displayed by :ls/:buffers
+    """gathers data to be displayed by :ls or :buffers
     """
     path = v.file_name()
     if path:
@@ -63,6 +63,8 @@ class ExShellOut(sublime_plugin.TextCommand):
 
 class ExReadShellOut(sublime_plugin.TextCommand):
     def run(self, edit, shell_cmd='', forced=False, **kwargs):
+        if '_extra' in kwargs:
+            shell_cmd += ' ' + kwargs['_extra']
         if os.name == 'posix':
             if forced:
                 shell = os.path.expandvars("$SHELL")
@@ -70,6 +72,17 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                                                     stdout=subprocess.PIPE)
                 self.view.insert(edit, self.view.sel()[0].begin(),
                                                             p.communicate()[0])
+        elif os.name == 'nt':
+            if forced:
+                p = subprocess.Popen(['cmd.exe', '/C', shell_cmd],
+                                                    stdout=subprocess.PIPE)
+                # xxx I think only raymond chen can get this line right
+                # xxx :r! dir throws encoding error with utf_8_sig
+                # xxx :r! whoami throws error with utf_16_le
+                # xxx both if /U is passed to cmd.exe.
+                # FIXME get code page dynamically
+                rv = p.communicate()[0].decode('cp850')
+                self.view.insert(edit, self.view.sel()[0].begin(), rv)
         else:
             sublime.status_message('VintageEx: Not implemented.')
 
