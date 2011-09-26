@@ -5,7 +5,17 @@ from ex_command_parser import parse_command
 
 
 class ViColonInput(sublime_plugin.TextCommand):
-    def run(self, edit):
+    def __init__(self, view):
+        sublime_plugin.TextCommand.__init__(self, view)
+
+    def run_(self, args):
+        if args:
+            if 'event' in args:
+                del args['event']
+            return self.run(**args)
+        return self.run()
+        
+    def run(self):
         self.view.window().show_input_panel('', ':', self.on_done, None, None)
     
     def on_done(self, cmd_line):
