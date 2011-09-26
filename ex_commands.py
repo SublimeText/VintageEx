@@ -47,10 +47,16 @@ class ExShellOut(sublime_plugin.TextCommand):
             term = os.path.expandvars("$COLORTERM")
             if ' ' in args:
                 args = "'" + args + "'"
-            subprocess.Popen([term, '-e', "bash -c %s;read" % args])
+            subprocess.Popen([term, '-e',
+                    "bash -c %s && read -p 'Press RETURN to exit.'" % args])
             return
         elif os.name == 'nt':
-            subprocess.Popen(['cmd.exe', '/c', args + '&& pause'])
+            if True:
+                subprocess.Popen(['cmd.exe', '/c', args + '&& pause'])
+            else:
+                # xxx use powershell
+                pass
+
             return 
 
         sublime.status_message('VintageEx: Not implemented.')
