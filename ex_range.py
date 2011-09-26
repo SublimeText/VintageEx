@@ -60,10 +60,17 @@ def calculate_range_part(view, range_part):
     if range_part.isdigit():
         return int(range_part)
     if range_part.startswith('/') or range_part.startswith('?'):
+        # we need to strip the search marks. FIXME won't work in edge cases
+        # like ?foo\/ (doublecheck with vim)
+        if (not range_part.endswith(r'\/') or range_part.endswith(r'\?')
+                and (range_part.endswith('?') or range_part.endswith('/'))):
+                search_term = range_part[1:-1]
+        else:
+            search_term = range_part[1:]
         if range_part.startswith('?'):
-            return location.reverse_search(view, range_part[1:],
+            return location.reverse_search(view, search_term,
                                             end=view.sel()[0].begin())
-        return location.search(view, range_part[1:])
+        return location.search(view, search_term)
     if range_part in ('$', '.'):
         return location.calculate_relative_ref(view, range_part)
 

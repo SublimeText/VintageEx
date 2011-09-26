@@ -1,5 +1,4 @@
 import sublime
-import re
 
 
 def get_line_nr(view, point):
