@@ -16,11 +16,10 @@ def gather_buffer_info(v):
         parent = os.path.basename(parent)
         path = os.path.join(parent, leaf)
     else:
-        path = v.name() or '<unknown>'
-        leaf = v.name() or '<unknown>'
+        path = v.name() or str(v.buffer_id())
+        leaf = v.name() or 'untitled'
 
     status = [] 
-    # xxx improve detection of non-existent and transient files
     if not v.file_name():
         status.append("t")
     if v.is_dirty():
@@ -83,10 +82,13 @@ class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
 
     def on_done(self, idx):
         if idx == -1: return
-        # focus the chosen file
+        # focus the file chosen
         sought_fname = self.file_names[idx]
         for v in self.view.window().views():
-            if v.file_name().endswith(sought_fname[1]):
+            if v.file_name() and v.file_name().endswith(sought_fname[1]):
+                self.view.window().focus_view(v)
+            # xxx probably all checks should be based on the buffer id
+            elif v.buffer_id() == int(sought_fname[1]):
                 self.view.window().focus_view(v)
 
 
