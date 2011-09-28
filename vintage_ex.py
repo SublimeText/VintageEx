@@ -20,6 +20,7 @@ class ViColonInput(sublime_plugin.TextCommand):
     
     def on_done(self, cmd_line):
         ex_cmd = parse_command(cmd_line)
+        print "XXX", ex_cmd
         print ex_cmd
         if ex_cmd and ex_cmd.name and (ex_cmd.name.isalpha()
                                                     or ex_cmd.name == ':'):

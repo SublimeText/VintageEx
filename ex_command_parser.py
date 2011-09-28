@@ -8,7 +8,7 @@ import re
 
 
 # holds info about an ex command
-EX_CMD = namedtuple('ex_command', 'name command forced range args args_extra')
+EX_CMD = namedtuple('ex_command', 'name command forced range plusplus_args plus_args args cmd_arg args_extra')
 ex_cmd_data = namedtuple('ex_cmd_data', 'command args')
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
@@ -46,18 +46,15 @@ EX_COMMANDS = {
 
 
 def find_command(cmd_name):
-    names = [name for name in EX_COMMANDS.keys()
+    partial_matches = [name for name in EX_COMMANDS.keys()
                                             if name[0].startswith(cmd_name)]
-    # unknown command name
-    if not names: return None
-    # check for matches in known aliases and full names
-    full_match = [(long_, short_) for (long_, short_) in names
-                                                if cmd_name in (long_, short_)]
+    if not partial_matches: return None
+    full_match = [(ln, sh) for (ln, sh) in partial_matches
+                                                if cmd_name in (ln, sh)]
     if full_match:
         return full_match[0]
     else:
-        # unambiguous partial match, but not a known alias
-        return names[0]
+        return partial_matches[0]
 
 
 def is_only_range(cmd_line):
@@ -112,7 +109,10 @@ def parse_command(cmd):
                         forced=False,
                         range=cmd_name,
                         args='',
-                        args_extra=''
+                        args_extra='',
+                        plusplus_args='',
+                        plus_args='',
+                        cmd_arg=''
                         )
 
     if cmd_name.startswith('!'):
@@ -123,7 +123,10 @@ def parse_command(cmd):
                         forced=False,
                         range=None,
                         args=args,
-                        args_extra=''
+                        args_extra='',
+                        plusplus_args='',
+                        plus_args='',
+                        cmd_arg=''
                         )
 
     range_ = get_cmd_line_range(cmd_name)
@@ -137,7 +140,7 @@ def parse_command(cmd):
         bang = True
         args = args[1:]
 
-    plus_args, plusplus_args, args, cmd_args = extract_args(args)
+    plus_args, plusplus_args, args, cmd_arg = extract_args(args)
 
     cmd_data = find_command(command)
     if not cmd_data: return None
@@ -156,5 +159,8 @@ def parse_command(cmd):
                     forced=bang,
                     range=range_,
                     args=cmd_args,
-                    args_extra=cmd_args_extra
+                    args_extra=cmd_args_extra,
+                    plusplus_args=plusplus_args,
+                    plus_args=plus_args,
+                    cmd_arg=cmd_arg 
                     )
