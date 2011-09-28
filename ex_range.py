@@ -91,10 +91,10 @@ def calculate_range(view, raw_range, is_only_range=False):
         left, left_offset = parsed_range.left, parsed_range.left_offset
         right, right_offset = parsed_range.right, parsed_range.right_offset
     elif parsed_range.left:
-        return calculate_range_part(view, 
+        left = calculate_range_part(view, 
                             parsed_range.left) + \
-                                            int(parsed_range.left_offset), \
-                                                                        None
+                                            int(parsed_range.left_offset)
+        return left, left
     
     return calculate_range_part(view, left) + int(left_offset), \
                 calculate_range_part(view, right) + int(right_offset)
