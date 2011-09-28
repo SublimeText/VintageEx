@@ -1,4 +1,4 @@
-from ex_command_parser import EX_ONLY_RANGE_REGEXP
+from ex_command_parser import EX_ONLY_RANGE_REGEXP, extract_args, extract_command_name
 
 
 def test_is_only_range_regexp():
@@ -29,3 +29,17 @@ def test_is_only_range_regexp():
 
     assert EX_ONLY_RANGE_REGEXP.search(r'/foo\//').groups() == (r'/foo\//', None, None, None, None, None)
 
+
+def test_extract_args():
+    assert extract_args('++opt1 ++opt2 +cmd1') == ('+cmd1', '++opt1 ++opt2', '', '')
+    assert extract_args('++opt1 ++opt2') == ('', '++opt1 ++opt2', '', '')
+    assert extract_args('++opt1') == ('', '++opt1', '', '')
+    assert extract_args('+cmd') == ('+cmd', '', '', '')
+    assert extract_args('hello world !cmd') == ('', '', 'hello world', '!cmd')
+    assert extract_args('++opt1 hello world !cmd with args') == ('', '++opt1', 'hello world', '!cmd with args')
+
+
+def test_extract_command_name():
+    assert extract_command_name('whatever!') == 'whatever'
+    assert extract_command_name('hello world') == 'hello'
+    assert extract_command_name('hello++opt1=foo') == 'hello'

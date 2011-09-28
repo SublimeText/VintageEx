@@ -3,6 +3,7 @@
 
 
 from collections import namedtuple
+from itertools import takewhile
 import re
 
 
@@ -55,6 +56,31 @@ def get_cmd_line_range(cmd_line):
     return cmd_line[start:end]
 
 
+def extract_command_name(cmd_line):
+    return ''.join(takewhile(lambda c: c.isalpha(), cmd_line))
+
+
+def extract_args(cmd_line):
+    plus_args = []
+    plusplus_args = []
+    cmd_args = []
+    args = []
+    for i, token in enumerate(cmd_line.split(' ')):
+        if token and token.startswith('++'):
+            plusplus_args.append(token)
+        elif token and token.startswith('+'):
+            plus_args = cmd_line.split(' ')[i:]
+            break
+        elif not token.startswith('!'):
+            args.append(token)
+        else:
+            cmd_args = cmd_line.split(' ')[i:]
+            break
+    
+    return ' '.join(plus_args), ' '.join(plusplus_args), \
+                                    ' '.join(args).strip(), ' '.join(cmd_args)
+
+
 def parse_command(cmd):
     # strip :
     cmd_name = cmd[1:]
@@ -83,27 +109,29 @@ def parse_command(cmd):
     range_ = get_cmd_line_range(cmd_name)
     if range_: cmd_name = cmd_name[len(range_):]
 
-    cmd_name, _, args = cmd_name.partition(' ')
-    args = re.sub(r' {2,}', ' ', args)
-    args = args.split(' ')
+    command = extract_command_name(cmd_name)
+    args = cmd_name[len(command):]
 
-    bang =False
-    if cmd_name.endswith('!'):
-        cmd_name = cmd_name[:-1]
+    bang = False
+    if args.startswith('!'):
         bang = True
+        args = args[1:]
 
-    cmd_data = find_command(cmd_name)
+    plus_args, plusplus_args, args, cmd_args = extract_args(args)
+
+    cmd_data = find_command(command)
     if not cmd_data: return None
     cmd_data = EX_COMMANDS[cmd_data]
 
     cmd_args = {}
+    args = args.split(' ')
     cmd_args_extra = ''
     if cmd_data['args'] and args:
         cmd_args = dict(zip(cmd_data['args'], args))
     if len(args) > len(cmd_data['args']):
         cmd_args['_extra'] = ' '.join(args[len(cmd_data['args']):])
 
-    return EX_CMD(name=cmd_name,
+    return EX_CMD(name=command,
                     command=cmd_data['command'],
                     forced=bang,
                     range=range_,
