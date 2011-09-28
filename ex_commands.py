@@ -33,10 +33,7 @@ def gather_buffer_info(v):
 
 
 def get_buffer_range(view, text_range):
-    # xxx might return None, but it shouldn't
     a, b = ex_range.calculate_range(view, text_range)
-    a = a or 0
-    b = b or 0
     r = sublime.Region(view.text_point(a - 1, 0),
                         view.line(
                             view.text_point(b - 1, 0)).end())    
