@@ -9,19 +9,39 @@ import re
 
 # holds info about an ex command
 EX_CMD = namedtuple('ex_command', 'name command forced range args args_extra')
+ex_cmd_data = namedtuple('ex_cmd_data', 'command args')
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
 
 
 EX_COMMANDS = {
-    ('write', 'w'): {'command': 'ex_write_file', 'args': ['file_name']},
-    ('wall', 'wa'): {'command': 'ex_write_all', 'args': []},
-    ('pwd', 'pw'): {'command': 'ex_print_working_dir', 'args': []},
-    ('buffers', 'buffers'): {'command': 'ex_prompt_select_open_file', 'args': []},
-    ('ls', 'ls'): {'command': 'ex_prompt_select_open_file', 'args': []},
-    ('map', 'map'): {'command': 'ex_map', 'args': []},
-    ('abbreviate', 'ab'): {'command': 'ex_abbreviate', 'args': []},
-    ('read', 'r'): {'command': 'ex_read_shell_out', 'args': ['shell_cmd']},
+    ('write', 'w'): ex_cmd_data(
+                                command='ex_write_file',
+                                args=['file_name']),
+    ('wall', 'wa'): ex_cmd_data(
+                                command='ex_write_all',
+                                args=[]),
+    ('wall', 'wa'): ex_cmd_data(
+                                command='ex_write_all',
+                                args=[]),
+    ('pwd', 'pw'): ex_cmd_data(
+                                command='ex_print_working_dir',
+                                args=[]),
+    ('buffers', 'buffers'): ex_cmd_data(
+                                command='ex_prompt_select_open_file',
+                                args=[]),
+    ('ls', 'ls'): ex_cmd_data(
+                                command='ex_prompt_select_open_file',
+                                args=[]),
+    ('map', 'map'): ex_cmd_data(
+                                command='ex_map',
+                                args=[]),
+    ('abbreviate', 'ab'): ex_cmd_data(
+                                command='ex_abbreviate',
+                                args=[]),
+    ('read', 'r'): ex_cmd_data(
+                                command='ex_read_shell_out',
+                                args=['shell_cmd']),
 }
 
 
@@ -126,13 +146,13 @@ def parse_command(cmd):
     cmd_args = {}
     args = args.split(' ')
     cmd_args_extra = ''
-    if cmd_data['args'] and args:
-        cmd_args = dict(zip(cmd_data['args'], args))
-    if len(args) > len(cmd_data['args']):
-        cmd_args['_extra'] = ' '.join(args[len(cmd_data['args']):])
+    if cmd_data.args and args:
+        cmd_args = dict(zip(cmd_data.args, args))
+    if len(args) > len(cmd_data.args):
+        cmd_args['_extra'] = ' '.join(args[len(cmd_data.args):])
 
     return EX_CMD(name=command,
-                    command=cmd_data['command'],
+                    command=cmd_data.command,
                     forced=bang,
                     range=range_,
                     args=cmd_args,
