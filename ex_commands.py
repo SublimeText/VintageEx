@@ -32,6 +32,17 @@ def gather_buffer_info(v):
     return [leaf, path]
 
 
+def get_buffer_range(view, text_range):
+    # xxx might return None, but it shouldn't
+    a, b = ex_range.calculate_range(view, text_range)
+    a = a or 0
+    b = b or 0
+    r = sublime.Region(view.text_point(a - 1, 0),
+                        view.line(
+                            view.text_point(b - 1, 0)).end())    
+    return r
+
+
 class ExGoto(sublime_plugin.TextCommand):
     def run(self, edit, range='', **kwargs):
         assert range, 'Range required.'
@@ -139,26 +150,45 @@ class ExPrintWorkingDir(sublime_plugin.TextCommand):
 
 
 class ExWriteFile(sublime_plugin.TextCommand):
-    def run(self, edit, file_name='', range=None, **kwargs):
+    def run(self, edit, file_name='', range=None, forced=False,
+            plusplus_args='', plus_args='', args='', cmd_arg='', **kwargs):
+        appending = file_name == '>>'
+        if appending: file_name = kwargs['args_extra']
+
         if range:
-            a,b = ex_range.calculate_range(self.view, range)
+            r = get_buffer_range(self.view, range)
             if file_name and file_name != os.path.basename(
                                                         self.view.file_name()):
-                v = self.view.window().new_file()
-                v.set_name(file_name)
-                # get lines a,b
-                r = sublime.Region(self.view.text_point(a - 1, 0),
-                                    self.view.line(
-                                        self.view.text_point(b - 1, 0)).end())
-                v_edit = v.begin_edit()
-                v.insert(v_edit, 0, self.view.substr(r))
-                v.end_edit(v_edit)
-                return
+                if appending:
+                    # xxx open with codecs and append to the file
+                    pass
+                else:
+                    v = self.view.window().new_file()
+                    v.set_name(file_name)
+                    v_edit = v.begin_edit()
+                    v.insert(v_edit, 0, self.view.substr(r))
+                    v.end_edit(v_edit)
+            elif appending:
+                    self.view.insert(edit, self.view.size(),
+                                                    '\n' + self.view.substr(r))
+            else:
+                text = self.view.substr(r) 
+                self.view.insert(edit, 0, text)
+                self.view.replace(edit, sublime.Region(len(text), 
+                                            self.view.size()), '')
+            return
 
         if file_name and file_name != os.path.basename(self.view.file_name()):
+            # xxx we should probably save right away
             v = self.view.window().new_file()
+            v.insert(edit, 0, self.view.substr(
+                                        sublime.Region(0, self.view.size())))
             v.set_name(file_name)
             return
+        
+        if appending:
+            content = self.view.substr(sublime.Region(0, self.view.size()))
+            self.view.insert(edit, self.view.size(), '\n' + content)
         
         if self.view.is_dirty():
             self.view.run_command('save')
