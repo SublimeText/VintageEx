@@ -42,6 +42,9 @@ EX_COMMANDS = {
     ('read', 'r'): ex_cmd_data(
                                 command='ex_read_shell_out',
                                 args=['shell_cmd']),
+    ('enew', 'ene'): ex_cmd_data(
+                                command='ex_new_file',
+                                args=['']),
 }
 
 

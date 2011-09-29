@@ -204,3 +204,8 @@ class ExWriteAll(sublime_plugin.TextCommand):
         for v in self.view.window().views():
             if v.is_dirty():
                 v.run_command('save')
+
+
+class ExNewFile(sublime_plugin.TextCommand):
+    def run(self, edit, **kwargs):
+        self.view.window().run_command('new_file')
