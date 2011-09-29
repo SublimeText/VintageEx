@@ -3,7 +3,11 @@ import sublime_plugin
 
 import os
 import subprocess
-import ctypes
+
+try:
+    import ctypes
+except ImportError:
+    ctypes = None
 
 import ex_range
 
@@ -81,7 +85,7 @@ class ExShellOut(sublime_plugin.TextCommand):
                     shell = os.path.expandvars("$SHELL")
                     p = subprocess.Popen([shell, '-c', args],
                                                         stdout=subprocess.PIPE)
-                    self.view.replace(edit, s, p.communicate()[0])
+                    self.view.replace(edit, s, p.communicate()[0][:-1])
                 return
         elif os.name == 'posix':
             term = os.path.expandvars("$COLORTERM") or \
