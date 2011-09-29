@@ -63,7 +63,26 @@ class ExGoto(sublime_plugin.TextCommand):
 
 class ExShellOut(sublime_plugin.TextCommand):
     def run(self, edit, args='', **kwargs):
-        if os.name == 'posix':
+        sels = self.view.sel()
+        if all([(s.a != s.b) for s in sels]):
+            if os.name == 'nt':
+                for s in self.view.sel():
+                    p = subprocess.Popen(
+                                        ['cmd.exe', '/C', args],
+                                        stdout=subprocess.PIPE,
+                                        startupinfo=get_startup_info()
+                                        )
+                    cp = 'cp' + get_oem_cp()
+                    rv = p.communicate()[0].decode(cp)[:-2].strip()
+                    self.view.replace(edit, s, rv)
+                return
+            elif os.name == 'posix':
+                for s in self.view.sel():
+                    shell = os.path.expandvars("$SHELL")
+                    p = subprocess.Popen([shell, '-c', args],
+                                                        stdout=subprocess.PIPE)
+                    self.view.replace(edit, s, p.communicate()[0])
+        elif os.name == 'posix':
             term = os.path.expandvars("$COLORTERM") or \
                                                     os.path.expandvars("$TERM")
             subprocess.Popen([term, '-e',
