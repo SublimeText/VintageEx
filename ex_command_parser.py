@@ -10,7 +10,7 @@ import re
 # holds info about an ex command
 EX_CMD = namedtuple('ex_command', 'name command forced range plusplus_args plus_args args cmd_arg args_extra')
 ex_cmd_data = namedtuple('ex_cmd_data', 'command args')
-EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+)([-+]\d+)?))?')
+EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
 
 

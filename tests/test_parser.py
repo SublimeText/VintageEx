@@ -1,4 +1,10 @@
-from ex_command_parser import EX_ONLY_RANGE_REGEXP, extract_args, extract_command_name
+from ex_command_parser import EX_ONLY_RANGE_REGEXP, extract_args, \
+                                extract_command_name, EX_RANGE_REGEXP
+
+
+def test_full_cmd_regexp():
+    # assert EX_RANGE_REGEXP.search('/foo/').groups() == ('/foo')
+    assert EX_RANGE_REGEXP.search("'<,'>cmd").groups() == ('/foo')
 
 
 def test_is_only_range_regexp():
