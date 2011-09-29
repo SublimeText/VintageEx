@@ -46,6 +46,13 @@ def get_oem_cp():
     return str(codepage)
 
 
+def get_startup_info():
+    # Hide the child process window.
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    return startupinfo
+
+
 class ExGoto(sublime_plugin.TextCommand):
     def run(self, edit, range='', **kwargs):
         assert range, 'Range required.'
@@ -84,8 +91,11 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                                                             p.communicate()[0])
         elif os.name == 'nt':
             if forced:
-                p = subprocess.Popen(['cmd.exe', '/C', shell_cmd],
-                                                    stdout=subprocess.PIPE)
+                p = subprocess.Popen(
+                                    ['cmd.exe', '/C', shell_cmd],
+                                    stdout=subprocess.PIPE,
+                                    startupinfo=get_startup_info()
+                                    )
                 cp = 'cp' + get_oem_cp()
                 rv = p.communicate()[0].decode(cp)[:-2].strip()
                 self.view.insert(edit, self.view.sel()[0].begin(), rv)
