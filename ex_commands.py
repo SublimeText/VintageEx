@@ -51,15 +51,15 @@ class ExGoto(sublime_plugin.TextCommand):
 class ExShellOut(sublime_plugin.TextCommand):
     def run(self, edit, args='', **kwargs):
         if os.name == 'posix':
-            term = os.path.expandvars("$COLORTERM")
-            if ' ' in args:
-                args = "'" + args + "'"
+            term = os.path.expandvars("$COLORTERM") or \
+                                                    os.path.expandvars("$TERM")
             subprocess.Popen([term, '-e',
-                    "bash -c %s && read -p 'Press RETURN to exit.'" % args])
+                    "bash -c \"%s; read -p 'Press RETURN to exit.'\"" %
+                                                                args]).wait()
             return
         elif os.name == 'nt':
             if True:
-                subprocess.Popen(['cmd.exe', '/c', args + '&& pause'])
+                subprocess.Popen(['cmd.exe', '/c', args + '&& pause']).wait()
             else:
                 # xxx use powershell
                 pass
