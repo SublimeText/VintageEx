@@ -3,6 +3,7 @@ import sublime_plugin
 
 import os
 import subprocess
+import ctypes
 
 import ex_range
 
@@ -38,6 +39,11 @@ def get_buffer_range(view, text_range):
                         view.line(
                             view.text_point(b - 1, 0)).end())    
     return r
+
+
+def get_oem_cp():
+    codepage = ctypes.windll.kernel32.GetOEMCP()
+    return str(codepage)
 
 
 class ExGoto(sublime_plugin.TextCommand):
@@ -84,12 +90,8 @@ class ExReadShellOut(sublime_plugin.TextCommand):
             if forced:
                 p = subprocess.Popen(['cmd.exe', '/C', shell_cmd],
                                                     stdout=subprocess.PIPE)
-                # xxx I think only raymond chen can get this line right
-                # xxx :r! dir throws encoding error with utf_8_sig
-                # xxx :r! whoami throws error with utf_16_le
-                # xxx both if /U is passed to cmd.exe.
-                # FIXME get code page dynamically
-                rv = p.communicate()[0].decode('cp850')
+                cp = 'cp' + get_oem_cp()
+                rv = p.communicate()[0].decode(cp)[:-2].strip()
                 self.view.insert(edit, self.view.sel()[0].begin(), rv)
         else:
             sublime.status_message('VintageEx: Not implemented.')
