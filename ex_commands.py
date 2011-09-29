@@ -64,12 +64,7 @@ class ExShellOut(sublime_plugin.TextCommand):
                                                                 args]).wait()
             return
         elif os.name == 'nt':
-            if True:
-                subprocess.Popen(['cmd.exe', '/c', args + '&& pause']).wait()
-            else:
-                # xxx use powershell
-                pass
-
+            subprocess.Popen(['cmd.exe', '/c', args + '&& pause']).wait()
             return 
 
         sublime.status_message('VintageEx: Not implemented.')
@@ -77,6 +72,7 @@ class ExShellOut(sublime_plugin.TextCommand):
 
 class ExReadShellOut(sublime_plugin.TextCommand):
     def run(self, edit, shell_cmd='', forced=False, **kwargs):
+        # xxx fix this stuff. pass all arguments in a tidy manner
         if '_extra' in kwargs:
             shell_cmd += ' ' + kwargs['_extra']
         if os.name == 'posix':
