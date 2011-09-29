@@ -82,6 +82,7 @@ class ExShellOut(sublime_plugin.TextCommand):
                     p = subprocess.Popen([shell, '-c', args],
                                                         stdout=subprocess.PIPE)
                     self.view.replace(edit, s, p.communicate()[0])
+                return
         elif os.name == 'posix':
             term = os.path.expandvars("$COLORTERM") or \
                                                     os.path.expandvars("$TERM")
