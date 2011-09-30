@@ -107,22 +107,23 @@ class ExReadShellOut(sublime_plugin.TextCommand):
         if '_extra' in kwargs:
             shell_cmd += ' ' + kwargs['_extra']
         if os.name == 'posix':
-            if forced:
-                shell = os.path.expandvars("$SHELL")
-                p = subprocess.Popen([shell, '-c', shell_cmd],
-                                                    stdout=subprocess.PIPE)
-                self.view.insert(edit, self.view.sel()[0].begin(),
-                                                            p.communicate()[0])
+            for s in self.view.sel():
+                if forced:
+                    shell = os.path.expandvars("$SHELL")
+                    p = subprocess.Popen([shell, '-c', shell_cmd],
+                                                        stdout=subprocess.PIPE)
+                    self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
         elif os.name == 'nt':
-            if forced:
-                p = subprocess.Popen(
-                                    ['cmd.exe', '/C', shell_cmd],
-                                    stdout=subprocess.PIPE,
-                                    startupinfo=get_startup_info()
-                                    )
-                cp = 'cp' + get_oem_cp()
-                rv = p.communicate()[0].decode(cp)[:-2].strip()
-                self.view.insert(edit, self.view.sel()[0].begin(), rv)
+            for s in self.view.sel():
+                if forced:
+                    p = subprocess.Popen(
+                                        ['cmd.exe', '/C', shell_cmd],
+                                        stdout=subprocess.PIPE,
+                                        startupinfo=get_startup_info()
+                                        )
+                    cp = 'cp' + get_oem_cp()
+                    rv = p.communicate()[0].decode(cp)[:-2].strip()
+                    self.view.insert(edit, s.begin(), rv)
         else:
             sublime.status_message('VintageEx: Not implemented.')
 
