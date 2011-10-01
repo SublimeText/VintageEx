@@ -59,8 +59,8 @@ EX_COMMANDS = {
                                 residual_args_parsing=None),
     ('read', 'r'): ex_cmd_data(
                                 command='ex_read_shell_out',
-                                args=['shell_cmd'],
-                                wants_plusplus=False,
+                                args=['name'],
+                                wants_plusplus=True,
                                 wants_plus=False,
                                 residual_args_parsing=None),
     ('enew', 'ene'): ex_cmd_data(
@@ -211,6 +211,10 @@ def parse_command(cmd):
         cmd_arg= ''
 
     cmd_args = {}
+    if cmd_data.wants_plus:
+        cmd_args['plus_args'] = plus_args
+    if cmd_data.wants_plusplus:
+        cmd_args['plusplus_args'] = plusplus_args
     if cmd_data.residual_args_parsing:
         func = globals()[cmd_data.residual_args_parsing]
         cmd_args = func(args)

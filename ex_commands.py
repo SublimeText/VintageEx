@@ -102,24 +102,27 @@ class ExShellOut(sublime_plugin.TextCommand):
 
 
 class ExReadShellOut(sublime_plugin.TextCommand):
-    def run(self, edit, range='', shell_cmd='', forced=False):
-        if os.name == 'posix':
-            for s in self.view.sel():
-                shell = os.path.expandvars("$SHELL")
-                p = subprocess.Popen([shell, '-c', shell_cmd],
-                                                    stdout=subprocess.PIPE)
-                self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
-        elif os.name == 'nt':
-            for s in self.view.sel():
-                p = subprocess.Popen(
-                                    ['cmd.exe', '/C', shell_cmd],
-                                    stdout=subprocess.PIPE,
-                                    startupinfo=get_startup_info()
-                                    )
-                cp = 'cp' + get_oem_cp()
-                rv = p.communicate()[0].decode(cp)[:-2].strip()
-                self.view.insert(edit, s.begin(), rv)
+    def run(self, edit, range='', name='', plusplus_args='', forced=False):
+        print "XXX", locals()
+        if forced:
+            if os.name == 'posix':
+                for s in self.view.sel():
+                    shell = os.path.expandvars("$SHELL")
+                    p = subprocess.Popen([shell, '-c', name],
+                                                        stdout=subprocess.PIPE)
+                    self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
+            elif os.name == 'nt':
+                for s in self.view.sel():
+                    p = subprocess.Popen(
+                                        ['cmd.exe', '/C', name],
+                                        stdout=subprocess.PIPE,
+                                        startupinfo=get_startup_info()
+                                        )
+                    cp = 'cp' + get_oem_cp()
+                    rv = p.communicate()[0].decode(cp)[:-2].strip()
+                    self.view.insert(edit, s.begin(), rv)
         else:
+            # xxx read file "name"
             sublime.status_message('VintageEx: Not implemented.')
 
 
