@@ -39,6 +39,12 @@ EX_COMMANDS = {
                                 wants_plusplus=False,
                                 wants_plus=False,
                                 residual_args_parsing=None),
+    ('files', 'files'): ex_cmd_data(
+                                command='ex_prompt_select_open_file',
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
     ('ls', 'ls'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 args=[],
@@ -72,6 +78,18 @@ EX_COMMANDS = {
     ('ascii', 'as'): ex_cmd_data(
                                 command='ex_ascii',
                                 args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
+    ('file', 'f'): ex_cmd_data(
+                                command='ex_file',
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
+    ('move', 'move'): ex_cmd_data(
+                                command='ex_move',
+                                args=['address'],
                                 wants_plusplus=False,
                                 wants_plus=False,
                                 residual_args_parsing=None),

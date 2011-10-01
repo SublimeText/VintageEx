@@ -261,3 +261,60 @@ class ExNewFile(sublime_plugin.TextCommand):
 class ExAscii(sublime_plugin.TextCommand):
     def run(self, edit, range='', forced=False):
         handle_not_implemented()
+
+
+class ExFile(sublime_plugin.TextCommand):
+    def run(self, edit, range='', forced=False):
+        if self.view.file_name():
+            fname = self.view.file_name()
+        else:
+            fname = 'untitled' 
+        
+        attrs = ''
+        if self.view.is_read_only():
+            attrs = 'readonly' 
+        
+        if self.view.is_scratch():
+            attrs = 'modified'
+        
+        lines = 'no lines in the buffer'
+        if self.view.rowcol(self.view.size())[0]:
+            lines = self.view.rowcol(self.view.size())[0] + 1
+        
+        # fixme: doesn't calculate the buffer's % correctly
+        if not isinstance(lines, basestring):
+            vr = self.view.visible_region()
+            start_row, end_row = self.view.rowcol(vr.begin())[0], \
+                                              self.view.rowcol(vr.end())[0]
+            mid = (start_row + end_row + 2) / 2
+            percent = float(mid) / lines * 100.0
+        
+        msg = fname
+        if attrs:
+            msg += " [%s]" % attrs
+        if isinstance(lines, basestring):
+            msg += " -- %s --"  % lines
+        else:
+            msg += " %d line(s) --%d%%--" % (lines, int(percent))
+        
+        sublime.status_message('VintageEx: %s' % msg)
+
+
+class ExMove(sublime_plugin.TextCommand):
+    def run(self, edit, range='.', forced=False, address=''):
+        print locals()
+        # xxx: calculate address range
+        if not address or not address.strip().isdigit():
+            sublime.status_message("VintageEx: Invalid address.") 
+            return
+        # xxx strip in the parsing phase instead
+        address = int(address.strip()) - 1
+
+        # xxx fully delete original line
+        a, b = ex_range.calculate_range(self.view, range)
+        r = sublime.Region(self.view.text_point(a - 1, 0),
+                                    self.view.text_point(b - 1, 0))
+        text = self.view.substr(self.view.line(r)) + '\n'
+        self.view.replace(edit, self.view.line(r), '')
+        dest = self.view.line(self.view.text_point(address, 0)).end() + 1
+        self.view.insert(edit, dest, text)
