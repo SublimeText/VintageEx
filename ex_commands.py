@@ -302,7 +302,6 @@ class ExFile(sublime_plugin.TextCommand):
 
 class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        print locals()
         # xxx: calculate address range
         if not address or not address.strip().isdigit():
             sublime.status_message("VintageEx: Invalid address.") 
@@ -318,3 +317,22 @@ class ExMove(sublime_plugin.TextCommand):
         self.view.replace(edit, self.view.line(r), '')
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         self.view.insert(edit, dest, text)
+
+
+class ExCopy(sublime_plugin.TextCommand):
+    def run(self, edit, range='.', forced=False, address=''):
+        # xxx: calculate address range
+        if not address or not address.strip().isdigit():
+            sublime.status_message("VintageEx: Invalid address.") 
+            return
+        # xxx strip in the parsing phase instead
+        address = int(address.strip()) - 1
+
+        # xxx fully delete original line
+        a, b = ex_range.calculate_range(self.view, range)
+        r = sublime.Region(self.view.text_point(a - 1, 0),
+                                    self.view.text_point(b - 1, 0))
+        text = self.view.substr(self.view.line(r)) + '\n'
+        dest = self.view.line(self.view.text_point(address, 0)).end() + 1
+        self.view.insert(edit, dest, text)
+

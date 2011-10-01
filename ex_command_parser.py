@@ -93,7 +93,20 @@ EX_COMMANDS = {
                                 wants_plusplus=False,
                                 wants_plus=False,
                                 residual_args_parsing=None),
+    ('copy', 'co'): ex_cmd_data(
+                                command='ex_copy',
+                                args=['address'],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
+    ('t', 't'): ex_cmd_data(
+                                command='ex_copy',
+                                args=['address'],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
 }
+
 
 
 def find_command(cmd_name):
