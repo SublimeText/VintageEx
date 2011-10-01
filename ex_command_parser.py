@@ -211,21 +211,18 @@ def parse_command(cmd):
         cmd_arg= ''
 
     cmd_args = {}
+    cmd_args_extra = ''
     if cmd_data.wants_plus:
         cmd_args['plus_args'] = plus_args
     if cmd_data.wants_plusplus:
         cmd_args['plusplus_args'] = plusplus_args
+        
     if cmd_data.residual_args_parsing:
         func = globals()[cmd_data.residual_args_parsing]
         cmd_args = func(args)
-        cmd_args_extra = ''
     else:
-        args = args.split(' ')
-        cmd_args_extra = ''
         if cmd_data.args and args:
-            cmd_args = dict(zip(cmd_data.args, args))
-        if len(args) > len(cmd_data.args):
-            cmd_args['_extra'] = ' '.join(args[len(cmd_data.args):])
+            cmd_args = dict(zip(cmd_data.args, [args]))
 
     return EX_CMD(name=command,
                     command=cmd_data.command,

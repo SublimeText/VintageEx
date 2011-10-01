@@ -103,7 +103,8 @@ class ExShellOut(sublime_plugin.TextCommand):
 
 class ExReadShellOut(sublime_plugin.TextCommand):
     def run(self, edit, range='', name='', plusplus_args='', forced=False):
-        print "XXX", locals()
+        # cheat a little bit to get the parsing right:
+        #   - forced == True means we need to execute a command
         if forced:
             if os.name == 'posix':
                 for s in self.view.sel():
@@ -123,6 +124,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                     self.view.insert(edit, s.begin(), rv)
         else:
             # xxx read file "name"
+            # we need proper filesystem autocompletion here
             sublime.status_message('VintageEx: Not implemented.')
 
 
