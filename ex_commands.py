@@ -12,6 +12,10 @@ except ImportError:
 import ex_range
 
 
+def handle_not_implemented():
+    sublime.status_message('VintageEx: Not implemented')
+
+
 def gather_buffer_info(v):
     """gathers data to be displayed by :ls or :buffers
     """
@@ -252,3 +256,8 @@ class ExWriteAll(sublime_plugin.TextCommand):
 class ExNewFile(sublime_plugin.TextCommand):
     def run(self, edit, **kwargs):
         self.view.window().run_command('new_file')
+
+
+class ExAscii(sublime_plugin.TextCommand):
+    def run(self, edit, range='', forced=False):
+        handle_not_implemented()

@@ -69,6 +69,12 @@ EX_COMMANDS = {
                                 wants_plusplus=True,
                                 wants_plus=True,
                                 residual_args_parsing=None),
+    ('ascii', 'as'): ex_cmd_data(
+                                command='ex_ascii',
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
 }
 
 
