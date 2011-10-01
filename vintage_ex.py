@@ -22,10 +22,8 @@ class ViColonInput(sublime_plugin.TextCommand):
         ex_cmd = parse_command(cmd_line)
         if ex_cmd and ex_cmd.name and (ex_cmd.name.isalpha()
                                                     or ex_cmd.name == ':'):
-            args = ex_cmd._asdict()
-            del args['args']
-            args.update(ex_cmd.args)
-            self.view.run_command(ex_cmd.command, args)
+            ex_cmd.args['range'] = ex_cmd.range
+            self.view.run_command(ex_cmd.command, ex_cmd.args)
         elif ex_cmd and ex_cmd.name == '!':
             self.view.run_command('ex_shell_out', {'args': ex_cmd.args})
         else:

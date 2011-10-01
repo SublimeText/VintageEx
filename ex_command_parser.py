@@ -3,13 +3,13 @@
 
 
 from collections import namedtuple
-from itertools import takewhile
+from itertools import takewhile, dropwhile
 import re
 
 
 # holds info about an ex command
 EX_CMD = namedtuple('ex_command', 'name command forced range plusplus_args plus_args args cmd_arg args_extra')
-ex_cmd_data = namedtuple('ex_cmd_data', 'command args')
+ex_cmd_data = namedtuple('ex_cmd_data', 'command args wants_plusplus wants_plus residual_args_parsing')
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
 
@@ -17,34 +17,58 @@ EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+
 EX_COMMANDS = {
     ('write', 'w'): ex_cmd_data(
                                 command='ex_write_file',
-                                args=['file_name']),
+                                args=[],
+                                wants_plusplus=True,
+                                wants_plus=True,
+                                residual_args_parsing='extract_write_args'),
     ('wall', 'wa'): ex_cmd_data(
                                 command='ex_write_all',
-                                args=[]),
-    ('wall', 'wa'): ex_cmd_data(
-                                command='ex_write_all',
-                                args=[]),
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
     ('pwd', 'pw'): ex_cmd_data(
                                 command='ex_print_working_dir',
-                                args=[]),
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
     ('buffers', 'buffers'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
-                                args=[]),
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
     ('ls', 'ls'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
-                                args=[]),
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
     ('map', 'map'): ex_cmd_data(
                                 command='ex_map',
-                                args=[]),
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
     ('abbreviate', 'ab'): ex_cmd_data(
                                 command='ex_abbreviate',
-                                args=[]),
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
     ('read', 'r'): ex_cmd_data(
                                 command='ex_read_shell_out',
-                                args=['shell_cmd']),
+                                args=['shell_cmd'],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                residual_args_parsing=None),
     ('enew', 'ene'): ex_cmd_data(
                                 command='ex_new_file',
-                                args=['']),
+                                args=[],
+                                wants_plusplus=True,
+                                wants_plus=True,
+                                residual_args_parsing=None),
 }
 
 
@@ -78,6 +102,38 @@ def get_cmd_line_range(cmd_line):
 
 def extract_command_name(cmd_line):
     return ''.join(takewhile(lambda c: c.isalpha(), cmd_line))
+
+
+def extract_write_args(args):
+    if '>>' in args:
+        left, operator, right = args.partition('>>')
+    elif '!' in args and not ('! ' in args or args.endswith('!')):
+        left, operator, right = args.partition('!')
+    else:
+        left = args
+        operator = None
+        right = ''
+
+    if operator:
+        if operator == '!':
+            return {
+                'operator': operator,
+                'plusplus_args': left,
+                'subcmd': right
+            }
+        else:
+            return {
+                'operator': operator,
+                'plusplus_args': left,
+                'target_redirect': right
+            }
+    
+    left_tokens = left.split(' ')
+    return {'file_name': ' '.join(dropwhile(lambda x: x.startswith('++') or
+                                not x, left_tokens)),
+            'plusplus_args': ' '.join(takewhile(lambda x: x.startswith('++')
+                                    or not x, left_tokens))
+    }
 
 
 def extract_args(cmd_line):
@@ -143,19 +199,29 @@ def parse_command(cmd):
         bang = True
         args = args[1:]
 
-    plus_args, plusplus_args, args, cmd_arg = extract_args(args)
-
     cmd_data = find_command(command)
     if not cmd_data: return None
     cmd_data = EX_COMMANDS[cmd_data]
 
+    if cmd_data.wants_plusplus or cmd_data.wants_plus:
+        plus_args, plusplus_args, args, cmd_arg = extract_args(args)
+    else:
+        plus_args = '',
+        plusplus_args= '',
+        cmd_arg= ''
+
     cmd_args = {}
-    args = args.split(' ')
-    cmd_args_extra = ''
-    if cmd_data.args and args:
-        cmd_args = dict(zip(cmd_data.args, args))
-    if len(args) > len(cmd_data.args):
-        cmd_args['_extra'] = ' '.join(args[len(cmd_data.args):])
+    if cmd_data.residual_args_parsing:
+        func = globals()[cmd_data.residual_args_parsing]
+        cmd_args = func(args)
+        cmd_args_extra = ''
+    else:
+        args = args.split(' ')
+        cmd_args_extra = ''
+        if cmd_data.args and args:
+            cmd_args = dict(zip(cmd_data.args, args))
+        if len(args) > len(cmd_data.args):
+            cmd_args['_extra'] = ' '.join(args[len(cmd_data.args):])
 
     return EX_CMD(name=command,
                     command=cmd_data.command,

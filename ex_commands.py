@@ -102,28 +102,23 @@ class ExShellOut(sublime_plugin.TextCommand):
 
 
 class ExReadShellOut(sublime_plugin.TextCommand):
-    def run(self, edit, shell_cmd='', forced=False, **kwargs):
-        # xxx fix this stuff. pass all arguments in a tidy manner
-        if '_extra' in kwargs:
-            shell_cmd += ' ' + kwargs['_extra']
+    def run(self, edit, range='', shell_cmd='', forced=False):
         if os.name == 'posix':
             for s in self.view.sel():
-                if forced:
-                    shell = os.path.expandvars("$SHELL")
-                    p = subprocess.Popen([shell, '-c', shell_cmd],
-                                                        stdout=subprocess.PIPE)
-                    self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
+                shell = os.path.expandvars("$SHELL")
+                p = subprocess.Popen([shell, '-c', shell_cmd],
+                                                    stdout=subprocess.PIPE)
+                self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
         elif os.name == 'nt':
             for s in self.view.sel():
-                if forced:
-                    p = subprocess.Popen(
-                                        ['cmd.exe', '/C', shell_cmd],
-                                        stdout=subprocess.PIPE,
-                                        startupinfo=get_startup_info()
-                                        )
-                    cp = 'cp' + get_oem_cp()
-                    rv = p.communicate()[0].decode(cp)[:-2].strip()
-                    self.view.insert(edit, s.begin(), rv)
+                p = subprocess.Popen(
+                                    ['cmd.exe', '/C', shell_cmd],
+                                    stdout=subprocess.PIPE,
+                                    startupinfo=get_startup_info()
+                                    )
+                cp = 'cp' + get_oem_cp()
+                rv = p.communicate()[0].decode(cp)[:-2].strip()
+                self.view.insert(edit, s.begin(), rv)
         else:
             sublime.status_message('VintageEx: Not implemented.')
 
@@ -180,13 +175,20 @@ class ExPrintWorkingDir(sublime_plugin.TextCommand):
 
 
 class ExWriteFile(sublime_plugin.TextCommand):
-    def run(self, edit, file_name='', range=None, forced=False,
-            plusplus_args='', plus_args='', args='', cmd_arg='', **kwargs):
-        appending = file_name == '>>'
-        if appending: file_name = kwargs['args_extra']
+    def run(self, edit,
+                range=None,
+                forced=False,
+                file_name='',
+                plusplus_args='',
+                operator='',
+                target_redirect='',
+                subcmd=''):
+        appending = operator == '>>'
+        # if appending: file_name = kwargs['args_extra']
 
         if range:
             r = get_buffer_range(self.view, range)
+            print locals()
             if file_name and file_name != os.path.basename(
                                                         self.view.file_name()):
                 if appending:
