@@ -70,13 +70,13 @@ class ExGoto(sublime_plugin.TextCommand):
 
 
 class ExShellOut(sublime_plugin.TextCommand):
-    def run(self, edit, args='', **kwargs):
+    def run(self, edit, shell_cmd=''):
         sels = self.view.sel()
         if all([(s.a != s.b) for s in sels]):
             if os.name == 'nt':
                 for s in self.view.sel():
                     p = subprocess.Popen(
-                                        ['cmd.exe', '/C', args],
+                                        ['cmd.exe', '/C', shell_cmd],
                                         stdout=subprocess.PIPE,
                                         startupinfo=get_startup_info()
                                         )
@@ -87,7 +87,7 @@ class ExShellOut(sublime_plugin.TextCommand):
             elif os.name == 'posix':
                 for s in self.view.sel():
                     shell = os.path.expandvars("$SHELL")
-                    p = subprocess.Popen([shell, '-c', args],
+                    p = subprocess.Popen([shell, '-c', shell_cmd],
                                                         stdout=subprocess.PIPE)
                     self.view.replace(edit, s, p.communicate()[0][:-1])
                 return
@@ -96,10 +96,10 @@ class ExShellOut(sublime_plugin.TextCommand):
                                                     os.path.expandvars("$TERM")
             subprocess.Popen([term, '-e',
                     "bash -c \"%s; read -p 'Press RETURN to exit.'\"" %
-                                                                args]).wait()
+                                                            shell_cmd]).wait()
             return
         elif os.name == 'nt':
-            subprocess.Popen(['cmd.exe', '/c', args + '&& pause']).wait()
+            subprocess.Popen(['cmd.exe', '/c', shell_cmd + '&& pause']).wait()
             return 
 
         sublime.status_message('VintageEx: Not implemented.')
