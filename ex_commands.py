@@ -41,12 +41,22 @@ def gather_buffer_info(v):
     return [leaf, path]
 
 
-def get_buffer_range(view, text_range):
+def get_region_by_range(view, text_range):
     a, b = ex_range.calculate_range(view, text_range)
     r = sublime.Region(view.text_point(a - 1, 0),
                         view.line(
                             view.text_point(b - 1, 0)).end())    
     return r
+
+
+def calculate_address(view, text_range):
+    """calculates single line address based on a range.
+    """
+    # doublecheck allowed ranges with vim
+    # xxx strip in the parsing phase instead
+    a, b = ex_range.calculate_range(view, text_range.strip())
+    address = (max(a, b) if all((a, b)) else (a or b)) or 0
+    return address - 1
 
 
 def get_oem_cp():
@@ -207,7 +217,7 @@ class ExWriteFile(sublime_plugin.TextCommand):
         # if appending: file_name = kwargs['args_extra']
 
         if range:
-            r = get_buffer_range(self.view, range)
+            r = get_region_by_range(self.view, range)
             print locals()
             if file_name and file_name != os.path.basename(
                                                         self.view.file_name()):
@@ -302,37 +312,28 @@ class ExFile(sublime_plugin.TextCommand):
 
 class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        # xxx: calculate address range
-        if not address or not address.strip().isdigit():
+        range = range or '.'
+        if not address:
             sublime.status_message("VintageEx: Invalid address.") 
             return
-        # xxx strip in the parsing phase instead
-        address = int(address.strip()) - 1
+        address = calculate_address(self.view, address)
 
-        # xxx fully delete original line
-        a, b = ex_range.calculate_range(self.view, range)
-        r = sublime.Region(self.view.text_point(a - 1, 0),
-                                    self.view.text_point(b - 1, 0))
+        r = get_region_by_range(self.view, range)
         text = self.view.substr(self.view.line(r)) + '\n'
-        self.view.replace(edit, self.view.line(r), '')
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         self.view.insert(edit, dest, text)
+        self.view.replace(edit, self.view.full_line(r), '')
 
 
 class ExCopy(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        # xxx: calculate address range
-        if not address or not address.strip().isdigit():
+        range = range or '.'
+        if not address:
             sublime.status_message("VintageEx: Invalid address.") 
             return
-        # xxx strip in the parsing phase instead
-        address = int(address.strip()) - 1
+        address = calculate_address(self.view, address)
 
-        # xxx fully delete original line
-        a, b = ex_range.calculate_range(self.view, range)
-        r = sublime.Region(self.view.text_point(a - 1, 0),
-                                    self.view.text_point(b - 1, 0))
+        r = get_region_by_range(self.view, range)
         text = self.view.substr(self.view.line(r)) + '\n'
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         self.view.insert(edit, dest, text)
-
