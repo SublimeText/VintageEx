@@ -15,8 +15,9 @@ class ViColonInput(sublime_plugin.TextCommand):
             return self.run(**args)
         return self.run()
         
-    def run(self):
-        self.view.window().show_input_panel('', ':', self.on_done, None, None)
+    def run(self, initial_text=':'):
+        self.view.window().show_input_panel('', initial_text,
+                                                    self.on_done, None, None)
     
     def on_done(self, cmd_line):
         ex_cmd = parse_command(cmd_line)

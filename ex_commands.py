@@ -43,11 +43,15 @@ def gather_buffer_info(v):
 
 
 def get_region_by_range(view, text_range):
+    # xxx move this further down into the range parsing?
+    if text_range.replace(' ', '') == "'<,'>":
+        return list(view.sel())
+
     a, b = ex_range.calculate_range(view, text_range)
     r = sublime.Region(view.text_point(a - 1, 0),
                         view.line(
                             view.text_point(b - 1, 0)).end())    
-    return r
+    return [r]
 
 
 def calculate_address(view, text_range):
@@ -206,8 +210,7 @@ class ExWriteFile(sublime_plugin.TextCommand):
         appending = operator == '>>'
 
         if range:
-            r = get_region_by_range(self.view, range)
-            print locals()
+            r = get_region_by_range(self.view, range)[0]
             if file_name and file_name != os.path.basename(
                                                         self.view.file_name()):
                 if appending:
@@ -306,7 +309,7 @@ class ExMove(sublime_plugin.TextCommand):
         assert range, "Need a range."
         address = calculate_address(self.view, address)
 
-        r = get_region_by_range(self.view, range)
+        r = get_region_by_range(self.view, range)[0]
         text = self.view.substr(self.view.line(r)) + '\n'
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         self.view.insert(edit, dest, text)
@@ -318,43 +321,78 @@ class ExCopy(sublime_plugin.TextCommand):
         assert range, "Need a range."
         address = calculate_address(self.view, address)
 
-        r = get_region_by_range(self.view, range)
+        r = get_region_by_range(self.view, range)[0]
         text = self.view.substr(self.view.line(r)) + '\n'
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         self.view.insert(edit, dest, text)
 
 
 class ExSubstitute(sublime_plugin.TextCommand):
-    last_pattern = ''
+    last_pattern = None
+    last_flags = ''
     parts_rgex = re.compile(r"([:/])(.*?)(\1)(.*?)(\1)([a-zA-Z]+)?( \d+)?")
     def run(self, edit, range='.', pattern=''):
-        if not (pattern or ExSubstitute.last_pattern):
-            sublime.status_message("VintageEx: No pattern available.")
-            return
-        
-        pattern = ExSubstitute.last_pattern = \
-                                        pattern or ExSubstitute.last_pattern
+        range = range or '.'
 
+        # we either accept a full pattern plus flags and count arg
+        # ... or ...
+        # simply a command in the following forms:
+        #   :s
+        #   :s gi
+        #   :s gi 10
+        #   :s 10
         try:
             sep, left, _, right, _, flags, count = \
                             ExSubstitute.parts_rgex.search(pattern).groups()
+            ExSubstitute.last_pattern = (left, right)
+            ExSubstitute.last_flags = flags
         except AttributeError:
-            sublime.status_message("VintageEx: bad pattern")
-            return
+            if not ExSubstitute.last_pattern:
+                sublime.status_message("VintageEx: No pattern available.")
+                return
+            left, _, right = pattern.strip().partition(' ')
+            flags, count = '', None
+            if left and left.strip().isalpha():
+                flags = left
+                if right and right.isdigit():
+                    count = int(right)
+                elif right:
+                    sublime.status_message('VintageEx: Bad pattern.') 
+                    return
+            elif left and left.strip().isdigit():
+                count = int(left)
+            
+            if flags or count:
+                pattern = ''
+        
+        if not pattern:
+            left, right = ExSubstitute.last_pattern
 
         re_flags = 0
         re_flags |= re.IGNORECASE if (flags and 'i' in flags) else 0
         left = re.compile(left, flags=re_flags)
+
+        if count and range == '.':
+            range = '.,.+%d' % int(count)
+        elif count:
+            a, b = ex_range.calculate_range(self.view, range)
+            if not a and b:
+                b = max(a, b)
+            range = "%d,%d+%d" % (b, b, int(count))
+
         target_region = get_region_by_range(self.view, range)
-        count = 0 if (flags and 'g' in flags) else 1
+        # only in this case might the selection be out of sync with the
+        # user's range
+        if len(target_region) == 1:
+            self.view.sel().clear()
+            self.view.sel().add(target_region[0])
 
-        self.view.sel().clear()
-        self.view.sel().add(target_region)
-        self.view.run_command('split_into_lines')
+        self.view.run_command('split_selection_into_lines')
 
+        replace_count = 0 if (flags and 'g' in flags) else 1
         for r in reversed(self.view.sel()):
-            line_text = self.view.substr(r)
-            rv = re.sub(left, right, line_text, count=count)
-            self.view.replace(edit, r, rv)
-        
-
+            # be explicit about replacing the line, because we might be looking
+            # at a Ctrl+D sequence of regions (not spanning a whole line)
+            line_text = self.view.substr(self.view.line(r))
+            rv = re.sub(left, right, line_text, count=replace_count)
+            self.view.replace(edit, self.view.line(r), rv)
