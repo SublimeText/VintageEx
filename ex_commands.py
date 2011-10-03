@@ -203,7 +203,6 @@ class ExWriteFile(sublime_plugin.TextCommand):
                 target_redirect='',
                 subcmd=''):
         appending = operator == '>>'
-        # if appending: file_name = kwargs['args_extra']
 
         if range:
             r = get_region_by_range(self.view, range)
