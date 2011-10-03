@@ -8,12 +8,16 @@ import re
 
 
 # holds info about a parsed ex command
-EX_CMD = namedtuple('ex_command', 'name command forced range args')
+EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 # defines an ex command data for later parsing
-ex_cmd_data = namedtuple('ex_cmd_data', 'command args wants_plusplus wants_plus args_parser')
+ex_cmd_data = namedtuple('ex_cmd_data', 'command args wants_plusplus wants_plus args_parser error_on')
 
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
+
+ERR_TRAILING_CHARS = 0
+ERR_NO_BANG = 1
+ERR_RANGE = 2
 
 
 EX_COMMANDS = {
@@ -22,92 +26,127 @@ EX_COMMANDS = {
                                 args=[],
                                 wants_plusplus=True,
                                 wants_plus=True,
-                                args_parser='extract_write_args'),
+                                args_parser='extract_write_args',
+                                error_on=None
+                                ),
     ('wall', 'wa'): ex_cmd_data(
                                 command='ex_write_all',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('pwd', 'pw'): ex_cmd_data(
                                 command='ex_print_working_dir',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=(ERR_TRAILING_CHARS, ERR_NO_BANG,
+                                            ERR_RANGE)
+                                ),
     ('buffers', 'buffers'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('files', 'files'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('ls', 'ls'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('map', 'map'): ex_cmd_data(
                                 command='ex_map',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('abbreviate', 'ab'): ex_cmd_data(
                                 command='ex_abbreviate',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('read', 'r'): ex_cmd_data(
                                 command='ex_read_shell_out',
                                 args=['name'],
                                 wants_plusplus=True,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('enew', 'ene'): ex_cmd_data(
                                 command='ex_new_file',
                                 args=[],
                                 wants_plusplus=True,
                                 wants_plus=True,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('ascii', 'as'): ex_cmd_data(
                                 command='ex_ascii',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('file', 'f'): ex_cmd_data(
                                 command='ex_file',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('move', 'move'): ex_cmd_data(
                                 command='ex_move',
                                 args=['address'],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('copy', 'co'): ex_cmd_data(
                                 command='ex_copy',
                                 args=['address'],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
     ('t', 't'): ex_cmd_data(
                                 command='ex_copy',
                                 args=['address'],
                                 wants_plusplus=False,
                                 wants_plus=False,
-                                args_parser=None),
+                                args_parser=None,
+                                error_on=None
+                                ),
 }
+
+
+class ExCommandError(Exception):
+    pass
 
 
 def find_command(cmd_name):
@@ -204,6 +243,7 @@ def parse_command(cmd):
                         forced=False,
                         range=cmd_name,
                         args={},
+                        parse_errors=None
                         )
 
     if cmd_name.startswith('!'):
@@ -214,6 +254,7 @@ def parse_command(cmd):
                         forced=False,
                         range=None,
                         args={'shell_cmd': args},
+                        parse_errors=None
                         )
 
     range_ = get_cmd_line_range(cmd_name)
@@ -249,10 +290,21 @@ def parse_command(cmd):
     else:
         if cmd_data.args and args:
             cmd_args = dict(zip(cmd_data.args, [args]))
+    
+    parse_errors = []
+    if cmd_data.error_on:
+        for err in cmd_data.error_on:
+            if err == ERR_NO_BANG and bang:
+                parse_errors.append('No "!" allowed.')
+            if err == ERR_TRAILING_CHARS and args:
+                parse_errors.append('Trailing characters.')
+            if err == ERR_RANGE and range_:
+                parse_errors.append('Range not allowed.')
 
     return EX_CMD(name=command,
                     command=cmd_data.command,
                     forced=bang,
                     range=range_,
                     args=cmd_args,
+                    parse_errors=parse_errors
                     )

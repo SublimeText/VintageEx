@@ -189,18 +189,7 @@ class ExAbbreviate(sublime_plugin.TextCommand):
 
 
 class ExPrintWorkingDir(sublime_plugin.TextCommand):
-    def run(self, edit, range='', forced=False):
-        # xxx don't accept uneeded arguments
-        # xxx make all commands receive a "residual_args" arg and fail if
-        # present when invalid. behavior of commands with regards to this
-        # residual args seems to be inconsistent in vim
-        if range:
-            sublime.status_message('VintageEx: No range allowed.')
-            return
-        if forced:
-            sublime.status_message('VintageEx: No ! allowed.')
-            return
-
+    def run(self, edit):
         sublime.status_message(os.getcwd())
 
 
