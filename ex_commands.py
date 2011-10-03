@@ -303,10 +303,7 @@ class ExFile(sublime_plugin.TextCommand):
 
 class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        range = range or '.'
-        if not address:
-            sublime.status_message("VintageEx: Invalid address.") 
-            return
+        assert range, "Need a range."
         address = calculate_address(self.view, address)
 
         r = get_region_by_range(self.view, range)
@@ -318,10 +315,7 @@ class ExMove(sublime_plugin.TextCommand):
 
 class ExCopy(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        range = range or '.'
-        if not address:
-            sublime.status_message("VintageEx: Invalid address.") 
-            return
+        assert range, "Need a range."
         address = calculate_address(self.view, address)
 
         r = get_region_by_range(self.view, range)
