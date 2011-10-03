@@ -15,9 +15,9 @@ ex_cmd_data = namedtuple('ex_cmd_data', 'command args wants_plusplus wants_plus 
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
 
-ERR_TRAILING_CHARS = 0
-ERR_NO_BANG = 1
-ERR_RANGE = 2
+ERR_UNWANTED_ARGS = 0
+ERR_UNWANTED_BANG = 1
+ERR_UNWANTED_RANGE = 2
 
 
 EX_COMMANDS = {
@@ -43,8 +43,9 @@ EX_COMMANDS = {
                                 wants_plusplus=False,
                                 wants_plus=False,
                                 args_parser=None,
-                                error_on=(ERR_TRAILING_CHARS, ERR_NO_BANG,
-                                            ERR_RANGE)
+                                error_on=(ERR_UNWANTED_RANGE,
+                                            ERR_UNWANTED_BANG,
+                                            ERR_UNWANTED_ARGS)
                                 ),
     ('buffers', 'buffers'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
@@ -97,10 +98,10 @@ EX_COMMANDS = {
     ('enew', 'ene'): ex_cmd_data(
                                 command='ex_new_file',
                                 args=[],
-                                wants_plusplus=True,
-                                wants_plus=True,
+                                wants_plusplus=False,
+                                wants_plus=False,
                                 args_parser=None,
-                                error_on=None
+                                error_on=(ERR_UNWANTED_ARGS,)
                                 ),
     ('ascii', 'as'): ex_cmd_data(
                                 command='ex_ascii',
@@ -108,15 +109,18 @@ EX_COMMANDS = {
                                 wants_plusplus=False,
                                 wants_plus=False,
                                 args_parser=None,
-                                error_on=None
+                                error_on=(ERR_UNWANTED_RANGE,
+                                            ERR_UNWANTED_BANG,
+                                            ERR_UNWANTED_ARGS)
                                 ),
+    # vim help doesn't say this command takes any args, but it does
     ('file', 'f'): ex_cmd_data(
                                 command='ex_file',
                                 args=[],
                                 wants_plusplus=False,
                                 wants_plus=False,
                                 args_parser=None,
-                                error_on=None
+                                error_on=(ERR_UNWANTED_RANGE,)
                                 ),
     ('move', 'move'): ex_cmd_data(
                                 command='ex_move',
@@ -143,10 +147,6 @@ EX_COMMANDS = {
                                 error_on=None
                                 ),
 }
-
-
-class ExCommandError(Exception):
-    pass
 
 
 def find_command(cmd_name):
@@ -294,11 +294,11 @@ def parse_command(cmd):
     parse_errors = []
     if cmd_data.error_on:
         for err in cmd_data.error_on:
-            if err == ERR_NO_BANG and bang:
+            if err == ERR_UNWANTED_BANG and bang:
                 parse_errors.append('No "!" allowed.')
-            if err == ERR_TRAILING_CHARS and args:
+            if err == ERR_UNWANTED_ARGS and args:
                 parse_errors.append('Trailing characters.')
-            if err == ERR_RANGE and range_:
+            if err == ERR_UNWANTED_RANGE and range_:
                 parse_errors.append('Range not allowed.')
 
     return EX_CMD(name=command,

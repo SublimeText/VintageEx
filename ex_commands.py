@@ -72,7 +72,7 @@ def get_startup_info():
 
 
 class ExGoto(sublime_plugin.TextCommand):
-    def run(self, edit, range='', **kwargs):
+    def run(self, edit, range=''):
         assert range, 'Range required.'
         a, b = ex_range.calculate_range(self.view, range, is_only_range=True)
         target = (max(a, b) if all((a, b)) else (a or b)) or 0
@@ -143,7 +143,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
 
 
 class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
-    def run(self, edit, **kwargs):
+    def run(self, edit):
         self.file_names = [gather_buffer_info(v)
                                         for v in self.view.window().views()]
         self.view.window().show_quick_panel(self.file_names, self.on_done)
@@ -163,7 +163,7 @@ class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
 class ExMap(sublime_plugin.TextCommand):
     # do at least something moderately useful: open the user's .sublime-keymap
     # file
-    def run(self, edit, **kwargs):
+    def run(self, edit):
         if os.name == 'nt':
             plat = 'Windows'
         elif os.name == 'posix':
@@ -176,7 +176,7 @@ class ExMap(sublime_plugin.TextCommand):
 
 class ExAbbreviate(sublime_plugin.TextCommand):
     # for them moment, just open a completions file.
-    def run(self, edit, **kwargs):
+    def run(self, edit):
         abbreviations_file = os.path.join(
                                     sublime.packages_path(),
                                     'User/Vintage Abbreviations.sublime-completions'
@@ -246,14 +246,14 @@ class ExWriteFile(sublime_plugin.TextCommand):
 
 
 class ExWriteAll(sublime_plugin.TextCommand):
-    def run(self, edit, **kwargs):
+    def run(self, edit, forced=False):
         for v in self.view.window().views():
             if v.is_dirty():
                 v.run_command('save')
 
 
 class ExNewFile(sublime_plugin.TextCommand):
-    def run(self, edit, **kwargs):
+    def run(self, edit, forced=False):
         self.view.window().run_command('new_file')
 
 
@@ -263,7 +263,9 @@ class ExAscii(sublime_plugin.TextCommand):
 
 
 class ExFile(sublime_plugin.TextCommand):
-    def run(self, edit, range='', forced=False):
+    def run(self, edit, forced=False):
+        # xxx figure out what the right params are. vim's help seems to be
+        # wrong
         if self.view.file_name():
             fname = self.view.file_name()
         else:
