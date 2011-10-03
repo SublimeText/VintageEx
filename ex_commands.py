@@ -3,6 +3,7 @@ import sublime_plugin
 
 import os
 import subprocess
+import re
 
 try:
     import ctypes
@@ -327,3 +328,28 @@ class ExCopy(sublime_plugin.TextCommand):
         text = self.view.substr(self.view.line(r)) + '\n'
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         self.view.insert(edit, dest, text)
+
+
+class ExSubstitute(sublime_plugin.TextCommand):
+    def run(self, edit, range='.', pattern=''):
+        parts_rgex = re.compile(r"([:/])(.*?)(\1)(.*?)(\1)([a-zA-Z]+)?( \d+)?")
+        try:
+            sep, left, _, right, _, flags, count = \
+                                            parts_rgex.search(pattern).groups()
+        except AttributeError:
+            sublime.status_message("VintageEx: bad pattern")
+            return
+
+        left = re.compile(left)
+        target_region = get_region_by_range(self.view, range)
+
+        self.view.sel().clear()
+        self.view.sel().add(target_region)
+        self.view.run_command('split_into_lines')
+
+        for r in reversed(self.view.sel()):
+            line_text = self.view.substr(r)
+            rv = re.sub(left, right, line_text)
+            self.view.replace(edit, r, rv)
+        
+

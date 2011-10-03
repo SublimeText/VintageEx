@@ -146,6 +146,14 @@ EX_COMMANDS = {
                                 args_parser=None,
                                 error_on=None
                                 ),
+    ('substitute', 's'): ex_cmd_data(
+                                command='ex_substitute',
+                                args=['pattern'],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                args_parser=None,
+                                error_on=None
+                                ),
 }
 
 
