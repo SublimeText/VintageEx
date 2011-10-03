@@ -325,17 +325,28 @@ class ExCopy(sublime_plugin.TextCommand):
 
 
 class ExSubstitute(sublime_plugin.TextCommand):
+    last_pattern = ''
+    parts_rgex = re.compile(r"([:/])(.*?)(\1)(.*?)(\1)([a-zA-Z]+)?( \d+)?")
     def run(self, edit, range='.', pattern=''):
-        parts_rgex = re.compile(r"([:/])(.*?)(\1)(.*?)(\1)([a-zA-Z]+)?( \d+)?")
+        if not (pattern or ExSubstitute.last_pattern):
+            sublime.status_message("VintageEx: No pattern available.")
+            return
+        
+        pattern = ExSubstitute.last_pattern = \
+                                        pattern or ExSubstitute.last_pattern
+
         try:
             sep, left, _, right, _, flags, count = \
-                                            parts_rgex.search(pattern).groups()
+                            ExSubstitute.parts_rgex.search(pattern).groups()
         except AttributeError:
             sublime.status_message("VintageEx: bad pattern")
             return
 
-        left = re.compile(left)
+        re_flags = 0
+        re_flags |= re.IGNORECASE if (flags and 'i' in flags) else 0
+        left = re.compile(left, flags=re_flags)
         target_region = get_region_by_range(self.view, range)
+        count = 0 if (flags and 'g' in flags) else 1
 
         self.view.sel().clear()
         self.view.sel().add(target_region)
@@ -343,7 +354,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
 
         for r in reversed(self.view.sel()):
             line_text = self.view.substr(r)
-            rv = re.sub(left, right, line_text)
+            rv = re.sub(left, right, line_text, count=count)
             self.view.replace(edit, r, rv)
         
 
