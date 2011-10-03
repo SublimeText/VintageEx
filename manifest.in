@@ -1,3 +1,4 @@
 include *.py
+exclude setup.py
 
 prune tests
