@@ -7,9 +7,11 @@ from itertools import takewhile, dropwhile
 import re
 
 
-# holds info about an ex command
-EX_CMD = namedtuple('ex_command', 'name command forced range plusplus_args plus_args args cmd_arg args_extra')
+# holds info about a parsed ex command
+EX_CMD = namedtuple('ex_command', 'name command forced range args')
+# defines an ex command data for later parsing
 ex_cmd_data = namedtuple('ex_cmd_data', 'command args wants_plusplus wants_plus args_parser')
+
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
 
@@ -108,7 +110,6 @@ EX_COMMANDS = {
 }
 
 
-
 def find_command(cmd_name):
     partial_matches = [name for name in EX_COMMANDS.keys()
                                             if name[0].startswith(cmd_name)]
@@ -176,7 +177,6 @@ def extract_write_args(args):
 def extract_args(cmd_line):
     plus_args = []
     plusplus_args = []
-    cmd_args = []
     args = []
     for i, token in enumerate(cmd_line.split(' ')):
         if token and token.startswith('++'):
@@ -187,11 +187,10 @@ def extract_args(cmd_line):
         elif not token.startswith('!'):
             args.append(token)
         else:
-            cmd_args = cmd_line.split(' ')[i:]
-            break
+            raise RuntimeError("Unexpected condition.")
     
     return ' '.join(plus_args), ' '.join(plusplus_args), \
-                                    ' '.join(args).strip(), ' '.join(cmd_args)
+                                    ' '.join(args).strip()
 
 
 def parse_command(cmd):
@@ -205,10 +204,6 @@ def parse_command(cmd):
                         forced=False,
                         range=cmd_name,
                         args={},
-                        args_extra='',
-                        plusplus_args='',
-                        plus_args='',
-                        cmd_arg=''
                         )
 
     if cmd_name.startswith('!'):
@@ -219,10 +214,6 @@ def parse_command(cmd):
                         forced=False,
                         range=None,
                         args={'shell_cmd': args},
-                        args_extra='',
-                        plusplus_args='',
-                        plus_args='',
-                        cmd_arg=''
                         )
 
     range_ = get_cmd_line_range(cmd_name)
@@ -241,14 +232,12 @@ def parse_command(cmd):
     cmd_data = EX_COMMANDS[cmd_data]
 
     if cmd_data.wants_plusplus or cmd_data.wants_plus:
-        plus_args, plusplus_args, args, cmd_arg = extract_args(args)
+        plus_args, plusplus_args, args = extract_args(args)
     else:
         plus_args = '',
         plusplus_args= '',
-        cmd_arg= ''
 
     cmd_args = {}
-    cmd_args_extra = ''
     if cmd_data.wants_plus:
         cmd_args['plus_args'] = plus_args
     if cmd_data.wants_plusplus:
@@ -266,8 +255,4 @@ def parse_command(cmd):
                     forced=bang,
                     range=range_,
                     args=cmd_args,
-                    args_extra=cmd_args_extra,
-                    plusplus_args=plusplus_args,
-                    plus_args=plus_args,
-                    cmd_arg=cmd_arg 
                     )
