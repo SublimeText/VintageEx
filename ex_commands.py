@@ -401,3 +401,22 @@ class ExSubstitute(sublime_plugin.TextCommand):
             line_text = self.view.substr(self.view.line(r))
             rv = re.sub(left, right, line_text, count=replace_count)
             self.view.replace(edit, self.view.line(r), rv)
+
+
+class ExDelete(sublime_plugin.TextCommand):
+    def run(self, edit, range='.', register='', count=''):
+        # xxx somewhat different to vim's behavior
+        if register.isdigit():
+            count = register
+            register = ''
+        
+        rs = get_region_by_range(self.view, range)
+        self.view.sel().clear()
+        for r in rs:
+            self.view.sel().add(r)
+        
+        self.view.run_command('split_selection_into_lines')
+        self.view.run_command('run_macro_file',
+                        {'file': 'Packages/Default/Delete Line.sublime-macro'})
+
+

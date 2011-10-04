@@ -164,6 +164,14 @@ EX_COMMANDS = {
                                             ERR_UNWANTED_BANG,
                                             ERR_UNWANTED_ARGS)
                                 ),
+    ('delete', 'd'): ex_cmd_data(
+                                command='ex_delete',
+                                args=['register', 'count'],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                args_parser=None,
+                                error_on=(ERR_UNWANTED_BANG,)
+                                ),
 }
 
 
@@ -306,8 +314,14 @@ def parse_command(cmd):
         func = globals()[cmd_data.args_parser]
         cmd_args = func(args)
     else:
+        # xxx improve arg parsing: parsed differently based on generic arg
+        # name like "address", "file_name", "count", etc.
         if cmd_data.args and args:
-            cmd_args = dict(zip(cmd_data.args, [args]))
+            if len(cmd_data.args) > 1:
+                args = args.strip().split(' ', len(cmd_data.args))
+            else:
+                args = [args.strip()]
+            cmd_args = dict(zip(cmd_data.args, args))
     
     parse_errors = []
     if cmd_data.error_on:
