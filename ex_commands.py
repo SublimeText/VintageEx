@@ -207,44 +207,32 @@ class ExWriteFile(sublime_plugin.TextCommand):
                 operator='',
                 target_redirect='',
                 subcmd=''):
+        
+        if file_name and target_redirect:
+            sublime.status_message('VintageEx: Too many arguments.')
+            return
+
         appending = operator == '>>'
-
-        if range:
-            r = get_region_by_range(self.view, range)[0]
-            if file_name and file_name != os.path.basename(
-                                                        self.view.file_name()):
-                if appending:
-                    # xxx open with codecs and append to the file
-                    pass
-                else:
-                    v = self.view.window().new_file()
-                    v.set_name(file_name)
-                    v_edit = v.begin_edit()
-                    v.insert(v_edit, 0, self.view.substr(r))
-                    v.end_edit(v_edit)
-            elif appending:
-                    self.view.insert(edit, self.view.size(),
-                                                    '\n' + self.view.substr(r))
-            else:
-                text = self.view.substr(r) 
-                self.view.insert(edit, 0, text)
-                self.view.replace(edit, sublime.Region(len(text), 
-                                            self.view.size()), '')
-            return
-
-        if file_name and file_name != os.path.basename(self.view.file_name()):
-            # xxx we should probably save right away
-            v = self.view.window().new_file()
-            v.insert(edit, 0, self.view.substr(
-                                        sublime.Region(0, self.view.size())))
-            v.set_name(file_name)
-            return
+        content = get_region_by_range(self.view, range)[0] if range else \
+                        sublime.Region(0, self.view.size())
         
-        if appending:
-            content = self.view.substr(sublime.Region(0, self.view.size()))
-            self.view.insert(edit, self.view.size(), '\n' + content)
+        if target_redirect or file_name:
+            target = self.view.window().new_file()
+            target.set_name(target_redirect or file_name)
+        else:
+            target = self.view
+
+        start = 0 if not appending else target.size()
+        prefix = '' if not appending else '\n'
         
-        if self.view.is_dirty():
+        if appending or target_redirect or file_name:
+            target.insert(edit, start, prefix + self.view.substr(content))
+        elif range:
+            text = self.view.substr(content) 
+            self.view.insert(edit, 0, text)
+            self.view.replace(edit, sublime.Region(len(text), 
+                                        self.view.size()), '')
+        else:
             self.view.run_command('save')
 
 
