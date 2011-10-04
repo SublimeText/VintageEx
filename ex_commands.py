@@ -88,7 +88,7 @@ class ExShellOut(sublime_plugin.TextCommand):
     def run(self, edit, shell_cmd=''):
         sels = self.view.sel()
         if all([(s.a != s.b) for s in sels]):
-            if os.name == 'nt':
+            if sublime.platform() == 'windows':
                 for s in self.view.sel():
                     p = subprocess.Popen(
                                         ['cmd.exe', '/C', shell_cmd],
@@ -99,21 +99,21 @@ class ExShellOut(sublime_plugin.TextCommand):
                     rv = p.communicate()[0].decode(cp)[:-2].strip()
                     self.view.replace(edit, s, rv)
                 return
-            elif os.name == 'posix':
+            elif sublime.platform() == 'linux':
                 for s in self.view.sel():
                     shell = os.path.expandvars("$SHELL")
                     p = subprocess.Popen([shell, '-c', shell_cmd],
                                                         stdout=subprocess.PIPE)
                     self.view.replace(edit, s, p.communicate()[0][:-1])
                 return
-        elif os.name == 'posix':
+        elif sublime.platform() == 'linux':
             term = os.path.expandvars("$COLORTERM") or \
                                                     os.path.expandvars("$TERM")
             subprocess.Popen([term, '-e',
                     "bash -c \"%s; read -p 'Press RETURN to exit.'\"" %
                                                             shell_cmd]).wait()
             return
-        elif os.name == 'nt':
+        elif sublime.platform() == 'windows':
             subprocess.Popen(['cmd.exe', '/c', shell_cmd + '&& pause']).wait()
             return 
 
@@ -125,13 +125,13 @@ class ExReadShellOut(sublime_plugin.TextCommand):
         # cheat a little bit to get the parsing right:
         #   - forced == True means we need to execute a command
         if forced:
-            if os.name == 'posix':
+            if sublime.platform() == 'linux':
                 for s in self.view.sel():
                     shell = os.path.expandvars("$SHELL")
                     p = subprocess.Popen([shell, '-c', name],
                                                         stdout=subprocess.PIPE)
                     self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
-            elif os.name == 'nt':
+            elif sublime.platform() == 'windows':
                 for s in self.view.sel():
                     p = subprocess.Popen(
                                         ['cmd.exe', '/C', name],
@@ -169,9 +169,9 @@ class ExMap(sublime_plugin.TextCommand):
     # do at least something moderately useful: open the user's .sublime-keymap
     # file
     def run(self, edit):
-        if os.name == 'nt':
+        if sublime.platform() == 'windows':
             plat = 'Windows'
-        elif os.name == 'posix':
+        elif sublime.platform() == 'linux':
             plat = 'Linux'
         else:
             plat = 'OSX'
