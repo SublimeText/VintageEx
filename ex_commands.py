@@ -124,7 +124,16 @@ class ExShellOut(sublime_plugin.TextCommand):
 
 class ExShell(sublime_plugin.TextCommand):
     def run(self, edit):
-        handle_not_implemented()
+        if sublime.platform() == 'linux':
+            term = os.path.expandvars("$COLORTERM") or \
+                                                    os.path.expandvars("$TERM")
+            subprocess.Popen([term, '-e', "bash"]).wait()
+            return
+        elif sublime.platform() == 'windows':
+            subprocess.Popen(['cmd.exe', '/k']).wait()
+            return 
+        else:
+            handle_not_implemented()
 
 
 class ExReadShellOut(sublime_plugin.TextCommand):

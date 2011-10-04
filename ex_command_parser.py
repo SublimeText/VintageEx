@@ -154,6 +154,16 @@ EX_COMMANDS = {
                                 args_parser=None,
                                 error_on=None
                                 ),
+    ('shell', 'sh'): ex_cmd_data(
+                                command='ex_shell',
+                                args=[],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                args_parser=None,
+                                error_on=(ERR_UNWANTED_RANGE,
+                                            ERR_UNWANTED_BANG,
+                                            ERR_UNWANTED_ARGS)
+                                ),
 }
 
 
