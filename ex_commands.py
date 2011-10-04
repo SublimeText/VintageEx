@@ -106,6 +106,8 @@ class ExShellOut(sublime_plugin.TextCommand):
                                                         stdout=subprocess.PIPE)
                     self.view.replace(edit, s, p.communicate()[0][:-1])
                 return
+            else:
+                handle_not_implemented()
         elif sublime.platform() == 'linux':
             term = os.path.expandvars("$COLORTERM") or \
                                                     os.path.expandvars("$TERM")
@@ -116,8 +118,13 @@ class ExShellOut(sublime_plugin.TextCommand):
         elif sublime.platform() == 'windows':
             subprocess.Popen(['cmd.exe', '/c', shell_cmd + '&& pause']).wait()
             return 
+        else:
+            handle_not_implemented()
 
-        sublime.status_message('VintageEx: Not implemented.')
+
+class ExShell(sublime_plugin.TextCommand):
+    def run(self, edit):
+        handle_not_implemented()
 
 
 class ExReadShellOut(sublime_plugin.TextCommand):
@@ -133,14 +140,15 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                     self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
             elif sublime.platform() == 'windows':
                 for s in self.view.sel():
-                    p = subprocess.Popen(
-                                        ['cmd.exe', '/C', name],
-                                        stdout=subprocess.PIPE,
-                                        startupinfo=get_startup_info()
-                                        )
+                    p = subprocess.Popen(['cmd.exe', '/C', name],
+                                            stdout=subprocess.PIPE,
+                                            startupinfo=get_startup_info()
+                                            )
                     cp = 'cp' + get_oem_cp()
                     rv = p.communicate()[0].decode(cp)[:-2].strip()
                     self.view.insert(edit, s.begin(), rv)
+            else:
+                handle_not_implemented()
         else:
             # xxx read file "name"
             # we need proper filesystem autocompletion here
