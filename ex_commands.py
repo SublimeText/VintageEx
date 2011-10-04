@@ -223,7 +223,7 @@ class ExWriteFile(sublime_plugin.TextCommand):
             target = self.view
 
         start = 0 if not appending else target.size()
-        prefix = '' if not appending else '\n'
+        prefix = '\n' if appending and target.size() > 0 else ''
         
         if appending or target_redirect or file_name:
             target.insert(edit, start, prefix + self.view.substr(content))
