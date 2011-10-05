@@ -451,7 +451,7 @@ class ExDelete(sublime_plugin.TextCommand):
 
 
 class ExGlobal(sublime_plugin.TextCommand):
-    def run(self, edit, range='.', forced=False, pattern=''):
+    def run(self, edit, range='%', forced=False, pattern=''):
         _, global_pattern, subcmd = pattern.split(pattern[0], 2)
 
         rs = get_region_by_range(self.view, range)
