@@ -315,10 +315,27 @@ class ExMove(sublime_plugin.TextCommand):
         address = calculate_address(self.view, address)
 
         r = get_region_by_range(self.view, range)[0]
+        # =====================================================================
+        # xxx ugly - make sure we don't copy too much text.
+        # might be a bug in the api
+        if self.view.substr(r.end() - 1) == '\n':
+            r = sublime.Region(r.begin(), r.end() - 1)
+        # =====================================================================
         text = self.view.substr(self.view.line(r)) + '\n'
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
+        if dest > self.view.size():
+            dest = self.view.size()
+            text = '\n' + text[:-1]
+        
+        if dest < r.begin():
+            self.view.erase(edit, self.view.full_line(r))
         self.view.insert(edit, dest, text)
-        self.view.replace(edit, self.view.full_line(r), '')
+        if dest > r.end():
+            self.view.erase(edit, self.view.full_line(r))
+
+        self.view.sel().clear()
+        cursor_dest = self.view.line(dest + len(text) - 1).begin()
+        self.view.sel().add(sublime.Region(cursor_dest, cursor_dest))
 
 
 class ExCopy(sublime_plugin.TextCommand):
@@ -327,9 +344,22 @@ class ExCopy(sublime_plugin.TextCommand):
         address = calculate_address(self.view, address)
 
         r = get_region_by_range(self.view, range)[0]
+        # =====================================================================
+        # xxx ugly - make sure we don't copy too much text.
+        # might be a bug in the api
+        if self.view.substr(r.end() - 1) == '\n':
+            r = sublime.Region(r.begin(), r.end() - 1)
+        # =====================================================================
         text = self.view.substr(self.view.line(r)) + '\n'
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
+        if dest > self.view.size():
+            dest = self.view.size()
+            text = '\n' + text[:-1]
         self.view.insert(edit, dest, text)
+
+        self.view.sel().clear()
+        cursor_dest = self.view.line(dest + len(text) - 1).begin()
+        self.view.sel().add(sublime.Region(cursor_dest, cursor_dest))
 
 
 class ExSubstitute(sublime_plugin.TextCommand):
