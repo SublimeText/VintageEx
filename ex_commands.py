@@ -470,16 +470,23 @@ class ExGlobal(sublime_plugin.TextCommand):
 
 
 class ExPrint(sublime_plugin.TextCommand):
-    def run(self, edit, range='.', count=1, flags=''):
+    def run(self, edit, range='.', count='1', flags=''):
+        if not count.isdigit():
+            flags, count = count, ''
         rs = get_region_by_range(self.view, range)
         to_display = []
         for r in rs:
             for line in self.view.lines(r):
                 text = self.view.substr(line)
-                row = self.view.rowcol(line.begin())[0] + 1
+                if '#' in flags:
+                    row = self.view.rowcol(line.begin())[0] + 1
+                else:
+                    row = ''
                 to_display.append((text, row))
 
         v = self.view.window().new_file()
         v.set_scratch(True)
+        if 'l' in flags:
+            v.settings().set('draw_white_space', 'all')
         for t, r in to_display:
-            v.insert(edit, v.size(), str(r) + ' ' + t + '\n')
+            v.insert(edit, v.size(), (str(r) + ' ' + t + '\n').lstrip())
