@@ -467,3 +467,19 @@ class ExGlobal(sublime_plugin.TextCommand):
                                         {'cmd_line': ':' + 
                                             str(self.view.rowcol(r.a)[0] + 1) +
                                                                     subcmd})
+
+
+class ExPrint(sublime_plugin.TextCommand):
+    def run(self, edit, range='.', count=1, flags=''):
+        rs = get_region_by_range(self.view, range)
+        to_display = []
+        for r in rs:
+            for line in self.view.lines(r):
+                text = self.view.substr(line)
+                row = self.view.rowcol(line.begin())[0] + 1
+                to_display.append((text, row))
+
+        v = self.view.window().new_file()
+        v.set_scratch(True)
+        for t, r in to_display:
+            v.insert(edit, v.size(), str(r) + ' ' + t + '\n')

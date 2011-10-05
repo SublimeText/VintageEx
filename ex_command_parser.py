@@ -180,6 +180,22 @@ EX_COMMANDS = {
                                 args_parser=None,
                                 error_on=None
                                 ),
+    ('print', 'p'): ex_cmd_data(
+                                command='ex_print',
+                                args=['count', 'flags'],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                args_parser=None,
+                                error_on=(ERR_UNWANTED_BANG,)
+                                ),
+    ('Print', 'P'): ex_cmd_data(
+                                command='ex_print',
+                                args=['count', 'flags'],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                args_parser=None,
+                                error_on=(ERR_UNWANTED_BANG,)
+                                ),
 }
 
 
