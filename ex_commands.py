@@ -420,3 +420,20 @@ class ExDelete(sublime_plugin.TextCommand):
                         {'file': 'Packages/Default/Delete Line.sublime-macro'})
 
 
+class ExGlobal(sublime_plugin.TextCommand):
+    def run(self, edit, range='.', forced=False, pattern=''):
+        _, global_pattern, subcmd = pattern.split(pattern[0], 2)
+
+        rs = get_region_by_range(self.view, range)
+        self.view.sel().clear()
+        for r in rs:
+            self.view.sel().add(r)
+        self.view.run_command('split_selection_into_lines')
+
+        for r in (self.view.sel()):
+            match = re.search(global_pattern, self.view.substr(r))
+            if (match and not forced) or (not match and forced):
+                self.view.run_command('vi_colon_input',
+                                        {'cmd_line': ':' + 
+                                            str(self.view.rowcol(r.a)[0] + 1) +
+                                                                    subcmd})

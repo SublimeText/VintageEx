@@ -15,12 +15,17 @@ class ViColonInput(sublime_plugin.TextCommand):
             return self.run(**args)
         return self.run()
         
-    def run(self, initial_text=':'):
+    def run(self, initial_text=':', cmd_line=''):
+        # non-interactive call
+        if cmd_line:
+            self.on_done(cmd_line)
+            return
         self.view.window().show_input_panel('', initial_text,
                                                     self.on_done, None, None)
     
     def on_done(self, cmd_line):
         ex_cmd = parse_command(cmd_line)
+        print ex_cmd
 
         if ex_cmd and ex_cmd.parse_errors:
             sublime.status_message('VintageEx: %s' % ex_cmd.parse_errors[0])

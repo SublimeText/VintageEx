@@ -172,6 +172,14 @@ EX_COMMANDS = {
                                 args_parser=None,
                                 error_on=(ERR_UNWANTED_BANG,)
                                 ),
+    ('global', 'g'): ex_cmd_data(
+                                command='ex_global',
+                                args=['pattern'],
+                                wants_plusplus=False,
+                                wants_plus=False,
+                                args_parser=None,
+                                error_on=None
+                                ),
 }
 
 
