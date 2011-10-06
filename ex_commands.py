@@ -468,7 +468,7 @@ class ExGlobal(sublime_plugin.TextCommand):
                                             str(self.view.rowcol(r.a)[0] + 1) +
                                                                     subcmd})
 
-
+                                                                    
 class ExPrint(sublime_plugin.TextCommand):
     def run(self, edit, range='.', count='1', flags=''):
         if not count.isdigit():
