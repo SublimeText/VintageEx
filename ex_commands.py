@@ -460,7 +460,7 @@ class ExGlobal(sublime_plugin.TextCommand):
             self.view.sel().add(r)
         self.view.run_command('split_selection_into_lines')
 
-        for r in (self.view.sel()):
+        for r in reversed(list(self.view.sel())):
             match = re.search(global_pattern, self.view.substr(r))
             if (match and not forced) or (not match and forced):
                 self.view.run_command('vi_colon_input',
