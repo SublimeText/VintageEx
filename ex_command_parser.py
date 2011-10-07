@@ -30,7 +30,7 @@ EX_COMMANDS = {
                                     re.compile(r'(?P<plusplus_args> *\+\+[a-zA-Z0-9_]+)* *!(?P<subcmd>.+)'),
                                     re.compile(r'(?P<plusplus_args> *\+\+[a-zA-Z0-9_]+)* *(?P<file_name>.+)?'),
                                 ),
-                                error_on=None
+                                error_on=()
                                 ),
     ('wall', 'wa'): ex_cmd_data(
                                 command='ex_write_all',
@@ -62,12 +62,12 @@ EX_COMMANDS = {
     ('map', 'map'): ex_cmd_data(
                                 command='ex_map',
                                 invocations=(),
-                                error_on=None
+                                error_on=()
                                 ),
     ('abbreviate', 'ab'): ex_cmd_data(
                                 command='ex_abbreviate',
                                 invocations=(),
-                                error_on=None
+                                error_on=()
                                 ),
     ('read', 'r'): ex_cmd_data(
                                 command='ex_read_shell_out',
@@ -77,7 +77,7 @@ EX_COMMANDS = {
                                     re.compile(r' *!(?P<name>.+)'),
                                 ),
                                 # fixme: add error category for ARGS_REQUIRED
-                                error_on=None
+                                error_on=()
                                 ),
     ('enew', 'ene'): ex_cmd_data(
                                 command='ex_new_file',
@@ -121,7 +121,7 @@ EX_COMMANDS = {
     ('substitute', 's'): ex_cmd_data(
                                 command='ex_substitute',
                                 invocations=(),
-                                error_on=None
+                                error_on=()
                                 ),
     ('shell', 'sh'): ex_cmd_data(
                                 command='ex_shell',
@@ -142,7 +142,7 @@ EX_COMMANDS = {
                                 invocations=(
                                     re.compile(r'(?P<pattern>.+)'),
                                 ),
-                                error_on=None
+                                error_on=()
                                 ),
     ('print', 'p'): ex_cmd_data(
                                 command='ex_print',
@@ -296,14 +296,13 @@ def parse_command(cmd):
             break
     
     parse_errors = []
-    if cmd_data.error_on:
-        for err in cmd_data.error_on:
-            if err == ERR_UNWANTED_BANG and bang:
-                parse_errors.append('No "!" allowed.')
-            if err == ERR_UNWANTED_ARGS and args:
-                parse_errors.append('Trailing characters.')
-            if err == ERR_UNWANTED_RANGE and range_:
-                parse_errors.append('Range not allowed.')
+    for err in cmd_data.error_on:
+        if err == ERR_UNWANTED_BANG and bang:
+            parse_errors.append('No "!" allowed.')
+        if err == ERR_UNWANTED_ARGS and args:
+            parse_errors.append('Trailing characters.')
+        if err == ERR_UNWANTED_RANGE and range_:
+            parse_errors.append('Range not allowed.')
 
     return EX_CMD(name=command,
                     command=cmd_data.command,
