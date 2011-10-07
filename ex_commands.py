@@ -352,14 +352,16 @@ class ExCopy(sublime_plugin.TextCommand):
         assert range, "Need a range."
         address = calculate_address(self.view, address)
 
-        r = get_region_by_range(self.view, range)[0]
-        # =====================================================================
-        # xxx ugly - make sure we don't copy too much text.
-        # might be a bug in the api
-        if self.view.substr(r.end() - 1) == '\n':
-            r = sublime.Region(r.begin(), r.end() - 1)
-        # =====================================================================
-        text = self.view.substr(self.view.line(r)) + '\n'
+        text = ''
+        for r in get_region_by_range(self.view, range):
+            # =================================================================
+            # xxx ugly - make sure we don't copy too much text.
+            # might be a bug in the api
+            if self.view.substr(r.end() - 1) == '\n':
+                r = sublime.Region(r.begin(), r.end() - 1)
+            # =================================================================
+            text += self.view.substr(self.view.line(r)) + '\n'
+
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         if dest > self.view.size():
             dest = self.view.size()
