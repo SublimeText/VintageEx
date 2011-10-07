@@ -45,7 +45,7 @@ def gather_buffer_info(v):
     return [leaf, path]
 
 
-def get_region_by_range(view, text_range):
+def get_region_by_range(view, text_range, split_visual=False):
     # xxx move this further down into the range parsing?
     global GLOBAL_RANGES
     if GLOBAL_RANGES:
@@ -54,7 +54,13 @@ def get_region_by_range(view, text_range):
         return rv
         
     if text_range.replace(' ', '') == "'<,'>":
-        return list(view.sel())
+        if not split_visual:
+            return list(view.sel())
+        else:
+            rv = []
+            for r in list(view.sel()):
+                rv.extend(view.split_by_newlines(r))
+            return rv
 
     a, b = ex_range.calculate_range(view, text_range)
     r = sublime.Region(view.text_point(a - 1, 0),
@@ -323,24 +329,28 @@ class ExMove(sublime_plugin.TextCommand):
         assert range, "Need a range."
         address = calculate_address(self.view, address)
 
-        r = get_region_by_range(self.view, range)[0]
-        # =====================================================================
-        # xxx ugly - make sure we don't copy too much text.
-        # might be a bug in the api
-        if self.view.substr(r.end() - 1) == '\n':
-            r = sublime.Region(r.begin(), r.end() - 1)
-        # =====================================================================
-        text = self.view.substr(self.view.line(r)) + '\n'
-        dest = self.view.line(self.view.text_point(address, 0)).end() + 1
+        text = ''
+        for r in get_region_by_range(self.view, range):
+            # =====================================================================
+            # xxx ugly - make sure we don't copy too much text.
+            # might be a bug in the api
+            if self.view.substr(r.end() - 1) == '\n':
+                r = sublime.Region(r.begin(), r.end() - 1)
+            # =====================================================================
+            text += self.view.substr(self.view.line(r)) + '\n'
+
+        offset = 0
+        for r in reversed(get_region_by_range(self.view, range, split_visual=True)):
+            if self.view.rowcol(r.begin())[0] + 1 < address:
+                offset +=  1
+                self.view.erase(edit, self.view.full_line(r))
+
+        dest = self.view.line(self.view.text_point(
+                                                address - offset, 0)).end() + 1
         if dest > self.view.size():
             dest = self.view.size()
             text = '\n' + text[:-1]
-        
-        if dest < r.begin():
-            self.view.erase(edit, self.view.full_line(r))
         self.view.insert(edit, dest, text)
-        if dest > r.end():
-            self.view.erase(edit, self.view.full_line(r))
 
         self.view.sel().clear()
         cursor_dest = self.view.line(dest + len(text) - 1).begin()
