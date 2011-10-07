@@ -471,6 +471,7 @@ class ExGlobal(sublime_plugin.TextCommand):
                                                                     
 class ExPrint(sublime_plugin.TextCommand):
     def run(self, edit, range='.', count='1', flags=''):
+        # xxx: doesn't work well with :global
         if not count.isdigit():
             flags, count = count, ''
         rs = get_region_by_range(self.view, range)

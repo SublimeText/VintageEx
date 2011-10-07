@@ -10,7 +10,7 @@ import re
 # holds info about a parsed ex command
 EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 # defines an ex command data for later parsing
-ex_cmd_data = namedtuple('ex_cmd_data', 'command args wants_plusplus wants_plus args_parser error_on')
+ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
 
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
@@ -23,92 +23,70 @@ ERR_UNWANTED_RANGE = 2
 EX_COMMANDS = {
     ('write', 'w'): ex_cmd_data(
                                 command='ex_write_file',
-                                args=[],
-                                wants_plusplus=True,
-                                wants_plus=True,
-                                args_parser='extract_write_args',
+                                invocations=(
+                                    re.compile(r'^\s*$'),
+                                    re.compile(r'(?P<plusplus_args> *\+\+[a-zA-Z0-9_]+)* *(?P<operator>>>) *(?P<target_redirect>.+)?'),
+                                    # fixme: raises an error when it shouldn't
+                                    re.compile(r'(?P<plusplus_args> *\+\+[a-zA-Z0-9_]+)* *!(?P<subcmd>.+)'),
+                                    re.compile(r'(?P<plusplus_args> *\+\+[a-zA-Z0-9_]+)* *(?P<file_name>.+)?'),
+                                ),
                                 error_on=None
                                 ),
     ('wall', 'wa'): ex_cmd_data(
                                 command='ex_write_all',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
-                                error_on=None
+                                invocations=(),
+                                error_on=(ERR_UNWANTED_ARGS,)
                                 ),
     ('pwd', 'pw'): ex_cmd_data(
                                 command='ex_print_working_dir',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(),
                                 error_on=(ERR_UNWANTED_RANGE,
                                             ERR_UNWANTED_BANG,
                                             ERR_UNWANTED_ARGS)
                                 ),
     ('buffers', 'buffers'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
-                                error_on=None
+                                invocations=(),
+                                error_on=(ERR_UNWANTED_ARGS,)
                                 ),
     ('files', 'files'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
-                                error_on=None
+                                invocations=(),
+                                error_on=(ERR_UNWANTED_ARGS,)
                                 ),
     ('ls', 'ls'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
-                                error_on=None
+                                invocations=(),
+                                error_on=(ERR_UNWANTED_ARGS,)
                                 ),
     ('map', 'map'): ex_cmd_data(
                                 command='ex_map',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(),
                                 error_on=None
                                 ),
     ('abbreviate', 'ab'): ex_cmd_data(
                                 command='ex_abbreviate',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(),
                                 error_on=None
                                 ),
     ('read', 'r'): ex_cmd_data(
                                 command='ex_read_shell_out',
-                                args=['name'],
-                                wants_plusplus=True,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(
+                                    # xxx: works more or less by chance. fix the command code
+                                    re.compile(r'(?P<plusplus> *\+\+[a-zA-Z0-9_]+)* *(?P<name>.+)'),
+                                    re.compile(r' *!(?P<name>.+)'),
+                                ),
+                                # fixme: add error category for ARGS_REQUIRED
                                 error_on=None
                                 ),
     ('enew', 'ene'): ex_cmd_data(
                                 command='ex_new_file',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(),
                                 error_on=(ERR_UNWANTED_ARGS,)
                                 ),
     ('ascii', 'as'): ex_cmd_data(
                                 command='ex_ascii',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(),
                                 error_on=(ERR_UNWANTED_RANGE,
                                             ERR_UNWANTED_BANG,
                                             ERR_UNWANTED_ARGS)
@@ -116,84 +94,68 @@ EX_COMMANDS = {
     # vim help doesn't say this command takes any args, but it does
     ('file', 'f'): ex_cmd_data(
                                 command='ex_file',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(),
                                 error_on=(ERR_UNWANTED_RANGE,)
                                 ),
     ('move', 'move'): ex_cmd_data(
                                 command='ex_move',
-                                args=['address'],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
-                                error_on=None
+                                invocations=(
+                                   re.compile(r' *(?P<address>\d+)'),
+                                ),
+                                error_on=(ERR_UNWANTED_BANG,),
                                 ),
     ('copy', 'co'): ex_cmd_data(
                                 command='ex_copy',
-                                args=['address'],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
-                                error_on=None
+                                invocations=(
+                                   re.compile(r' *(?P<address>\d+)'),
+                                ),
+                                error_on=(ERR_UNWANTED_BANG,),
                                 ),
     ('t', 't'): ex_cmd_data(
                                 command='ex_copy',
-                                args=['address'],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
-                                error_on=None
+                                invocations=(
+                                   re.compile(r' *(?P<address>\d+)'),
+                                ),
+                                error_on=(ERR_UNWANTED_BANG,),
                                 ),
     ('substitute', 's'): ex_cmd_data(
                                 command='ex_substitute',
-                                args=['pattern'],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(),
                                 error_on=None
                                 ),
     ('shell', 'sh'): ex_cmd_data(
                                 command='ex_shell',
-                                args=[],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(),
                                 error_on=(ERR_UNWANTED_RANGE,
                                             ERR_UNWANTED_BANG,
                                             ERR_UNWANTED_ARGS)
                                 ),
     ('delete', 'd'): ex_cmd_data(
                                 command='ex_delete',
-                                args=['register', 'count'],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(
+                                    re.compile(r' *(?P<register>[a-zA-Z0-9]) *(?P<count>\d+)'),
+                                ),
                                 error_on=(ERR_UNWANTED_BANG,)
                                 ),
     ('global', 'g'): ex_cmd_data(
                                 command='ex_global',
-                                args=['pattern'],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(
+                                    re.compile(r'(?P<pattern>.+)'),
+                                ),
                                 error_on=None
                                 ),
     ('print', 'p'): ex_cmd_data(
                                 command='ex_print',
-                                args=['count', 'flags'],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(
+                                    re.compile(r'\s*(?P<count>\d+)?\s*(?P<flags>[l#p]+)?'),
+                                ),
                                 error_on=(ERR_UNWANTED_BANG,)
                                 ),
     ('Print', 'P'): ex_cmd_data(
                                 command='ex_print',
-                                args=['count', 'flags'],
-                                wants_plusplus=False,
-                                wants_plus=False,
-                                args_parser=None,
+                                invocations=(
+                                    re.compile(r'\s*(?P<count>\d+)?\s*(?P<flags>[l#p]+)?'),
+                                ),
                                 error_on=(ERR_UNWANTED_BANG,)
                                 ),
 }
@@ -292,7 +254,6 @@ def parse_command(cmd):
                         command='ex_goto',
                         forced=False,
                         range=cmd_name,
-                        args={},
                         parse_errors=None
                         )
 
@@ -303,7 +264,6 @@ def parse_command(cmd):
                         command=None,
                         forced=False,
                         range=None,
-                        args={'shell_cmd': args},
                         parse_errors=None
                         )
 
@@ -322,30 +282,16 @@ def parse_command(cmd):
     if not cmd_data: return None
     cmd_data = EX_COMMANDS[cmd_data]
 
-    if cmd_data.wants_plusplus or cmd_data.wants_plus:
-        plus_args, plusplus_args, args = extract_args(args)
-    else:
-        plus_args = '',
-        plusplus_args= '',
-
     cmd_args = {}
-    if cmd_data.wants_plus:
-        cmd_args['plus_args'] = plus_args
-    if cmd_data.wants_plusplus:
-        cmd_args['plusplus_args'] = plusplus_args
-        
-    if cmd_data.args_parser:
-        func = globals()[cmd_data.args_parser]
-        cmd_args = func(args)
-    else:
-        # xxx improve arg parsing: parsed differently based on generic arg
-        # name like "address", "file_name", "count", etc.
-        if cmd_data.args and args:
-            if len(cmd_data.args) > 1:
-                args = args.strip().split(' ', len(cmd_data.args))
-            else:
-                args = [args.strip()]
-            cmd_args = dict(zip(cmd_data.args, args))
+    for pattern in cmd_data.invocations:
+        found_args = pattern.search(args)
+        if found_args:
+            found_args = found_args.groupdict()
+            # get rid of unset arguments so they don't clobber defaults
+            found_args = dict((k, v) for k, v in found_args.iteritems()
+                                                        if not v is None)
+            cmd_args.update(found_args)
+            break
     
     parse_errors = []
     if cmd_data.error_on:
