@@ -119,7 +119,8 @@ EX_COMMANDS = {
                                 ),
     ('substitute', 's'): ex_cmd_data(
                                 command='ex_substitute',
-                                invocations=(),
+                                invocations=(re.compile(r'(?P<pattern>.+)'),
+                                ),
                                 error_on=()
                                 ),
     ('shell', 'sh'): ex_cmd_data(

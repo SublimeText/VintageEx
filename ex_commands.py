@@ -13,6 +13,9 @@ except ImportError:
 import ex_range
 
 
+GLOBAL_RANGES = []
+
+
 def handle_not_implemented():
     sublime.status_message('VintageEx: Not implemented')
 
@@ -44,6 +47,12 @@ def gather_buffer_info(v):
 
 def get_region_by_range(view, text_range):
     # xxx move this further down into the range parsing?
+    global GLOBAL_RANGES
+    if GLOBAL_RANGES:
+        rv = GLOBAL_RANGES[:]
+        GLOBAL_RANGES = []
+        return rv
+        
     if text_range.replace(' ', '') == "'<,'>":
         return list(view.sel())
 
@@ -51,7 +60,7 @@ def get_region_by_range(view, text_range):
     r = sublime.Region(view.text_point(a - 1, 0),
                         view.line(
                             view.text_point(b - 1, 0)).end())    
-    return [r]
+    return view.split_by_newlines(r)
 
 
 def calculate_address(view, text_range):
@@ -416,16 +425,8 @@ class ExSubstitute(sublime_plugin.TextCommand):
             range = "%d,%d+%d" % (b, b, int(count))
 
         target_region = get_region_by_range(self.view, range)
-        # only in this case might the selection be out of sync with the
-        # user's range
-        if len(target_region) == 1:
-            self.view.sel().clear()
-            self.view.sel().add(target_region[0])
-
-        self.view.run_command('split_selection_into_lines')
-
         replace_count = 0 if (flags and 'g' in flags) else 1
-        for r in reversed(self.view.sel()):
+        for r in reversed(target_region):
             # be explicit about replacing the line, because we might be looking
             # at a Ctrl+D sequence of regions (not spanning a whole line)
             line_text = self.view.substr(self.view.line(r))
@@ -453,19 +454,18 @@ class ExDelete(sublime_plugin.TextCommand):
 class ExGlobal(sublime_plugin.TextCommand):
     def run(self, edit, range='%', forced=False, pattern=''):
         _, global_pattern, subcmd = pattern.split(pattern[0], 2)
+        subcmd = subcmd or 'print'
 
         rs = get_region_by_range(self.view, range)
-        self.view.sel().clear()
-        for r in rs:
-            self.view.sel().add(r)
-        self.view.run_command('split_selection_into_lines')
 
-        for r in reversed(list(self.view.sel())):
+        for r in rs:
             match = re.search(global_pattern, self.view.substr(r))
             if (match and not forced) or (not match and forced):
-                self.view.run_command('vi_colon_input',
-                                        {'cmd_line': ':' + 
-                                            str(self.view.rowcol(r.a)[0] + 1) +
+                GLOBAL_RANGES.append(r)
+
+        self.view.run_command('vi_colon_input',
+                                    {'cmd_line': ':' + 
+                                        str(self.view.rowcol(r.a)[0] + 1) +
                                                                     subcmd})
 
                                                                     
