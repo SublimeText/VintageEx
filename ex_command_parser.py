@@ -1,7 +1,6 @@
 """a simple 'parser' for :ex commands
 """
 
-
 from collections import namedtuple
 from itertools import takewhile, dropwhile
 import re
