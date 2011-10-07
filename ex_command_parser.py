@@ -254,6 +254,7 @@ def parse_command(cmd):
                         command='ex_goto',
                         forced=False,
                         range=cmd_name,
+                        args={},
                         parse_errors=None
                         )
 
@@ -264,6 +265,7 @@ def parse_command(cmd):
                         command=None,
                         forced=False,
                         range=None,
+                        args={'shell_cmd': args},
                         parse_errors=None
                         )
 
