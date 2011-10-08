@@ -258,19 +258,20 @@ def parse_command(cmd):
                         parse_errors=None
                         )
 
+    range_ = get_cmd_line_range(cmd_name)
+    if range_: cmd_name = cmd_name[len(range_):]
+    
     if cmd_name.startswith('!'):
+        args = cmd_name[1:]
         cmd_name = '!'
-        args = cmd[2:]
         return EX_CMD(name=cmd_name,
-                        command=None,
+                        command='ex_shell_out',
                         forced=False,
-                        range=None,
+                        range=range_,
                         args={'shell_cmd': args},
                         parse_errors=None
                         )
 
-    range_ = get_cmd_line_range(cmd_name)
-    if range_: cmd_name = cmd_name[len(range_):]
 
     command = extract_command_name(cmd_name)
     args = cmd_name[len(command):]

@@ -2,8 +2,9 @@ import sublime
 import sublime_plugin
 
 import os
-import subprocess
 import re
+import subprocess
+import tempfile
 
 try:
     import ctypes
@@ -18,6 +19,26 @@ GLOBAL_RANGES = []
 
 def handle_not_implemented():
     sublime.status_message('VintageEx: Not implemented')
+
+
+def filter_region(txt, command):
+    try:
+        contents = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
+        contents.write(txt.encode('utf-8'))
+        contents.close()
+
+        script = tempfile.NamedTemporaryFile(suffix='.bat', delete=False)
+        script.write('@echo off\ntype %s | %s' % (contents.name, command))
+        script.close()
+
+        p = subprocess.Popen(['cmd.exe', '/C', script.name],
+                                                    stdout=subprocess.PIPE)
+
+        rv = p.communicate()
+        return rv[0].decode(get_oem_cp()).replace('\r\n', '\n')[:-1]
+    finally:
+        os.remove(script.name)
+        os.remove(contents.name)
 
 
 def gather_buffer_info(v):
@@ -100,19 +121,12 @@ class ExGoto(sublime_plugin.TextCommand):
 
 
 class ExShellOut(sublime_plugin.TextCommand):
-    def run(self, edit, shell_cmd=''):
-        sels = self.view.sel()
-        if all([(s.a != s.b) for s in sels]):
+    def run(self, edit, range='', shell_cmd=''):
+        if range:
             if sublime.platform() == 'windows':
-                for s in self.view.sel():
-                    p = subprocess.Popen(
-                                        ['cmd.exe', '/C', shell_cmd],
-                                        stdout=subprocess.PIPE,
-                                        startupinfo=get_startup_info()
-                                        )
-                    cp = 'cp' + get_oem_cp()
-                    rv = p.communicate()[0].decode(cp)[:-2].strip()
-                    self.view.replace(edit, s, rv)
+                for r in get_region_by_range(self.view, range):
+                    rv = filter_region(self.view.substr(r), shell_cmd)
+                    self.view.replace(edit, r, rv)
                 return
             elif sublime.platform() == 'linux':
                 for s in self.view.sel():

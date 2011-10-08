@@ -30,15 +30,14 @@ class ViColonInput(sublime_plugin.TextCommand):
         if ex_cmd and ex_cmd.parse_errors:
             sublime.status_message('VintageEx: %s' % ex_cmd.parse_errors[0])
             return
-        if ex_cmd and ex_cmd.name and (ex_cmd.name.isalpha()
-                                                    or ex_cmd.name == ':'):
+        if ex_cmd and ex_cmd.name:
             if ex_cmd.range:
                 ex_cmd.args['range'] = ex_cmd.range
             if ex_cmd.forced:
                 ex_cmd.args['forced'] = ex_cmd.forced
             self.view.run_command(ex_cmd.command, ex_cmd.args)
-        elif ex_cmd and ex_cmd.name == '!':
-            self.view.run_command('ex_shell_out', ex_cmd.args)
+        # elif ex_cmd and ex_cmd.name == '!':
+        #     self.view.run_command('ex_shell_out', ex_cmd.args)
         else:
             sublime.status_message('VintageEx: unknown command (%s)' % 
                                                                     cmd_line)
