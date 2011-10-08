@@ -331,12 +331,12 @@ class ExMove(sublime_plugin.TextCommand):
 
         text = ''
         for r in get_region_by_range(self.view, range):
-            # =====================================================================
+            # =================================================================
             # xxx ugly - make sure we don't copy too much text.
             # might be a bug in the api
             if self.view.substr(r.end() - 1) == '\n':
                 r = sublime.Region(r.begin(), r.end() - 1)
-            # =====================================================================
+            # =================================================================
             text += self.view.substr(self.view.line(r)) + '\n'
 
         offset = 0
