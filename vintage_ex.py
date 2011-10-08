@@ -39,8 +39,6 @@ class ViColonInput(sublime_plugin.TextCommand):
             if ex_cmd.forced:
                 ex_cmd.args['forced'] = ex_cmd.forced
             self.view.run_command(ex_cmd.command, ex_cmd.args)
-        # elif ex_cmd and ex_cmd.name == '!':
-        #     self.view.run_command('ex_shell_out', ex_cmd.args)
         else:
             sublime.status_message('VintageEx: unknown command (%s)' % 
                                                                     cmd_line)
