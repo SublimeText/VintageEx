@@ -222,7 +222,8 @@ class ExAbbreviate(sublime_plugin.TextCommand):
             with open(abbreviations_file, 'w'):
                 pass
         
-        self.view.window().run_command('open_file', {'file': abbreviations_file})
+        self.view.window().run_command('open_file',
+                                            {'file': abbreviations_file})
 
 
 class ExPrintWorkingDir(sublime_plugin.TextCommand):
@@ -340,7 +341,8 @@ class ExMove(sublime_plugin.TextCommand):
             text += self.view.substr(self.view.line(r)) + '\n'
 
         offset = 0
-        for r in reversed(get_region_by_range(self.view, range, split_visual=True)):
+        for r in reversed(get_region_by_range(self.view,
+                                                range, split_visual=True)):
             if self.view.rowcol(r.begin())[0] + 1 < address:
                 offset +=  1
             self.view.erase(edit, self.view.full_line(r))
