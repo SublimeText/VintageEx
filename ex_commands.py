@@ -343,7 +343,7 @@ class ExMove(sublime_plugin.TextCommand):
         for r in reversed(get_region_by_range(self.view, range, split_visual=True)):
             if self.view.rowcol(r.begin())[0] + 1 < address:
                 offset +=  1
-                self.view.erase(edit, self.view.full_line(r))
+            self.view.erase(edit, self.view.full_line(r))
 
         dest = self.view.line(self.view.text_point(
                                                 address - offset, 0)).end() + 1
