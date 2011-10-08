@@ -1,5 +1,6 @@
 include *.py
 include *.sublime-keymap
+include "VintageEx Cmdline.tmlanguage"
 exclude setup.py
 
 prune tests
