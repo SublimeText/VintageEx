@@ -272,7 +272,6 @@ def parse_command(cmd):
                         parse_errors=None
                         )
 
-
     command = extract_command_name(cmd_name)
     args = cmd_name[len(command):]
 
