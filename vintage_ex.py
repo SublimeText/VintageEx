@@ -22,7 +22,7 @@ class ViColonInput(sublime_plugin.TextCommand):
             return
         v = self.view.window().show_input_panel('', initial_text,
                                                     self.on_done, None, None)
-        v.set_syntax_file('Packages/VintageEx/VintageEx Cmdline.tmLanguage')
+        v.set_syntax_file('Packages/VintageEx/Support/VintageEx Cmdline.tmLanguage')
         v.settings().set('gutter', False)
         v.settings().set('rulers', [])
     

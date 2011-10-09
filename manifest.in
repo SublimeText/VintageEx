@@ -1,6 +1,9 @@
 include *.py
-include *.sublime-keymap
-include "VintageEx Cmdline.tmlanguage"
 exclude setup.py
+
+graft Support
+
+exclude *.JSON-tmLanguage
+exclude *.cache
 
 prune tests
