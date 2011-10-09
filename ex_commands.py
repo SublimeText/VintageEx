@@ -1,7 +1,11 @@
 import sublime
 import sublime_plugin
 
+import sys
 import os
+
+sys.path.append(os.path.join(sublime.packages_path(), 'Vintage'))
+
 import re
 import subprocess
 import tempfile
@@ -13,12 +17,30 @@ except ImportError:
 
 import ex_range
 
+from vintage import g_registers
+
 
 GLOBAL_RANGES = []
 
 
 def handle_not_implemented():
     sublime.status_message('VintageEx: Not implemented')
+
+
+def set_register(text, register):
+    global g_registers
+    if register == '*' or register == '+':
+        sublime.set_clipboard(text)
+    elif register == '%':
+        pass
+    else:
+        reg = register.lower()
+        append = (reg != register)
+
+        if append and reg in g_registers:
+            g_registers[reg] += text
+        else:
+            g_registers[reg] = text
 
 
 def filter_region(txt, command):
@@ -465,14 +487,19 @@ class ExSubstitute(sublime_plugin.TextCommand):
 class ExDelete(sublime_plugin.TextCommand):
     def run(self, edit, range='.', register='', count=''):
         # xxx somewhat different to vim's behavior
-        if register.isdigit():
-            count = register
-            register = ''
-        
         rs = get_region_by_range(self.view, range)
         self.view.sel().clear()
+
+        to_store = []
         for r in rs:
             self.view.sel().add(r)
+            if register:
+                to_store.append(self.view.substr(r))
+        
+        # xxx: pasting from register isn't linewise if a range's specified
+        # xxx: but it works well with visual selections
+        if register:
+            set_register('\n'.join(to_store), register)
         
         self.view.run_command('split_selection_into_lines')
         self.view.run_command('run_macro_file',

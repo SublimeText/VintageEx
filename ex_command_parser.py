@@ -133,7 +133,7 @@ EX_COMMANDS = {
     ('delete', 'd'): ex_cmd_data(
                                 command='ex_delete',
                                 invocations=(
-                                    re.compile(r' *(?P<register>[a-zA-Z0-9]) *(?P<count>\d+)'),
+                                    re.compile(r' *(?P<register>[a-zA-Z0-9])? *(?P<count>\d+)?'),
                                 ),
                                 error_on=(ERR_UNWANTED_BANG,)
                                 ),
