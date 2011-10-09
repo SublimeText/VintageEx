@@ -4,6 +4,23 @@ import sublime_plugin
 from ex_command_parser import parse_command, EX_COMMANDS
 
 
+COMPLETIONS = sorted([x[0] for x in EX_COMMANDS.keys()])
+
+EX_HISTORY_MAX_LENGTH = 20
+EX_HISTORY = {
+    'cmdline': [],
+    'searches': []
+}
+
+
+#______________________________________________________________________________
+def update_command_line_history(item, slot_name):
+    if len(EX_HISTORY[slot_name]) >= EX_HISTORY_MAX_LENGTH:
+        EX_HISTORY[slot_name] = EX_HISTORY[slot_name][1:]
+    EX_HISTORY[slot_name].append(item)
+
+
+#______________________________________________________________________________
 class ViColonInput(sublime_plugin.TextCommand):
     def __init__(self, view):
         sublime_plugin.TextCommand.__init__(self, view)
@@ -27,6 +44,7 @@ class ViColonInput(sublime_plugin.TextCommand):
         v.settings().set('rulers', [])
     
     def on_done(self, cmd_line):
+        update_command_line_history(cmd_line, 'cmdline')
         ex_cmd = parse_command(cmd_line)
         print ex_cmd
 
@@ -44,9 +62,7 @@ class ViColonInput(sublime_plugin.TextCommand):
                                                                     cmd_line)
 
 
-COMPLETIONS = sorted([x[0] for x in EX_COMMANDS.keys()])
-
-
+#______________________________________________________________________________
 class ExCompletionsProvider(sublime_plugin.EventListener):
     CACHED_COMPLETIONS = []
     CACHED_COMPLETION_PREFIXES = []
@@ -65,3 +81,30 @@ class ExCompletionsProvider(sublime_plugin.EventListener):
         self.CACHED_COMPLETION_PREFIXES = [prefix] + compls
         self.CACHED_COMPLETIONS = zip([prefix] + compls, compls + [prefix])
         return self.CACHED_COMPLETIONS
+
+
+#______________________________________________________________________________
+class CycleCmdlineHistory(sublime_plugin.TextCommand):
+    HISTORY_INDEX = None
+    def run(self, edit, backwards=False):
+        if CycleCmdlineHistory.HISTORY_INDEX is None:
+            CycleCmdlineHistory.HISTORY_INDEX = -1 if backwards else 0
+        else:
+            CycleCmdlineHistory.HISTORY_INDEX += -1 if backwards else 1
+
+        if CycleCmdlineHistory.HISTORY_INDEX == len(EX_HISTORY['cmdline']) or \
+            CycleCmdlineHistory.HISTORY_INDEX < -len(EX_HISTORY['cmdline']):
+                CycleCmdlineHistory.HISTORY_INDEX = -1 if backwards else 0 
+        
+        self.view.erase(edit, sublime.Region(0, self.view.size()))
+        self.view.insert(edit, 0, \
+                EX_HISTORY['cmdline'][CycleCmdlineHistory.HISTORY_INDEX])
+
+
+class HistoryIndexRestorer(sublime_plugin.EventListener):
+    def on_deactivated(self, view):
+        # due to views loading asynchronously, do not restore history index
+        # .on_activated(), but here instead. otherwise, the .score_selector()
+        # call won't yield the desired results.
+        if view.score_selector(0, 'text.excmdline') > 0:
+            CycleCmdlineHistory.HISTORY_INDEX = None
