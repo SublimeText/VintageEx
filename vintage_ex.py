@@ -35,6 +35,7 @@ class ViColonInput(sublime_plugin.TextCommand):
     def run(self, initial_text=':', cmd_line=''):
         # non-interactive call
         if cmd_line:
+            self.non_interactive = True
             self.on_done(cmd_line)
             return
         v = self.view.window().show_input_panel('', initial_text,
@@ -44,7 +45,10 @@ class ViColonInput(sublime_plugin.TextCommand):
         v.settings().set('rulers', [])
     
     def on_done(self, cmd_line):
-        update_command_line_history(cmd_line, 'cmdline')
+        if not getattr(self, 'non_interactive', None):
+            update_command_line_history(cmd_line, 'cmdline')
+        else:
+            self.non_interactive = False
         ex_cmd = parse_command(cmd_line)
         print ex_cmd
 
