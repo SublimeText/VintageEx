@@ -17,6 +17,8 @@ EX_HISTORY = {
 def update_command_line_history(item, slot_name):
     if len(EX_HISTORY[slot_name]) >= EX_HISTORY_MAX_LENGTH:
         EX_HISTORY[slot_name] = EX_HISTORY[slot_name][1:]
+    if item in EX_HISTORY[slot_name]:
+        EX_HISTORY[slot_name].pop(EX_HISTORY[slot_name].index(item))
     EX_HISTORY[slot_name].append(item)
 
 
