@@ -302,7 +302,8 @@ class ExWriteFile(sublime_plugin.TextCommand):
             self.view.replace(edit, sublime.Region(len(text), 
                                         self.view.size()), '')
         else:
-            self.view.run_command('save')
+            if self.view.is_dirty():
+                self.view.run_command('save')
 
 
 class ExWriteAll(sublime_plugin.TextCommand):
@@ -494,12 +495,14 @@ class ExDelete(sublime_plugin.TextCommand):
         for r in rs:
             self.view.sel().add(r)
             if register:
-                to_store.append(self.view.substr(r))
+                to_store.append(self.view.substr(self.view.full_line(r)))
         
-        # xxx: pasting from register isn't linewise if a range's specified
-        # xxx: but it works well with visual selections
         if register:
-            set_register('\n'.join(to_store), register)
+            text = ''.join(to_store)
+            # needed for lines without a newline character
+            if not text.endswith('\n'):
+                text = text + '\n'
+            set_register(text, register)
         
         self.view.run_command('split_selection_into_lines')
         self.view.run_command('run_macro_file',
