@@ -13,10 +13,13 @@ ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
 
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
+# almost identical to above, but exclude "%"
+EX_ADDRESS_REGEXP = re.compile(r'^(?P<address>([$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
 
 ERR_UNWANTED_ARGS = 0
 ERR_UNWANTED_BANG = 1
 ERR_UNWANTED_RANGE = 2
+ERR_BAD_ADDRESS = 3
 
 
 EX_COMMANDS = {
@@ -99,23 +102,26 @@ EX_COMMANDS = {
     ('move', 'move'): ex_cmd_data(
                                 command='ex_move',
                                 invocations=(
-                                   re.compile(r' *(?P<address>\d+)'),
+                                   EX_ADDRESS_REGEXP,
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,),
+                                error_on=(ERR_UNWANTED_BANG,
+                                            ERR_BAD_ADDRESS,)
                                 ),
     ('copy', 'co'): ex_cmd_data(
                                 command='ex_copy',
                                 invocations=(
-                                   re.compile(r' *(?P<address>\d+)'),
+                                   EX_ADDRESS_REGEXP,
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,),
+                                error_on=(ERR_UNWANTED_BANG,
+                                            ERR_BAD_ADDRESS,)
                                 ),
     ('t', 't'): ex_cmd_data(
                                 command='ex_copy',
                                 invocations=(
-                                   re.compile(r' *(?P<address>\d+)'),
+                                   EX_ADDRESS_REGEXP,
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,),
+                                error_on=(ERR_UNWANTED_BANG,
+                                            ERR_BAD_ADDRESS,)
                                 ),
     ('substitute', 's'): ex_cmd_data(
                                 command='ex_substitute',
@@ -303,6 +309,9 @@ def parse_command(cmd):
             parse_errors.append('Trailing characters.')
         if err == ERR_UNWANTED_RANGE and range_:
             parse_errors.append('Range not allowed.')
+        if err == ERR_BAD_ADDRESS and not cmd_args:
+            parse_errors.append('Invalid address.')
+
 
     return EX_CMD(name=command,
                     command=cmd_data.command,

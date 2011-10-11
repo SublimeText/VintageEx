@@ -365,6 +365,7 @@ class ExFile(sublime_plugin.TextCommand):
 class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
         assert range, "Need a range."
+        print "XXX XXX", address
         address = calculate_address(self.view, address)
 
         text = ''
