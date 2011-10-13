@@ -365,18 +365,14 @@ class ExFile(sublime_plugin.TextCommand):
 class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
         assert range, "Need a range."
-        print "XXX XXX", address
         address = calculate_address(self.view, address)
 
         text = ''
         for r in get_region_by_range(self.view, range):
-            # =================================================================
-            # xxx ugly - make sure we don't copy too much text.
-            # might be a bug in the api
-            if self.view.substr(r.end() - 1) == '\n':
-                r = sublime.Region(r.begin(), r.end() - 1)
-            # =================================================================
-            text += self.view.substr(self.view.line(r)) + '\n'
+            ss = self.view.substr(self.view.line(r))
+            if not ss.endswith('\n'):
+                ss += '\n'
+            text += ss
 
         offset = 0
         for r in reversed(get_region_by_range(self.view,
@@ -404,14 +400,11 @@ class ExCopy(sublime_plugin.TextCommand):
 
         text = ''
         for r in get_region_by_range(self.view, range):
-            # =================================================================
-            # xxx ugly - make sure we don't copy too much text.
-            # might be a bug in the api
-            if self.view.substr(r.end() - 1) == '\n':
-                r = sublime.Region(r.begin(), r.end() - 1)
-            # =================================================================
-            text += self.view.substr(self.view.line(r)) + '\n'
-
+            ss = self.view.substr(self.view.line(r))
+            if not ss.endswith('\n'):
+                ss += '\n'
+            text += ss
+        
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         if dest > self.view.size():
             dest = self.view.size()
