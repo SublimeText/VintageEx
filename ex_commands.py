@@ -134,6 +134,20 @@ def get_startup_info():
     return startupinfo
 
 
+def ensure_line_block(view, r):
+    """returns a string containing lines terminated by a newline character.
+    """
+    if view.substr(sublime.Region(r.begin(), r.end() - 1)) == '\n':
+        line_block = view.substr(r)
+    else:
+        line_block = view.substr(view.line(r))
+
+    # XXX needed for last line?
+    if not line_block.endswith('\n'):
+        line_block += '\n'
+    return line_block
+
+
 class ExGoto(sublime_plugin.TextCommand):
     def run(self, edit, range=''):
         assert range, 'Range required.'
@@ -367,12 +381,10 @@ class ExMove(sublime_plugin.TextCommand):
         assert range, "Need a range."
         address = calculate_address(self.view, address)
 
-        text = ''
+        line_block = [] 
         for r in get_region_by_range(self.view, range):
-            ss = self.view.substr(self.view.line(r))
-            if not ss.endswith('\n'):
-                ss += '\n'
-            text += ss
+            ss = ensure_line_block(self.view, r)
+            line_block.append(ss)
 
         offset = 0
         for r in reversed(get_region_by_range(self.view,
@@ -381,6 +393,7 @@ class ExMove(sublime_plugin.TextCommand):
                 offset +=  1
             self.view.erase(edit, self.view.full_line(r))
 
+        text = ''.join(line_block)
         dest = self.view.line(self.view.text_point(
                                                 address - offset, 0)).end() + 1
         if dest > self.view.size():
@@ -398,13 +411,12 @@ class ExCopy(sublime_plugin.TextCommand):
         assert range, "Need a range."
         address = calculate_address(self.view, address)
 
-        text = ''
+        line_block = [] 
         for r in get_region_by_range(self.view, range):
-            ss = self.view.substr(self.view.line(r))
-            if not ss.endswith('\n'):
-                ss += '\n'
-            text += ss
+            ss = ensure_line_block(self.view, r)
+            line_block.append(ss)
         
+        text = ''.join(line_block)
         dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         if dest > self.view.size():
             dest = self.view.size()
