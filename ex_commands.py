@@ -107,7 +107,7 @@ def get_region_by_range(view, text_range, split_visual=False):
 
     a, b = ex_range.calculate_range(view, text_range)
     r = sublime.Region(view.text_point(a - 1, 0),
-                        view.line(
+                        view.full_line(
                             view.text_point(b - 1, 0)).end())    
     return view.split_by_newlines(r)
 
@@ -137,14 +137,10 @@ def get_startup_info():
 def ensure_line_block(view, r):
     """returns a string containing lines terminated by a newline character.
     """
-    if view.substr(sublime.Region(r.begin(), r.end() - 1)) == '\n':
-        line_block = view.substr(r)
-    else:
-        line_block = view.substr(view.line(r))
+    if view.substr(r).endswith('\n'):
+        r = sublime.Region(r.begin(), r.end() - 1)
+    line_block = view.substr(view.line(r)) + '\n'
 
-    # XXX needed for last line?
-    if not line_block.endswith('\n'):
-        line_block += '\n'
     return line_block
 
 
@@ -379,7 +375,10 @@ class ExFile(sublime_plugin.TextCommand):
 class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
         assert range, "Need a range."
-        address = calculate_address(self.view, address)
+        if int(address) != 0:
+            address = calculate_address(self.view, address)
+        else:
+            address = 0
 
         line_block = [] 
         for r in get_region_by_range(self.view, range):
@@ -394,8 +393,12 @@ class ExMove(sublime_plugin.TextCommand):
             self.view.erase(edit, self.view.full_line(r))
 
         text = ''.join(line_block)
-        dest = self.view.line(self.view.text_point(
+        if address != 0:
+            dest = self.view.line(self.view.text_point(
                                                 address - offset, 0)).end() + 1
+        else:
+            dest = 0
+
         if dest > self.view.size():
             dest = self.view.size()
             text = '\n' + text[:-1]
@@ -409,7 +412,10 @@ class ExMove(sublime_plugin.TextCommand):
 class ExCopy(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
         assert range, "Need a range."
-        address = calculate_address(self.view, address)
+        if int(address) != 0:
+            address = calculate_address(self.view, address)
+        else:
+            address = 0
 
         line_block = [] 
         for r in get_region_by_range(self.view, range):
@@ -417,7 +423,10 @@ class ExCopy(sublime_plugin.TextCommand):
             line_block.append(ss)
         
         text = ''.join(line_block)
-        dest = self.view.line(self.view.text_point(address, 0)).end() + 1
+        if address != 0:
+            dest = self.view.line(self.view.text_point(address, 0)).end() + 1
+        else:
+            dest = address
         if dest > self.view.size():
             dest = self.view.size()
             text = '\n' + text[:-1]
