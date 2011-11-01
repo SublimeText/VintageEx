@@ -4,7 +4,7 @@
 from collections import namedtuple
 
 from ex_command_parser import EX_RANGE_REGEXP, EX_ONLY_RANGE_REGEXP
-import location
+import ex_location
 
 
 EX_RANGE = namedtuple('ex_range', 'left left_offset separator right right_offset')
@@ -29,6 +29,7 @@ def partition_raw_only_range(range):
                     right_offset=parts[4] or '0',
                     )
 
+
 def partition_raw_range(range):
     """takes a text range and breaks it up into its constituents:
             /foo/+10;$-15
@@ -52,7 +53,7 @@ def partition_raw_range(range):
 
 
 # XXX at the moment it won't work with /foo//bar/ parts.
-def calculate_range_part(view, range_part):
+def calculate_range_part(view, range_part, start_line=None):
     """takes the left or right part of a range and returns the actual buffer
     line they refer to.
         returns: a 1-based line number
@@ -68,11 +69,14 @@ def calculate_range_part(view, range_part):
         else:
             search_term = range_part[1:]
         if range_part.startswith('?'):
-            return location.reverse_search(view, search_term,
-                                            end=view.sel()[0].begin())
-        return location.search(view, search_term)
+            if start_line:
+                end = view.line(view.text_point(start_line, 0)).end()
+            else:
+                end = view.sel()[0].begin()
+            return ex_location.reverse_search(view, search_term, end=end)
+        return ex_location.search(view, search_term)
     if range_part in ('$', '.'):
-        return location.calculate_relative_ref(view, range_part)
+        return ex_location.calculate_relative_ref(view, range_part, start_line)
 
         
 def calculate_range(view, raw_range, is_only_range=False):
@@ -96,5 +100,12 @@ def calculate_range(view, raw_range, is_only_range=False):
                                             int(parsed_range.left_offset)
         return left, left
     
+    if parsed_range.separator == ';':
+        left = calculate_range_part(view, left) + int(left_offset)
+        right = calculate_range_part(view, right, start_line=left - 1) + int(right_offset)
+        # XXX vim asks the user before reversing ranges, but we don't because
+        # reversing the order will be the most common desired result when
+        # performing a reversed search.
+        return min(left, right), max(left, right)
     return calculate_range_part(view, left) + int(left_offset), \
                 calculate_range_part(view, right) + int(right_offset)
