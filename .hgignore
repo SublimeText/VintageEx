@@ -2,6 +2,7 @@ syntax: glob
 
 *.pyc
 *.sublime-workspace
+*.sublime-project
 *.cache
 
 MANIFEST
