@@ -184,16 +184,26 @@ class ExShellOut(sublime_plugin.TextCommand):
 
 
 class ExShell(sublime_plugin.TextCommand):
+    """Ex command(s): :shell
+
+    Opens a shell at the current view's directory. Sublime Text keeps a virtual
+    current directory that most of the time will be out of sync with the actual
+    current directory. The virtual current directory is always set to the
+    current view's directory, but it isn't accessible through the API.
+    """
+    def open_shell(self, command):
+        view_dir = os.path.dirname(self.view.file_name())
+        return subprocess.Popen(command, cwd=view_dir)
+        
     def run(self, edit):
         if sublime.platform() == 'linux':
-            term = os.path.expandvars("$COLORTERM") or \
-                                                    os.path.expandvars("$TERM")
-            subprocess.Popen([term, '-e', "bash"]).wait()
-            return
+            term = os.path.expandvars('$COLORTERM') or \
+                                                    os.path.expandvars('$TERM')
+            self.open_shell([term, '-e', 'bash']).wait()
         elif sublime.platform() == 'windows':
-            subprocess.Popen(['cmd.exe', '/k']).wait()
-            return 
+            self.open_shell(['cmd.exe', '/k']).wait()
         else:
+            # XXX OSX (make check explicit)
             handle_not_implemented()
 
 
