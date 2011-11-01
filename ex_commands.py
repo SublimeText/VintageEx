@@ -226,6 +226,11 @@ class ExReadShellOut(sublime_plugin.TextCommand):
 
 
 class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
+    """Ex command(s): :ls, :files
+
+    Shows a quick panel listing the open files only. Provides concise
+    information about the buffers's state: 'transient', 'unsaved'.
+    """
     def run(self, edit):
         self.file_names = [gather_buffer_info(v)
                                         for v in self.view.window().views()]
@@ -233,13 +238,13 @@ class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
 
     def on_done(self, idx):
         if idx == -1: return
-        # focus the file chosen
         sought_fname = self.file_names[idx]
         for v in self.view.window().views():
             if v.file_name() and v.file_name().endswith(sought_fname[1]):
                 self.view.window().focus_view(v)
-            # xxx probably all checks should be based on the buffer id
-            elif v.buffer_id() == int(sought_fname[1]):
+            # xxx Base all checks on buffer id?
+            elif sought_fname[1].isdigit() and \
+                                        v.buffer_id() == int(sought_fname[1]):
                 self.view.window().focus_view(v)
 
 
