@@ -16,8 +16,8 @@ Compatibility
 * Linux (less good)
 * OSX (worst)
 
-VintageEx aims to be completely cross-platform. Most command will work fine on
-all three OSes as long as they don't interact with shells.
+VintageEx aims to be completely cross-platform. Presently, wost command will
+work fine on all three OSes as long as they don't interact with shells.
 
 Overview
 ========
