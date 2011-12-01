@@ -150,6 +150,7 @@ class ExGoto(sublime_plugin.TextCommand):
         a, b = ex_range.calculate_range(self.view, range, is_only_range=True)
         target = (max(a, b) if all((a, b)) else (a or b)) or 0
         self.view.run_command('vi_goto_line', {'repeat': target})
+        self.view.show(self.view.sel()[0])
 
 
 class ExShellOut(sublime_plugin.TextCommand):
