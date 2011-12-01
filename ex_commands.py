@@ -209,6 +209,12 @@ class ExShell(sublime_plugin.TextCommand):
 
 class ExReadShellOut(sublime_plugin.TextCommand):
     def run(self, edit, range='', name='', plusplus_args='', forced=False):
+        target_line = self.view.line(self.view.sel()[0].begin())
+        if range:
+            range = max(ex_range.calculate_range(self.view, range))
+            target_line = self.view.line(self.view.text_point(range, 0))
+        target_point = min(target_line.b + 1, self.view.size())
+
         # cheat a little bit to get the parsing right:
         #   - forced == True means we need to execute a command
         if forced:
@@ -229,10 +235,21 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                     self.view.insert(edit, s.begin(), rv)
             else:
                 handle_not_implemented()
+        # Read a file into the current view.
         else:
+            # Read the current buffer's contents and insert below current line.
+            if not name:
+                new_contents = self.view.substr(
+                                        sublime.Region(0, self.view.size()))
+                if self.view.substr(target_line.b) != '\n':
+                    new_contents = '\n' + new_contents
+                self.view.insert(edit, target_point, new_contents)
+                return
             # xxx read file "name"
             # we need proper filesystem autocompletion here
-            sublime.status_message('VintageEx: Not implemented.')
+            else:
+                handle_not_implemented()
+                return
 
 
 class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
