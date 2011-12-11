@@ -76,6 +76,12 @@ EX_COMMANDS = {
                                 invocations=(),
                                 error_on=()
                                 ),
+    # TODO: add invocations
+    ('wq', 'wq'): ex_cmd_data(
+                                command='ex_wq',
+                                invocations=(),
+                                error_on=()
+                                ),
     ('read', 'r'): ex_cmd_data(
                                 command='ex_read_shell_out',
                                 invocations=(

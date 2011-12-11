@@ -616,3 +616,23 @@ class ExQuitCommand(sublime_plugin.TextCommand):
                     sublime.status_message("There are unsaved changes!")
                     return
         self.view.window().run_command('exit')
+
+
+class ExWqCommand(sublime_plugin.TextCommand):
+    """Ex command(s): :wq
+
+    Write the active buffer and close it.
+    """
+    def run(self, edit, range='.', forced=False):
+        if forced:
+            handle_not_implemented()
+            return
+
+        if self.view.is_read_only():
+            sublime.status_message("Can't write a read-only buffer.")
+            return
+        if not self.view.file_name():
+            sublime.status_message("Can't save a file without name.")
+            return
+        self.view.run_command('save')
+        self.view.window().run_command('close')
