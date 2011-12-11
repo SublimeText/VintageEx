@@ -609,10 +609,10 @@ class ExQuitCommand(sublime_plugin.TextCommand):
           Although ST's window command 'exit' would take care of this, it
           displays a modal dialog, so spare ourselves that.
     """
-    def run(self, edit, range='.', count=1, flags=''):
-        for v in self.view.window().views():
-            if v.is_dirty():
-                sublime.status_message("There are unsaved changes!")
-                return
-        
+    def run(self, edit, range='.', forced=False, count=1, flags=''):
+        if not forced:
+            for v in self.view.window().views():
+                if v.is_dirty():
+                    sublime.status_message("There are unsaved changes!")
+                    return
         self.view.window().run_command('exit')
