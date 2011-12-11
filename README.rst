@@ -19,6 +19,14 @@ Compatibility
 VintageEx aims at full cross-platform compatibility. Presently, most command
 will work fine on all three OSes as long as they don't interact with shells.
 
+Installation
+============
+
+Download the `latest version`_, put it under ``Installed Packages`` and restart
+Sublime Text.
+
+.. _latest version: https://bitbucket.org/guillermooo/vintageex/downloads/VintageEx.sublime-package
+
 Overview
 ========
 
