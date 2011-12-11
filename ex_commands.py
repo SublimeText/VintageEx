@@ -597,3 +597,22 @@ class ExPrint(sublime_plugin.TextCommand):
             v.settings().set('draw_white_space', 'all')
         for t, r in to_display:
             v.insert(edit, v.size(), (str(r) + ' ' + t + '\n').lstrip())
+
+
+class ExQuitCommand(sublime_plugin.TextCommand):
+    """Ex command(s): :quit
+    Closes the window.
+
+        * Don't close the window if there are dirty buffers
+          TODO:
+          (Doesn't make too much sense if hot_exit is on, though.)
+          Although ST's window command 'exit' would take care of this, it
+          displays a modal dialog, so spare ourselves that.
+    """
+    def run(self, edit, range='.', count=1, flags=''):
+        for v in self.view.window().views():
+            if v.is_dirty():
+                sublime.status_message("There are unsaved changes!")
+                return
+        
+        self.view.window().run_command('exit')

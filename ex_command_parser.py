@@ -71,6 +71,11 @@ EX_COMMANDS = {
                                 invocations=(),
                                 error_on=()
                                 ),
+    ('quit', 'q'): ex_cmd_data(
+                                command='ex_quit',
+                                invocations=(),
+                                error_on=()
+                                ),
     ('read', 'r'): ex_cmd_data(
                                 command='ex_read_shell_out',
                                 invocations=(
