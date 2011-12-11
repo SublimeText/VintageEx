@@ -3,7 +3,8 @@ import sublime_plugin
 
 import sys
 import os
-
+    
+# We use several commands implemented in Vintange, so make it available here.
 sys.path.append(os.path.join(sublime.packages_path(), 'Vintage'))
 
 import re
