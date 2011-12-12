@@ -13,7 +13,9 @@ ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
 
 EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
 EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
-# almost identical to above, but exclude "%"
+# Almost identical to above, but exclude '%'.
+# Note that Vim's help seems to be wrong about valid address. It says '%' is a
+# valid address, but in practice it doesn't work.
 EX_ADDRESS_REGEXP = re.compile(r'^(?P<address>([$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
 
 ERR_UNWANTED_ARGS = 0
