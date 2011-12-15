@@ -20,6 +20,8 @@ import ex_range
 
 from vintage import g_registers
 
+import shell
+
 
 GLOBAL_RANGES = []
 
@@ -42,26 +44,6 @@ def set_register(text, register):
             g_registers[reg] += text
         else:
             g_registers[reg] = text
-
-
-def filter_region(txt, command):
-    try:
-        contents = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
-        contents.write(txt.encode('utf-8'))
-        contents.close()
-
-        script = tempfile.NamedTemporaryFile(suffix='.bat', delete=False)
-        script.write('@echo off\ntype %s | %s' % (contents.name, command))
-        script.close()
-
-        p = subprocess.Popen(['cmd.exe', '/C', script.name],
-                                                    stdout=subprocess.PIPE)
-
-        rv = p.communicate()
-        return rv[0].decode(get_oem_cp()).replace('\r\n', '\n')[:-1]
-    finally:
-        os.remove(script.name)
-        os.remove(contents.name)
 
 
 def gather_buffer_info(v):
@@ -130,11 +112,6 @@ def compute_address(view, text_range):
     return address - 1
 
 
-def get_oem_cp():
-    codepage = ctypes.windll.kernel32.GetOEMCP()
-    return str(codepage)
-
-
 def get_startup_info():
     # Hide the child process window.
     startupinfo = subprocess.STARTUPINFO()
@@ -162,33 +139,21 @@ class ExGoto(sublime_plugin.TextCommand):
 
 
 class ExShellOut(sublime_plugin.TextCommand):
+    """Ex command(s): :!cmd, :'<,>'!cmd
+
+    Run cmd in a system's shell or filter selected regions through external
+    command.
+    """
     def run(self, edit, range='', shell_cmd=''):
-        if range:
-            if sublime.platform() == 'windows':
-                for r in get_region_by_range(self.view, range):
-                    rv = filter_region(self.view.substr(r), shell_cmd)
-                    self.view.replace(edit, r, rv)
-                return
-            elif sublime.platform() == 'linux':
-                for s in self.view.sel():
-                    shell = os.path.expandvars("$SHELL")
-                    p = subprocess.Popen([shell, '-c', shell_cmd],
-                                                        stdout=subprocess.PIPE)
-                    self.view.replace(edit, s, p.communicate()[0][:-1])
-                return
+        try:
+            if range:
+                shell.filter_thru_shell(
+                                view=self.view,
+                                regions=get_region_by_range(self.view, range),
+                                cmd=shell_cmd)
             else:
-                handle_not_implemented()
-        elif sublime.platform() == 'linux':
-            term = os.path.expandvars("$COLORTERM") or \
-                                                    os.path.expandvars("$TERM")
-            subprocess.Popen([term, '-e',
-                    "bash -c \"%s; read -p 'Press RETURN to exit.'\"" %
-                                                            shell_cmd]).wait()
-            return
-        elif sublime.platform() == 'windows':
-            subprocess.Popen(['cmd.exe', '/c', shell_cmd + '&& pause']).wait()
-            return 
-        else:
+                shell.run_and_wait(shell_cmd)
+        except NotImplementedError:
             handle_not_implemented()
 
 
@@ -289,13 +254,13 @@ class ExMap(sublime_plugin.TextCommand):
     # file
     def run(self, edit):
         if sublime.platform() == 'windows':
-            plat = 'Windows'
+            platf = 'Windows'
         elif sublime.platform() == 'linux':
-            plat = 'Linux'
+            platf = 'Linux'
         else:
-            plat = 'OSX'
+            platf = 'OSX'
         self.view.window().run_command('open_file', {'file':
-                                        '${packages}/User/Default (%s).sublime-keymap' % plat})        
+                                        '${packages}/User/Default (%s).sublime-keymap' % platf})
 
 
 class ExAbbreviate(sublime_plugin.TextCommand):
