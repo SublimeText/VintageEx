@@ -10,17 +10,10 @@ sys.path.append(os.path.join(sublime.packages_path(), 'Vintage'))
 import re
 import subprocess
 
-try:
-    import ctypes
-except ImportError:
-    ctypes = None
-
-import ex_range
-
 from vintage import g_registers
 
+import ex_range
 import shell
-
 from plat.windows import get_oem_cp
 
 
