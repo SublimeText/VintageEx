@@ -21,6 +21,8 @@ from vintage import g_registers
 
 import shell
 
+from plat.windows import get_oem_cp
+
 
 GLOBAL_RANGES = []
 
@@ -203,7 +205,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                                             stdout=subprocess.PIPE,
                                             startupinfo=get_startup_info()
                                             )
-                    cp = 'cp' + shell.get_oem_cp()
+                    cp = 'cp' + get_oem_cp()
                     rv = p.communicate()[0].decode(cp)[:-2].strip()
                     self.view.insert(edit, s.begin(), rv)
             else:

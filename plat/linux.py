@@ -3,11 +3,10 @@ import subprocess
 
 
 def run_and_wait(cmd):
-    term = os.path.expandvars("$COLORTERM") or \
-                                            os.path.expandvars("$TERM")
-    subprocess.Popen([term, '-e',
-            "bash -c \"%s; read -p 'Press RETURN to exit.'\"" %
-                                                    cmd]).wait()
+    term = os.path.expandvars("$COLORTERM") or os.path.expandvars("$TERM")
+    subprocess.Popen([
+            term, '-e', 
+            "bash -c \"%s; read -p 'Press RETURN to exit.'\"" % cmd]).wait()
 
 
 def filter_region(text, command):
