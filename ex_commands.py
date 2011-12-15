@@ -194,8 +194,8 @@ class ExReadShellOut(sublime_plugin.TextCommand):
         if forced:
             if sublime.platform() == 'linux':
                 for s in self.view.sel():
-                    shell = os.path.expandvars("$SHELL")
-                    p = subprocess.Popen([shell, '-c', name],
+                    the_shell = os.path.expandvars("$SHELL")
+                    p = subprocess.Popen([the_shell, '-c', name],
                                                         stdout=subprocess.PIPE)
                     self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
             elif sublime.platform() == 'windows':
@@ -204,7 +204,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                                             stdout=subprocess.PIPE,
                                             startupinfo=get_startup_info()
                                             )
-                    cp = 'cp' + get_oem_cp()
+                    cp = 'cp' + shell.get_oem_cp()
                     rv = p.communicate()[0].decode(cp)[:-2].strip()
                     self.view.insert(edit, s.begin(), rv)
             else:
