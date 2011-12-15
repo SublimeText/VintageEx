@@ -9,7 +9,6 @@ sys.path.append(os.path.join(sublime.packages_path(), 'Vintage'))
 
 import re
 import subprocess
-import tempfile
 
 try:
     import ctypes
