@@ -616,7 +616,7 @@ class ExQuitCommand(sublime_plugin.TextCommand):
                 if v.is_dirty():
                     sublime.status_message("There are unsaved changes!")
                     return
-        self.view.window().run_command('exit')
+        self.view.window().run_command('close')
 
 
 class ExWqCommand(sublime_plugin.TextCommand):
