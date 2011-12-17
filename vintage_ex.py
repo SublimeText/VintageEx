@@ -24,6 +24,9 @@ def update_command_line_history(item, slot_name):
 
 #______________________________________________________________________________
 class ViColonInput(sublime_plugin.WindowCommand):
+    def is_enabled(self):
+        return len(self.window.views()) > 0
+        
     def __init__(self, window):
         sublime_plugin.WindowCommand.__init__(self, window)
 

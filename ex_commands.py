@@ -559,6 +559,14 @@ class ExPrint(sublime_plugin.TextCommand):
             v.insert(edit, v.size(), (str(r) + ' ' + t + '\n').lstrip())
 
 
+# TODO: General note for all :q variants:
+#   ST has a notion of hot_exit, whereby it preserves all buffers so that they
+#   can be restored next time you open ST. With this option on, all :q
+#   commands should probably execute silently even if there are unsaved buffers.
+#   Sticking to Vim's behavior closely here makes for a worse experience
+#   because typically you don't start ST as many times.
+# 
+#   Maybe ZZ should always use hot_exit?
 class ExQuitCommand(sublime_plugin.WindowCommand):
     """Ex command(s): :quit
     Closes the window.
@@ -570,11 +578,13 @@ class ExQuitCommand(sublime_plugin.WindowCommand):
           displays a modal dialog, so spare ourselves that.
     """
     def run(self, range='.', forced=False, count=1, flags=''):
-        if not forced:
-            for v in self.window.views():
-                if v.is_dirty():
-                    sublime.status_message("There are unsaved changes!")
-                    return
+        v = self.window.active_view()
+        if forced:
+            v.set_scratch(True)
+        if v.is_dirty():
+            sublime.status_message("There are unsaved changes!")
+            return
+         
         self.window.run_command('close')
         if len(self.window.views()) == 0:
             self.window.run_command('close')
