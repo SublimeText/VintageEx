@@ -581,7 +581,7 @@ class ExQuitCommand(sublime_plugin.TextCommand):
 class ExWriteAndQuitCommand(sublime_plugin.TextCommand):
     """Ex command(s): :wq
 
-    Write the active buffer and close it.
+    Write and then close the active buffer.
     """
     def run(self, edit, range='.', forced=False):
         if forced:
