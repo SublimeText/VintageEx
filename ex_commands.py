@@ -559,7 +559,7 @@ class ExPrint(sublime_plugin.TextCommand):
             v.insert(edit, v.size(), (str(r) + ' ' + t + '\n').lstrip())
 
 
-class ExQuitCommand(sublime_plugin.TextCommand):
+class ExQuitCommand(sublime_plugin.WindowCommand):
     """Ex command(s): :quit
     Closes the window.
 
@@ -569,30 +569,33 @@ class ExQuitCommand(sublime_plugin.TextCommand):
           Although ST's window command 'exit' would take care of this, it
           displays a modal dialog, so spare ourselves that.
     """
-    def run(self, edit, range='.', forced=False, count=1, flags=''):
+    def run(self, range='.', forced=False, count=1, flags=''):
         if not forced:
-            for v in self.view.window().views():
+            for v in self.window.views():
                 if v.is_dirty():
                     sublime.status_message("There are unsaved changes!")
                     return
-        self.view.window().run_command('close')
+        self.window.run_command('close')
+        if len(self.window.views()) == 0:
+            self.window.run_command('close')
 
 
 class ExQuitAllCommand(sublime_plugin.WindowCommand):
     """Ex command(s): :qall
-    Closes all windows and exits Sublime Text.
+    Close all windows and then exit Sublime Text.
 
-        * Don't close the window if there are dirty buffers
-          TODO:
-          (Doesn't make too much sense if hot_exit is on, though.)
-          Although ST's window command 'exit' would take care of this, it
-          displays a modal dialog, so spare ourselves that.
+    If there are dirty buffers, exit only if :qall!.
     """
     def run(self, range='.', forced=False):
-        for v in self.window.views():
-            if v.is_dirty():
-                sublime.status_message("There are unsaved changes!")
-                return
+        if not forced:
+            for v in self.window.views():
+                if v.is_dirty():
+                    sublime.status_message("There are unsaved changes!")
+                    return
+        else:
+            for v in self.window.views():
+                if v.is_dirty():
+                    v.set_scratch(True)
         self.window.run_command('close_all')
         self.window.run_command('exit')
 
@@ -603,6 +606,7 @@ class ExWriteAndQuitCommand(sublime_plugin.TextCommand):
     Write and then close the active buffer.
     """
     def run(self, edit, range='.', forced=False):
+        # TODO: implement this
         if forced:
             handle_not_implemented()
             return
@@ -614,4 +618,4 @@ class ExWriteAndQuitCommand(sublime_plugin.TextCommand):
             sublime.status_message("Can't save a file without name.")
             return
         self.view.run_command('save')
-        self.view.window().run_command('close')
+        self.view.window().run_command('ex_quit')
