@@ -23,24 +23,17 @@ def update_command_line_history(item, slot_name):
 
 
 #______________________________________________________________________________
-class ViColonInput(sublime_plugin.TextCommand):
-    def __init__(self, view):
-        sublime_plugin.TextCommand.__init__(self, view)
+class ViColonInput(sublime_plugin.WindowCommand):
+    def __init__(self, window):
+        sublime_plugin.WindowCommand.__init__(self, window)
 
-    def run_(self, args):
-        if args:
-            if 'event' in args:
-                del args['event']
-            return self.run(**args)
-        return self.run()
-        
     def run(self, initial_text=':', cmd_line=''):
         # non-interactive call
         if cmd_line:
             self.non_interactive = True
             self.on_done(cmd_line)
             return
-        v = self.view.window().show_input_panel('', initial_text,
+        v = self.window.show_input_panel('', initial_text,
                                                     self.on_done, None, None)
         v.set_syntax_file('Packages/VintageEx/Support/VintageEx Cmdline.tmLanguage')
         v.settings().set('gutter', False)
@@ -62,7 +55,7 @@ class ViColonInput(sublime_plugin.TextCommand):
                 ex_cmd.args['range'] = ex_cmd.range
             if ex_cmd.forced:
                 ex_cmd.args['forced'] = ex_cmd.forced
-            self.view.run_command(ex_cmd.command, ex_cmd.args)
+            self.window.run_command(ex_cmd.command, ex_cmd.args)
         else:
             sublime.status_message('VintageEx: unknown command (%s)' % 
                                                                     cmd_line)

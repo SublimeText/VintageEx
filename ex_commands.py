@@ -578,7 +578,7 @@ class ExQuitCommand(sublime_plugin.TextCommand):
         self.view.window().run_command('close')
 
 
-class ExQuitAllCommand(sublime_plugin.TextCommand):
+class ExQuitAllCommand(sublime_plugin.WindowCommand):
     """Ex command(s): :qall
     Closes all windows and exits Sublime Text.
 
@@ -588,13 +588,13 @@ class ExQuitAllCommand(sublime_plugin.TextCommand):
           Although ST's window command 'exit' would take care of this, it
           displays a modal dialog, so spare ourselves that.
     """
-    def run(self, edit, range='.', forced=False):
-        for v in self.view.window().views():
+    def run(self, range='.', forced=False):
+        for v in self.window.views():
             if v.is_dirty():
                 sublime.status_message("There are unsaved changes!")
                 return
-        self.view.window().run_command('close_all')
-        self.view.window().run_command('exit')
+        self.window.run_command('close_all')
+        self.window.run_command('exit')
 
 
 class ExWriteAndQuitCommand(sublime_plugin.TextCommand):
