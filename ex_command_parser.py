@@ -76,7 +76,12 @@ EX_COMMANDS = {
     ('quit', 'q'): ex_cmd_data(
                                 command='ex_quit',
                                 invocations=(),
-                                error_on=()
+                                error_on=(ERR_UNWANTED_ARGS,)
+                                ),
+    ('qall', 'qa'): ex_cmd_data(
+                                command='ex_quit_all',
+                                invocations=(),
+                                error_on=(ERR_UNWANTED_ARGS,)
                                 ),
     # TODO: add invocations
     ('wq', 'wq'): ex_cmd_data(
