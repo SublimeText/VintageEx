@@ -80,7 +80,7 @@ EX_COMMANDS = {
                                 ),
     # TODO: add invocations
     ('wq', 'wq'): ex_cmd_data(
-                                command='ex_wq',
+                                command='ex_write_and_quit',
                                 invocations=(),
                                 error_on=()
                                 ),
