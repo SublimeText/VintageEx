@@ -20,6 +20,12 @@ from plat.windows import get_oem_cp
 GLOBAL_RANGES = []
 
 
+def is_any_buffer_unsaved(window):
+    for v in window.views():
+        if v.is_dirty():
+            return True
+
+
 def handle_not_implemented():
     sublime.status_message('VintageEx: Not implemented')
 
@@ -565,8 +571,6 @@ class ExPrint(sublime_plugin.TextCommand):
 #   commands should probably execute silently even if there are unsaved buffers.
 #   Sticking to Vim's behavior closely here makes for a worse experience
 #   because typically you don't start ST as many times.
-# 
-#   Maybe ZZ should always use hot_exit?
 class ExQuitCommand(sublime_plugin.WindowCommand):
     """Ex command(s): :quit
     Closes the window.
@@ -597,15 +601,14 @@ class ExQuitAllCommand(sublime_plugin.WindowCommand):
     If there are dirty buffers, exit only if :qall!.
     """
     def run(self, range='.', forced=False):
-        if not forced:
-            for v in self.window.views():
-                if v.is_dirty():
-                    sublime.status_message("There are unsaved changes!")
-                    return
-        else:
+        if forced:
             for v in self.window.views():
                 if v.is_dirty():
                     v.set_scratch(True)
+        elif is_any_buffer_unsaved(self.window):
+            sublime.status_message("There are unsaved changes!")
+            return
+
         self.window.run_command('close_all')
         self.window.run_command('exit')
 
@@ -620,12 +623,12 @@ class ExWriteAndQuitCommand(sublime_plugin.TextCommand):
         if forced:
             handle_not_implemented()
             return
-
         if self.view.is_read_only():
             sublime.status_message("Can't write a read-only buffer.")
             return
         if not self.view.file_name():
             sublime.status_message("Can't save a file without name.")
             return
+
         self.view.run_command('save')
         self.view.window().run_command('ex_quit')

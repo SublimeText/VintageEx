@@ -105,7 +105,8 @@ EX_COMMANDS = {
                                 error_on=(ERR_UNWANTED_ARGS,)
                                 ),
     ('ascii', 'as'): ex_cmd_data(
-                                command='ex_ascii',
+                                # This command is implemented in Packages/Vintage.
+                                command='show_ascii_info',
                                 invocations=(),
                                 error_on=(ERR_UNWANTED_RANGE,
                                             ERR_UNWANTED_BANG,
