@@ -334,11 +334,6 @@ class ExNewFile(sublime_plugin.TextCommand):
         self.view.window().run_command('new_file')
 
 
-class ExAscii(sublime_plugin.TextCommand):
-    def run(self, edit, range='', forced=False):
-        handle_not_implemented()
-
-
 class ExFile(sublime_plugin.TextCommand):
     def run(self, edit, forced=False):
         # xxx figure out what the right params are. vim's help seems to be
