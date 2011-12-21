@@ -1,5 +1,6 @@
 from ex_command_parser import EX_ONLY_RANGE_REGEXP, extract_args, \
                                 extract_command_name, EX_RANGE_REGEXP
+from ex_command_parser import EX_ADDRESS_REGEXP
 
 
 def test_full_cmd_regexp():
@@ -49,3 +50,20 @@ def test_extract_command_name():
     assert extract_command_name('whatever!') == 'whatever'
     assert extract_command_name('hello world') == 'hello'
     assert extract_command_name('hello++opt1=foo') == 'hello'
+
+
+def test_address_regexp():
+    assert EX_ADDRESS_REGEXP.match('$')
+    assert EX_ADDRESS_REGEXP.match('.')
+    assert not EX_ADDRESS_REGEXP.match('%')
+    assert not EX_ADDRESS_REGEXP.match('aa')
+    assert EX_ADDRESS_REGEXP.match('1')
+    assert EX_ADDRESS_REGEXP.match('123')
+    assert EX_ADDRESS_REGEXP.match('$,$')
+    assert EX_ADDRESS_REGEXP.match('/foo')
+    assert EX_ADDRESS_REGEXP.match('/foo/')
+    assert EX_ADDRESS_REGEXP.match('?foo')
+    assert EX_ADDRESS_REGEXP.match('?foo?')
+    assert EX_ADDRESS_REGEXP.match('?foo?+100')
+    assert EX_ADDRESS_REGEXP.match('/foo/+100')
+    assert not EX_ADDRESS_REGEXP.match('/foo/100')
