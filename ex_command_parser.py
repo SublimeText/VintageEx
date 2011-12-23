@@ -16,7 +16,7 @@ EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+
 # Almost identical to above, but exclude '%'.
 # Note that Vim's help seems to be wrong about valid address. It says '%' is a
 # valid address, but in practice it doesn't work.
-EX_ADDRESS_REGEXP = re.compile(r'^(?P<address>([$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
+EX_ADDRESS_REGEXP = re.compile(r'^(?P<address>([$.]|\d+|/.*?(?<!\\)/|\?.*?(?<!\\)\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?(?<!\\)\?)([-+]\d+)*)?)|(^[/?].*)$')
 
 ERR_UNWANTED_ARGS = 0
 ERR_UNWANTED_BANG = 1
