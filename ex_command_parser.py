@@ -361,7 +361,6 @@ def parse_command(cmd):
                         )
 
     range_ = get_cmd_line_range(cmd_name)
-    print "XXX", range_
     if range_: cmd_name = cmd_name[len(range_):]
     
     if cmd_name.startswith('!'):
