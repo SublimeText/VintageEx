@@ -18,25 +18,28 @@ import re
 #       on this information.
 #       For example: (ERR_UNWANTED_ARGS,)
 ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
+
 # Holds a parsed ex command.
 EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 
-# FIXME: use only one range regexp
+# This regex matches any type of range except open-ended /foo and ?bar
+# addresses. These are matched by EX_ONLY_RANGE_REGEXP instead. We don't need
+# to match them here, because they are not possible when a range precedes a
+# command.
+# FIXME: 2,del will be accepted, but I'm not sure what it should do.
 EX_RANGE_REGEXP = re.compile(r'''(?x)
         ^(?:
-            (
+            (?P<laddress>
                 [.$%]|
                 (?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>]
             )
-                ([-+]\d+)*
+                (?P<loffset>[-+]\d+)*
         )
-        (
-            ([,;])
-            (?:
-                ([.$%]|(?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])
-                ([-+]\d+)*
-            )
-        )?$
+        (?:
+            (?P<separator>[,;])
+            (?P<raddress>[.$%]|(?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])
+            (?P<roffset>[-+]\d+)*
+        )?
     ''')
 
 EX_ONLY_RANGE_REGEXP = re.compile(r'''(?x)
@@ -58,9 +61,10 @@ EX_ONLY_RANGE_REGEXP = re.compile(r'''(?x)
                 )
                 ([-+]\d+)*
             )?
-        )$|
-        (^[/?].*)$
+        )|
+        (^[/?].*)
         ''')
+
 # Almost identical to above, but exclude '%'.
 # Note that Vim's help seems to be wrong about valid address. It says '%' is a
 # valid address, but in practice it doesn't work.
@@ -68,9 +72,9 @@ EX_ONLY_RANGE_REGEXP = re.compile(r'''(?x)
 EX_ADDRESS_REGEXP = re.compile(r'''(?x)
                     ^(?P<address>
                         (
-                            [$.] | # relative line symbol or...
-                            \d+ | # absolute line number or...
-                            /.*?(?<!\\)/ | # forward search, such as :/foo/ or...
+                            [$.]| # relative line symbol or...
+                            \d+| # absolute line number or...
+                            /.*?(?<!\\)/| # forward search, such as :/foo/ or...
                             \?.*?(?<!\\)\? # reverse search, such as :?bar?
                         )
                         ([-+]\d+)* # optional offset, like in :$-10
@@ -78,9 +82,9 @@ EX_ADDRESS_REGEXP = re.compile(r'''(?x)
                             ([,;]) # range separator
                                 (
                                     # almost identical as above
-                                    [%$.] | # % only valid here
-                                    \d+ |
-                                    /.*?(?<!\\)/ |
+                                    [%$.]| # % only valid here
+                                    \d+|
+                                    /.*?(?<!\\)/|
                                     \?.*?(?<!\\)\?
                                 )
                                 ([-+]\d+)*
@@ -357,6 +361,7 @@ def parse_command(cmd):
                         )
 
     range_ = get_cmd_line_range(cmd_name)
+    print "XXX", range_
     if range_: cmd_name = cmd_name[len(range_):]
     
     if cmd_name.startswith('!'):

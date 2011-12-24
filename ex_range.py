@@ -41,14 +41,14 @@ def partition_raw_range(range):
             right: $
             right_offset: -15
     """
-    parts = EX_RANGE_REGEXP.search(range).groups()
+    parts = EX_RANGE_REGEXP.search(range).groupdict()
     # xxx try to make the regexp capture the desired groups only.
     return EX_RANGE(
-                left=parts[1],
-                left_offset=parts[3] or '0',
-                separator=parts[5],
-                right=parts[7],
-                right_offset=parts[9] or '0'
+                left=parts['laddress'],
+                left_offset=parts['loffset'] or '0',
+                separator=parts['separator'],
+                right=parts['raddress'],
+                right_offset=parts['roffset'] or '0'
                 )
 
 

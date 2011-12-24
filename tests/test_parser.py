@@ -58,6 +58,14 @@ class TestAddressParser(unittest.TestCase):
         actual = EX_ADDRESS_REGEXP.search(r'?foo\??,$')
         self.assertEquals(actual.group(), r'?foo\??,$')
 
+    def testExtractRange(self):
+        foo = EX_ADDRESS_REGEXP.search(r'100,200delete')
+        self.assertEquals(foo.group(), '100,200')
+        foo = EX_ADDRESS_REGEXP.search('.,200delete')
+        self.assertEquals(foo.group(), '.,200')
+        foo = EX_ADDRESS_REGEXP.search(r'.+100,/foo/-20delete')
+        self.assertEquals(foo.group(), '.+100,/foo/-20')
+
 
 class TestOnlyRange(unittest.TestCase):
     def testSimpleAddresses(self):
@@ -94,7 +102,8 @@ class TestOnlyRange(unittest.TestCase):
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$,%'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%,$'))
         self.assertFalse(EX_ONLY_RANGE_REGEXP.match('a,$'))
-        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('.,a'))
+        # FIXME: This one is legal in Vim, but I don't what it does.
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.,a'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('100,1'))
 
     def testSimpleRangesWithOffsets(self):
@@ -102,6 +111,7 @@ class TestOnlyRange(unittest.TestCase):
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$-10,.+1'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%-10,.-10'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.+10,%+1'))
+        # FIXME: This should be illegal.
         self.assertFalse(EX_ONLY_RANGE_REGEXP.match('$+a,%'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('100+100,1-100'))
         # Not valid in Vim either.
@@ -159,6 +169,7 @@ class TestRange(unittest.TestCase):
         self.assertTrue(EX_RANGE_REGEXP.match('$-10,.+1'))
         self.assertTrue(EX_RANGE_REGEXP.match('%-10,.-10-10'))
         self.assertTrue(EX_RANGE_REGEXP.match('.+10+10,%+1'))
+        # This should be illegal.
         self.assertFalse(EX_RANGE_REGEXP.match('$+a,%'))
         self.assertTrue(EX_RANGE_REGEXP.match('100+100,1-100'))
         # Not valid in Vim either.
