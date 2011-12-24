@@ -11,12 +11,74 @@ EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 # defines an ex command data for later parsing
 ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
 
-EX_RANGE_REGEXP = re.compile(r'^(:?([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?)(([,;])(:?([.$]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])([-+]\d+)?))?')
-EX_ONLY_RANGE_REGEXP = re.compile(r'^(?:([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?\?)([-+]\d+)*)?)|(^[/?].*)$')
+# FIXME: use only one range regexp
+EX_RANGE_REGEXP = re.compile(r'''(?x)
+        ^(?:
+            (
+                [.$%]|
+                (?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>]
+            )
+                ([-+]\d+)*
+        )
+        (
+            ([,;])
+            (?:
+                ([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])
+                ([-+]\d+)*
+            )
+        )?$
+    ''')
+
+EX_ONLY_RANGE_REGEXP = re.compile(r'''(?x)
+        ^(?:
+            (
+                [%$.]|
+                \d+|
+                /.*?(?<!\\)/|
+                \?.*?\?
+            )
+                ([-+]\d+)*
+            (?: # optional right address
+                ([,;])
+                (
+                    [%$.]|
+                    \d+|
+                    /.*?(?<!\\)/|
+                    \?.*?\?
+                )
+                ([-+]\d+)*
+            )?
+        )$|
+        (^[/?].*)$
+        ''')
 # Almost identical to above, but exclude '%'.
 # Note that Vim's help seems to be wrong about valid address. It says '%' is a
 # valid address, but in practice it doesn't work.
-EX_ADDRESS_REGEXP = re.compile(r'^(?P<address>([$.]|\d+|/.*?(?<!\\)/|\?.*?(?<!\\)\?)([-+]\d+)*(?:([,;])([%$.]|\d+|/.*?(?<!\\)/|\?.*?(?<!\\)\?)([-+]\d+)*)?)|(^[/?].*)$')
+# FIXME: add proper names like range, laddress, raddress, loffset, roffset
+EX_ADDRESS_REGEXP = re.compile(r'''(?x)
+                    ^(?P<address>
+                        (
+                            [$.] | # relative line symbol or...
+                            \d+ | # absolute line number or...
+                            /.*?(?<!\\)/ | # forward search, such as :/foo/ or...
+                            \?.*?(?<!\\)\? # reverse search, such as :?bar?
+                        )
+                        ([-+]\d+)* # optional offset, like in :$-10
+                        (?: # optional right address
+                            ([,;]) # range separator
+                                (
+                                    # almost identical as above
+                                    [%$.] | # % only valid here
+                                    \d+ |
+                                    /.*?(?<!\\)/ |
+                                    \?.*?(?<!\\)\?
+                                )
+                                ([-+]\d+)*
+                        )?
+                    )
+                    |
+                    (^[/?].*)$ # covers cases like /foo and ?bar
+                ''')
 
 ERR_UNWANTED_ARGS = 0
 ERR_UNWANTED_BANG = 1

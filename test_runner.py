@@ -21,3 +21,5 @@ class RunTestsCommand(sublime_plugin.WindowCommand):
         edit = v.begin_edit()
         v.insert(edit, 0, bucket.getvalue())
         v.end_edit(edit)
+        v.set_scratch(True)
+

@@ -1,10 +1,12 @@
 import unittest
 
 from ex_command_parser import EX_ADDRESS_REGEXP
+from ex_command_parser import EX_ONLY_RANGE_REGEXP
+from ex_command_parser import EX_RANGE_REGEXP
 
 
 class TestAddressParser(unittest.TestCase):
-    def test_SimpleAddresses(self):
+    def testSimpleAddresses(self):
         self.assertTrue(EX_ADDRESS_REGEXP.match('$'))
         self.assertTrue(EX_ADDRESS_REGEXP.match('.'))
         self.assertFalse(EX_ADDRESS_REGEXP.match('%'))
@@ -13,7 +15,7 @@ class TestAddressParser(unittest.TestCase):
         self.assertTrue(EX_ADDRESS_REGEXP.match('1'))
         self.assertTrue(EX_ADDRESS_REGEXP.match('123'))
     
-    def test_SimpleRanges(self):
+    def testSimpleRanges(self):
         self.assertTrue(EX_ADDRESS_REGEXP.match('$,$'))
         self.assertTrue(EX_ADDRESS_REGEXP.match('.,.'))
         self.assertTrue(EX_ADDRESS_REGEXP.match('.,$'))
@@ -30,7 +32,7 @@ class TestAddressParser(unittest.TestCase):
         self.assertTrue(EX_ADDRESS_REGEXP.match('.,100'))
         self.assertTrue(EX_ADDRESS_REGEXP.match('100,.'))
 
-    def test_SimpleRangesWithOffsets(self):
+    def testSimpleRangesWithOffsets(self):
         self.assertTrue(EX_ADDRESS_REGEXP.match('$-10,$+5'))
         self.assertTrue(EX_ADDRESS_REGEXP.match('.+10,%-5'))
         self.assertTrue(EX_ADDRESS_REGEXP.match('10-10,10+50'))
@@ -55,3 +57,117 @@ class TestAddressParser(unittest.TestCase):
         self.assertEquals(actual.group(), r'/foo\//,$')
         actual = EX_ADDRESS_REGEXP.search(r'?foo\??,$')
         self.assertEquals(actual.group(), r'?foo\??,$')
+
+
+class TestOnlyRange(unittest.TestCase):
+    def testSimpleAddresses(self):
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('1'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('10'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('100'))
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('a'))
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match(':'))
+
+    def testAddressBySearchOnly(self):
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/foo/'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/bar/'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/100/'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('?foo?'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('?bar?'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('?100?'))
+    
+    def testAddressWithOffsets(self):
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/foo/+10'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/bar/-100'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/100/+100'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('?foo?-10'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('?bar?+10+10'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('?100?+10-10'))
+
+    def testSimpleRanges(self):
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.,$'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$,.'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%,.'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.,%'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$,%'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%,$'))
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('a,$'))
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('.,a'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('100,1'))
+
+    def testSimpleRangesWithOffsets(self):
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.,$-10'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$-10,.+1'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%-10,.-10'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.+10,%+1'))
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('$+a,%'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('100+100,1-100'))
+        # Not valid in Vim either.
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('+100,-100'))
+
+    def testComplexRanges(self):
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/foo/,?bar?'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/foo/,/bar/'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('?foo?,?bar?'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('/foo/,$'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$,/foo/'))
+        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$,/foo/'))
+
+
+class TestRange(unittest.TestCase):
+    def testSimpleAddresses(self):
+        self.assertTrue(EX_RANGE_REGEXP.match('%'))
+        self.assertTrue(EX_RANGE_REGEXP.match('$'))
+        self.assertTrue(EX_RANGE_REGEXP.match('.'))
+        self.assertTrue(EX_RANGE_REGEXP.match('1'))
+        self.assertTrue(EX_RANGE_REGEXP.match('10'))
+        self.assertTrue(EX_RANGE_REGEXP.match('100'))
+        self.assertFalse(EX_RANGE_REGEXP.match('a'))
+        self.assertFalse(EX_RANGE_REGEXP.match(':'))
+
+    def testAddressBySearchOnly(self):
+        self.assertTrue(EX_RANGE_REGEXP.match('/foo/'))
+        self.assertTrue(EX_RANGE_REGEXP.match('/bar/'))
+        self.assertTrue(EX_RANGE_REGEXP.match('/100/'))
+        self.assertTrue(EX_RANGE_REGEXP.match('?foo?'))
+        self.assertTrue(EX_RANGE_REGEXP.match('?bar?'))
+        self.assertTrue(EX_RANGE_REGEXP.match('?100?'))
+    
+    def testAddressWithOffsets(self):
+        self.assertTrue(EX_RANGE_REGEXP.match('/foo/+10'))
+        self.assertTrue(EX_RANGE_REGEXP.match('/bar/-100'))
+        self.assertTrue(EX_RANGE_REGEXP.match('/100/+100'))
+        self.assertTrue(EX_RANGE_REGEXP.match('?foo?-10'))
+        self.assertTrue(EX_RANGE_REGEXP.match('?bar?+10+10'))
+        self.assertTrue(EX_RANGE_REGEXP.match('?100?+10-10'))
+
+    def testSimpleRanges(self):
+        self.assertTrue(EX_RANGE_REGEXP.match('.,$'))
+        self.assertTrue(EX_RANGE_REGEXP.match('$,.'))
+        self.assertTrue(EX_RANGE_REGEXP.match('%,.'))
+        self.assertTrue(EX_RANGE_REGEXP.match('.,%'))
+        self.assertTrue(EX_RANGE_REGEXP.match('$,%'))
+        self.assertTrue(EX_RANGE_REGEXP.match('%,$'))
+        self.assertFalse(EX_RANGE_REGEXP.match('a,$'))
+        self.assertFalse(EX_RANGE_REGEXP.match('.,a'))
+        self.assertTrue(EX_RANGE_REGEXP.match('100,1'))
+
+    def testSimpleRangesWithOffsets(self):
+        self.assertTrue(EX_RANGE_REGEXP.match('.,$-10'))
+        self.assertTrue(EX_RANGE_REGEXP.match('$-10,.+1'))
+        self.assertTrue(EX_RANGE_REGEXP.match('%-10,.-10-10'))
+        self.assertTrue(EX_RANGE_REGEXP.match('.+10+10,%+1'))
+        self.assertFalse(EX_RANGE_REGEXP.match('$+a,%'))
+        self.assertTrue(EX_RANGE_REGEXP.match('100+100,1-100'))
+        # Not valid in Vim either.
+        self.assertFalse(EX_RANGE_REGEXP.match('+100,-100'))
+
+    def testComplexRanges(self):
+        self.assertTrue(EX_RANGE_REGEXP.match('/foo/,?bar?'))
+        self.assertTrue(EX_RANGE_REGEXP.match('/foo/,/bar/'))
+        self.assertTrue(EX_RANGE_REGEXP.match('?foo?,?bar?'))
+        self.assertTrue(EX_RANGE_REGEXP.match('/foo/,$'))
+        self.assertTrue(EX_RANGE_REGEXP.match('$,/foo/'))
+        self.assertTrue(EX_RANGE_REGEXP.match('$,/foo/'))
