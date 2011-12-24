@@ -90,6 +90,7 @@ EX_ADDRESS_REGEXP = re.compile(r'''(?x)
                     (^[/?].*)$ # covers cases like /foo and ?bar
                 ''')
 
+
 ERR_UNWANTED_ARGS = 0
 ERR_UNWANTED_BANG = 1
 ERR_UNWANTED_RANGE = 2
