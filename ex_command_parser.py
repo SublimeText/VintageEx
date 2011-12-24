@@ -6,10 +6,20 @@ from itertools import takewhile, dropwhile
 import re
 
 
-# holds info about a parsed ex command
-EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
-# defines an ex command data for later parsing
+# Defines an ex command. This data is used to parse strings into ex commands.
+#   
+#   command
+#       The Sublime Text command to be executed. 
+#   invocations
+#       Tuple of regexes representing valid calls for this command: arguments,
+#       bang, etc.
+#   error_on
+#       Tuple of error codes. The parsed command is checked for errors based
+#       on this information.
+#       For example: (ERR_UNWANTED_ARGS,)
 ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
+# Holds a parsed ex command.
+EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 
 # FIXME: use only one range regexp
 EX_RANGE_REGEXP = re.compile(r'''(?x)
@@ -23,7 +33,7 @@ EX_RANGE_REGEXP = re.compile(r'''(?x)
         (
             ([,;])
             (?:
-                ([.$%]|(:?/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])
+                ([.$%]|(?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])
                 ([-+]\d+)*
             )
         )?$
