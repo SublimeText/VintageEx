@@ -3,6 +3,7 @@
 
 from collections import namedtuple
 import re
+from itertools import takewhile
 
 
 # Defines an ex command. This data is used to parse strings into ex commands.
