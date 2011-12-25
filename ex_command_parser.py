@@ -362,6 +362,9 @@ def parse_command(cmd):
 
     range_ = get_cmd_line_range(cmd_name)
     if range_: cmd_name = cmd_name[len(range_):]
+
+    if not (cmd_name.startswith('!') or cmd_name[0].isalpha()):
+        return None
     
     if cmd_name.startswith('!'):
         args = cmd_name[1:]
@@ -396,7 +399,7 @@ def parse_command(cmd):
                                                         if not v is None)
             cmd_args.update(found_args)
             break
-    
+
     parse_errors = []
     for err in cmd_data.error_on:
         if err == ERR_UNWANTED_BANG and bang:
@@ -407,7 +410,6 @@ def parse_command(cmd):
             parse_errors.append('Range not allowed.')
         if err == ERR_BAD_ADDRESS and not cmd_args:
             parse_errors.append('Invalid address.')
-
 
     return EX_CMD(name=command,
                     command=cmd_data.command,
