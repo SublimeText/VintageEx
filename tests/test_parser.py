@@ -97,10 +97,10 @@ class TestOnlyRange(unittest.TestCase):
     def testSimpleRanges(self):
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.,$'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$,.'))
-        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%,.'))
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('%,.'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.,%'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$,%'))
-        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%,$'))
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('%,$'))
         self.assertFalse(EX_ONLY_RANGE_REGEXP.match('a,$'))
         # FIXME: This one is legal in Vim, but I don't what it does.
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.,a'))
@@ -109,7 +109,7 @@ class TestOnlyRange(unittest.TestCase):
     def testSimpleRangesWithOffsets(self):
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.,$-10'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('$-10,.+1'))
-        self.assertTrue(EX_ONLY_RANGE_REGEXP.match('%-10,.-10'))
+        self.assertFalse(EX_ONLY_RANGE_REGEXP.match('%-10,.-10'))
         self.assertTrue(EX_ONLY_RANGE_REGEXP.match('.+10,%+1'))
         # FIXME: This should be illegal.
         self.assertFalse(EX_ONLY_RANGE_REGEXP.match('$+a,%'))
@@ -156,10 +156,10 @@ class TestRange(unittest.TestCase):
     def testSimpleRanges(self):
         self.assertTrue(EX_RANGE_REGEXP.match('.,$'))
         self.assertTrue(EX_RANGE_REGEXP.match('$,.'))
-        self.assertTrue(EX_RANGE_REGEXP.match('%,.'))
+        self.assertFalse(EX_RANGE_REGEXP.match('%,.'))
         self.assertTrue(EX_RANGE_REGEXP.match('.,%'))
         self.assertTrue(EX_RANGE_REGEXP.match('$,%'))
-        self.assertTrue(EX_RANGE_REGEXP.match('%,$'))
+        self.assertFalse(EX_RANGE_REGEXP.match('%,$'))
         self.assertFalse(EX_RANGE_REGEXP.match('a,$'))
         self.assertFalse(EX_RANGE_REGEXP.match('.,a'))
         self.assertTrue(EX_RANGE_REGEXP.match('100,1'))
@@ -167,7 +167,7 @@ class TestRange(unittest.TestCase):
     def testSimpleRangesWithOffsets(self):
         self.assertTrue(EX_RANGE_REGEXP.match('.,$-10'))
         self.assertTrue(EX_RANGE_REGEXP.match('$-10,.+1'))
-        self.assertTrue(EX_RANGE_REGEXP.match('%-10,.-10-10'))
+        self.assertFalse(EX_RANGE_REGEXP.match('%-10,.-10-10'))
         self.assertTrue(EX_RANGE_REGEXP.match('.+10+10,%+1'))
         # This should be illegal.
         self.assertFalse(EX_RANGE_REGEXP.match('$+a,%'))

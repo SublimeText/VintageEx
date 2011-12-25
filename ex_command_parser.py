@@ -2,7 +2,6 @@
 """
 
 from collections import namedtuple
-from itertools import takewhile, dropwhile
 import re
 
 
@@ -31,6 +30,7 @@ EX_RANGE_REGEXP = re.compile(r'''(?x)
         ^(?:
             (?P<laddress>
                 [.$]|
+                %$|
                 (?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>]
             )
                 (?P<loffset>[-+]\d+)*
@@ -46,6 +46,7 @@ EX_ONLY_RANGE_REGEXP = re.compile(r'''(?x)
         ^(?:
             (?P<laddress>
                 [$.]|
+                %$|
                 \d+|
                 /.*?(?<!\\)/|
                 \?.*?\?
@@ -293,57 +294,6 @@ def get_cmd_line_range(cmd_line):
 
 def extract_command_name(cmd_line):
     return ''.join(takewhile(lambda c: c.isalpha(), cmd_line))
-
-
-def extract_write_args(args):
-    if '>>' in args:
-        left, operator, right = args.partition('>>')
-    elif '!' in args and not ('! ' in args or args.endswith('!')):
-        left, operator, right = args.partition('!')
-    else:
-        left = args
-        operator = None
-        right = ''
-
-    if operator:
-        if operator == '!':
-            return {
-                'operator': operator,
-                'plusplus_args': left,
-                'subcmd': right
-            }
-        else:
-            return {
-                'operator': operator,
-                'plusplus_args': left,
-                'target_redirect': right
-            }
-    
-    left_tokens = left.split(' ')
-    return {'file_name': ' '.join(dropwhile(lambda x: x.startswith('++') or
-                                not x, left_tokens)),
-            'plusplus_args': ' '.join(takewhile(lambda x: x.startswith('++')
-                                    or not x, left_tokens))
-    }
-
-
-def extract_args(cmd_line):
-    plus_args = []
-    plusplus_args = []
-    args = []
-    for i, token in enumerate(cmd_line.split(' ')):
-        if token and token.startswith('++'):
-            plusplus_args.append(token)
-        elif token and token.startswith('+'):
-            plus_args = cmd_line.split(' ')[i:]
-            break
-        elif not token.startswith('!'):
-            args.append(token)
-        else:
-            raise RuntimeError("Unexpected condition.")
-    
-    return ' '.join(plus_args), ' '.join(plusplus_args), \
-                                    ' '.join(args).strip()
 
 
 def parse_command(cmd):
