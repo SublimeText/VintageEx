@@ -11,10 +11,10 @@ EX_RANGE = namedtuple('ex_range', 'left left_offset separator right right_offset
 
 
 def partition_raw_only_range(range):
-    parts = EX_ONLY_RANGE_REGEXP.search(range).groups()
-    if parts[-1]:
+    parts = EX_ONLY_RANGE_REGEXP.search(range).groupdict()
+    if 'openended' in parts:
         return EX_RANGE(
-                    left=parts[-1],
+                    left=parts['openended'],
                     left_offset='0',
                     separator='',
                     right='',
@@ -22,11 +22,11 @@ def partition_raw_only_range(range):
                     )
     else:
         return EX_RANGE(
-                    left=parts[0],
-                    left_offset=parts[1] or '0',
-                    separator=parts[2],
-                    right=parts[3],
-                    right_offset=parts[4] or '0',
+                    left=parts['laddress'],
+                    left_offset=parts['loffset'] or '0',
+                    separator=parts['separator'],
+                    right=parts['raddress'],
+                    right_offset=parts['raddress'] or '0',
                     )
 
 

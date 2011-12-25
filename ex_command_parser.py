@@ -44,25 +44,25 @@ EX_RANGE_REGEXP = re.compile(r'''(?x)
 
 EX_ONLY_RANGE_REGEXP = re.compile(r'''(?x)
         ^(?:
-            (
+            (?P<laddress>
                 [%$.]|
                 \d+|
                 /.*?(?<!\\)/|
                 \?.*?\?
             )
-                ([-+]\d+)*
-            (?: # optional right address
-                ([,;])
+                (?P<loffset>[-+]\d+)*
+            (?P<raddress> # optional right address
+                (?P<separator>[,;])
                 (
                     [%$.]|
                     \d+|
                     /.*?(?<!\\)/|
                     \?.*?\?
                 )
-                ([-+]\d+)*
+                (?P<roffset>[-+]\d+)*
             )?
         )|
-        (^[/?].*)
+        (?P<openended>^[/?].*)
         ''')
 
 # Almost identical to above, but exclude '%'.
