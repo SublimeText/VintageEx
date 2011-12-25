@@ -12,7 +12,8 @@ EX_RANGE = namedtuple('ex_range', 'left left_offset separator right right_offset
 
 def partition_raw_only_range(range):
     parts = EX_ONLY_RANGE_REGEXP.search(range).groupdict()
-    if 'openended' in parts:
+    print "XXX XXX XXX", parts
+    if parts['openended']:
         return EX_RANGE(
                     left=parts['openended'],
                     left_offset='0',
@@ -87,7 +88,7 @@ def calculate_range(view, raw_range, is_only_range=False):
         parsed_range = partition_raw_range(raw_range)
     else:
         parsed_range = partition_raw_only_range(raw_range)
-    if parsed_range.left == '%':
+    if parsed_range.left == '%' or parsed_range.right == '%':
         left, left_offset = '1', '0'
         right, right_offset = '$', '0'
     elif parsed_range.separator:
