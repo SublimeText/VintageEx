@@ -1,7 +1,9 @@
 import sublime
 import sublime_plugin
 
-from ex_command_parser import parse_command, EX_COMMANDS
+from ex_command_parser import parse_command
+from ex_command_parser import EX_COMMANDS
+import ex_error
 
 
 COMPLETIONS = sorted([x[0] for x in EX_COMMANDS.keys()])
@@ -51,7 +53,7 @@ class ViColonInput(sublime_plugin.WindowCommand):
         print ex_cmd
 
         if ex_cmd and ex_cmd.parse_errors:
-            sublime.status_message('VintageEx: %s' % ex_cmd.parse_errors[0])
+            ex_error.display_error(ex_cmd.parse_errors[0])
             return
         if ex_cmd and ex_cmd.name:
             if ex_cmd.range:
@@ -60,9 +62,7 @@ class ViColonInput(sublime_plugin.WindowCommand):
                 ex_cmd.args['forced'] = ex_cmd.forced
             self.window.run_command(ex_cmd.command, ex_cmd.args)
         else:
-            sublime.status_message('VintageEx: unknown command (%s)' % 
-                                                                    cmd_line)
-
+            ex_error.display_error(ex_error.ERR_UNKNOWN_COMMAND, cmd_line)
 
 #______________________________________________________________________________
 class ExCompletionsProvider(sublime_plugin.EventListener):

@@ -3,7 +3,8 @@
 
 from collections import namedtuple
 
-from ex_command_parser import EX_RANGE_REGEXP, EX_ONLY_RANGE_REGEXP
+from ex_command_parser import EX_RANGE_REGEXP
+from ex_command_parser import EX_ONLY_RANGE_REGEXP
 import ex_location
 
 

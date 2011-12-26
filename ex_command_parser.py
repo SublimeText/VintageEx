@@ -5,6 +5,8 @@ from collections import namedtuple
 import re
 from itertools import takewhile
 
+import ex_error
+
 
 # Defines an ex command. This data is used to parse strings into ex commands.
 #   
@@ -16,7 +18,7 @@ from itertools import takewhile
 #   error_on
 #       Tuple of error codes. The parsed command is checked for errors based
 #       on this information.
-#       For example: (ERR_UNWANTED_ARGS,)
+#       For example: (ex_error.ERR_TRAILING_CHARS,)
 ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
 
 # Holds a parsed ex command.
@@ -97,10 +99,10 @@ EX_ADDRESS_REGEXP = re.compile(r'''(?x)
                 ''')
 
 
-ERR_UNWANTED_ARGS = 0
-ERR_UNWANTED_BANG = 1
-ERR_UNWANTED_RANGE = 2
-ERR_BAD_ADDRESS = 3
+# ex_error.ERR_TRAILING_CHARS = 0
+# ex_error.ERR_NO_BANG_ALLOWED = 1
+# ex_error.ERR_NO_RANGE_ALLOWED = 2
+# ex_error.ERR_INVALID_RANGE = 3
 
 
 EX_COMMANDS = {
@@ -118,29 +120,29 @@ EX_COMMANDS = {
     ('wall', 'wa'): ex_cmd_data(
                                 command='ex_write_all',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_ARGS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,)
                                 ),
     ('pwd', 'pw'): ex_cmd_data(
                                 command='ex_print_working_dir',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_RANGE,
-                                            ERR_UNWANTED_BANG,
-                                            ERR_UNWANTED_ARGS)
+                                error_on=(ex_error.ERR_NO_RANGE_ALLOWED,
+                                            ex_error.ERR_NO_BANG_ALLOWED,
+                                            ex_error.ERR_TRAILING_CHARS)
                                 ),
     ('buffers', 'buffers'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_ARGS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,)
                                 ),
     ('files', 'files'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_ARGS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,)
                                 ),
     ('ls', 'ls'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_ARGS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,)
                                 ),
     ('map', 'map'): ex_cmd_data(
                                 command='ex_map',
@@ -155,12 +157,12 @@ EX_COMMANDS = {
     ('quit', 'q'): ex_cmd_data(
                                 command='ex_quit',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_ARGS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,)
                                 ),
     ('qall', 'qa'): ex_cmd_data(
                                 command='ex_quit_all',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_ARGS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,)
                                 ),
     # TODO: add invocations
     ('wq', 'wq'): ex_cmd_data(
@@ -181,45 +183,45 @@ EX_COMMANDS = {
     ('enew', 'ene'): ex_cmd_data(
                                 command='ex_new_file',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_ARGS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,)
                                 ),
     ('ascii', 'as'): ex_cmd_data(
                                 # This command is implemented in Packages/Vintage.
                                 command='show_ascii_info',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_RANGE,
-                                            ERR_UNWANTED_BANG,
-                                            ERR_UNWANTED_ARGS)
+                                error_on=(ex_error.ERR_NO_RANGE_ALLOWED,
+                                          ex_error.ERR_NO_BANG_ALLOWED,
+                                          ex_error.ERR_TRAILING_CHARS)
                                 ),
     # vim help doesn't say this command takes any args, but it does
     ('file', 'f'): ex_cmd_data(
                                 command='ex_file',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_RANGE,)
+                                error_on=(ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('move', 'move'): ex_cmd_data(
                                 command='ex_move',
                                 invocations=(
                                    EX_ADDRESS_REGEXP,
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,
-                                            ERR_BAD_ADDRESS,)
+                                error_on=(ex_error.ERR_NO_BANG_ALLOWED,
+                                          ex_error.ERR_INVALID_RANGE,)
                                 ),
     ('copy', 'co'): ex_cmd_data(
                                 command='ex_copy',
                                 invocations=(
                                    EX_ADDRESS_REGEXP,
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,
-                                            ERR_BAD_ADDRESS,)
+                                error_on=(ex_error.ERR_NO_BANG_ALLOWED,
+                                          ex_error.ERR_INVALID_RANGE,)
                                 ),
     ('t', 't'): ex_cmd_data(
                                 command='ex_copy',
                                 invocations=(
                                    EX_ADDRESS_REGEXP,
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,
-                                            ERR_BAD_ADDRESS,)
+                                error_on=(ex_error.ERR_NO_BANG_ALLOWED,
+                                          ex_error.ERR_INVALID_RANGE,)
                                 ),
     ('substitute', 's'): ex_cmd_data(
                                 command='ex_substitute',
@@ -230,16 +232,16 @@ EX_COMMANDS = {
     ('shell', 'sh'): ex_cmd_data(
                                 command='ex_shell',
                                 invocations=(),
-                                error_on=(ERR_UNWANTED_RANGE,
-                                            ERR_UNWANTED_BANG,
-                                            ERR_UNWANTED_ARGS)
+                                error_on=(ex_error.ERR_NO_RANGE_ALLOWED,
+                                          ex_error.ERR_NO_BANG_ALLOWED,
+                                          ex_error.ERR_TRAILING_CHARS)
                                 ),
     ('delete', 'd'): ex_cmd_data(
                                 command='ex_delete',
                                 invocations=(
                                     re.compile(r' *(?P<register>[a-zA-Z0-9])? *(?P<count>\d+)?'),
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,)
+                                error_on=(ex_error.ERR_NO_BANG_ALLOWED,)
                                 ),
     ('global', 'g'): ex_cmd_data(
                                 command='ex_global',
@@ -253,14 +255,14 @@ EX_COMMANDS = {
                                 invocations=(
                                     re.compile(r'\s*(?P<count>\d+)?\s*(?P<flags>[l#p]+)?'),
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,)
+                                error_on=(ex_error.ERR_NO_BANG_ALLOWED,)
                                 ),
     ('Print', 'P'): ex_cmd_data(
                                 command='ex_print',
                                 invocations=(
                                     re.compile(r'\s*(?P<count>\d+)?\s*(?P<flags>[l#p]+)?'),
                                 ),
-                                error_on=(ERR_UNWANTED_BANG,)
+                                error_on=(ex_error.ERR_NO_BANG_ALLOWED,)
                                 ),
 }
 
@@ -353,14 +355,14 @@ def parse_command(cmd):
 
     parse_errors = []
     for err in cmd_data.error_on:
-        if err == ERR_UNWANTED_BANG and bang:
-            parse_errors.append('No "!" allowed.')
-        if err == ERR_UNWANTED_ARGS and args:
-            parse_errors.append('Trailing characters.')
-        if err == ERR_UNWANTED_RANGE and range_:
-            parse_errors.append('Range not allowed.')
-        if err == ERR_BAD_ADDRESS and not cmd_args:
-            parse_errors.append('Invalid address.')
+        if err == ex_error.ERR_NO_BANG_ALLOWED and bang:
+            parse_errors.append(ex_error.ERR_NO_BANG_ALLOWED)
+        if err == ex_error.ERR_TRAILING_CHARS and args:
+            parse_errors.append(ex_error.ERR_TRAILING_CHARS)
+        if err == ex_error.ERR_NO_RANGE_ALLOWED and range_:
+            parse_errors.append(ex_error.ERR_NO_RANGE_ALLOWED)
+        if err == ex_error.ERR_INVALID_RANGE and not cmd_args:
+            parse_errors.append(ex_error.ex_error.ERR_INVALID_RANGE)
 
     return EX_CMD(name=command,
                     command=cmd_data.command,
