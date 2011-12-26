@@ -6,11 +6,11 @@ utilities to handle them.
 import sublime
 
 
-ERR_UNKNOWN_COMMAND = 492
-ERR_TRAILING_CHARS = 488
-ERR_NO_BANG_ALLOWED = 477
-ERR_INVALID_RANGE = 16
-ERR_NO_RANGE_ALLOWED = 481
+ERR_UNKNOWN_COMMAND = 492 # Command can't take arguments.
+ERR_TRAILING_CHARS = 488 # Unknown command.
+ERR_NO_BANG_ALLOWED = 477 # Command doesn't allow !.
+ERR_INVALID_RANGE = 16 # Invalid range.
+ERR_NO_RANGE_ALLOWED = 481 # Command can't take a range.
 
 
 ERR_MESSAGES = {
