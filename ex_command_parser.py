@@ -32,11 +32,10 @@ EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 EX_RANGE_REGEXP = re.compile(r'''(?x)
         ^(?:
             (?P<laddress>
-                [.$]|
-                %$|
-                (?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>]
-            )
-                (?P<loffset>[-+]\d+)*
+                    %| # % can only appear in left address or on its own
+                    (?:[.$]|
+                    (?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])
+                    (?P<loffset>[-+]\d+)*)
         )
         (?:
             (?P<separator>[,;])
