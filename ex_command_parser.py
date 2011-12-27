@@ -32,10 +32,11 @@ EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 EX_RANGE_REGEXP = re.compile(r'''(?x)
         ^(?:
             (?P<laddress>
-                    %| # % can only appear in left address or on its own
-                    (?:[.$]|
-                    (?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])
-                    (?P<loffset>[-+]\d+)*)
+                %| # % can only appear in left address or on its own
+                (?:[.$]|
+                (?:/.*?/|\?.*?\?){1,2}|\d+|[\'`][a-zA-Z0-9<>])
+            )
+                (?P<loffset>[-+]\d+)*
         )
         (?:
             (?P<separator>[,;])
@@ -361,7 +362,7 @@ def parse_command(cmd):
         if err == ex_error.ERR_NO_RANGE_ALLOWED and range_:
             parse_errors.append(ex_error.ERR_NO_RANGE_ALLOWED)
         if err == ex_error.ERR_INVALID_RANGE and not cmd_args:
-            parse_errors.append(ex_error.ex_error.ERR_INVALID_RANGE)
+            parse_errors.append(ex_error.ERR_INVALID_RANGE)
 
     return EX_CMD(name=command,
                     command=cmd_data.command,
