@@ -101,12 +101,6 @@ EX_ADDRESS_REGEXP = re.compile(r'''(?x)
                 ''')
 
 
-# ex_error.ERR_TRAILING_CHARS = 0
-# ex_error.ERR_NO_BANG_ALLOWED = 1
-# ex_error.ERR_NO_RANGE_ALLOWED = 2
-# ex_error.ERR_INVALID_RANGE = 3
-
-
 EX_COMMANDS = {
     ('write', 'w'): ex_cmd_data(
                                 command='ex_write_file',
