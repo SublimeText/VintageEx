@@ -9,6 +9,8 @@ import ex_error
 
 
 # Defines an ex command. This data is used to parse strings into ex commands.
+# More precisely, the invocations element defines possible arguments for the
+# corresponding command.
 #   
 #   command
 #       The Sublime Text command to be executed. 
