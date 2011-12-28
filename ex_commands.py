@@ -526,6 +526,9 @@ class ExGlobal(sublime_plugin.TextCommand):
         except ValueError:
             sublime.status_message("VintageEx: Bad :global pattern. (:%sglobal%s)" % (range, pattern))
             return
+        
+        # Make sure we always have a subcommand to exectute. This is what
+        # Vim does too.
         subcmd = subcmd or 'print'
 
         rs = get_region_by_range(self.view, range)
