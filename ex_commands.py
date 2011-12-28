@@ -72,7 +72,7 @@ def gather_buffer_info(v):
 
 
 def get_region_by_range(view, text_range, split_visual=False):
-    # xxx move this further down into the range parsing?
+    # XXX move this further down into the range parsing?
     global GLOBAL_RANGES
     if GLOBAL_RANGES:
         rv = GLOBAL_RANGES[:]
@@ -103,7 +103,7 @@ def compute_address(view, text_range):
         - SUCCESS: address (positive integer)
         - ERROR: -1 (can't compute valid address)
     """
-    # xxx strip in the parsing phase instead
+    # XXX strip in the parsing phase instead
     text_range = text_range.strip()
     # Note that some address error checking is also performed at the parsing
     # stage, so that '%' doesn't reach here, for example.
@@ -219,7 +219,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                     new_contents = '\n' + new_contents
                 self.view.insert(edit, target_point, new_contents)
                 return
-            # xxx read file "name"
+            # XXX read file "name"
             # we need proper filesystem autocompletion here
             else:
                 handle_not_implemented()
@@ -243,7 +243,7 @@ class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
         for v in self.view.window().views():
             if v.file_name() and v.file_name().endswith(sought_fname[1]):
                 self.view.window().focus_view(v)
-            # xxx Base all checks on buffer id?
+            # XXX Base all checks on buffer id?
             elif sought_fname[1].isdigit() and \
                                         v.buffer_id() == int(sought_fname[1]):
                 self.view.window().focus_view(v)
@@ -336,7 +336,7 @@ class ExNewFile(sublime_plugin.TextCommand):
 
 class ExFile(sublime_plugin.TextCommand):
     def run(self, edit, forced=False):
-        # xxx figure out what the right params are. vim's help seems to be
+        # XXX figure out what the right params are. vim's help seems to be
         # wrong
         if self.view.file_name():
             fname = self.view.file_name()
@@ -497,7 +497,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
 
 class ExDelete(sublime_plugin.TextCommand):
     def run(self, edit, range='.', register='', count=''):
-        # xxx somewhat different to vim's behavior
+        # XXX somewhat different to vim's behavior
         rs = get_region_by_range(self.view, range)
         self.view.sel().clear()
 
@@ -521,7 +521,11 @@ class ExDelete(sublime_plugin.TextCommand):
 
 class ExGlobal(sublime_plugin.TextCommand):
     def run(self, edit, range='%', forced=False, pattern=''):
-        _, global_pattern, subcmd = pattern.split(pattern[0], 2)
+        try:
+            _, global_pattern, subcmd = pattern.split(pattern[0], 2)
+        except ValueError:
+            sublime.status_message("VintageEx: Bad :global pattern. (:%sglobal%s)" % (range, pattern))
+            return
         subcmd = subcmd or 'print'
 
         rs = get_region_by_range(self.view, range)
@@ -531,10 +535,10 @@ class ExGlobal(sublime_plugin.TextCommand):
             if (match and not forced) or (not match and forced):
                 GLOBAL_RANGES.append(r)
 
-        self.view.run_command('vi_colon_input',
-                                    {'cmd_line': ':' + 
-                                        str(self.view.rowcol(r.a)[0] + 1) +
-                                                                    subcmd})
+        self.view.window().run_command('vi_colon_input',
+                              {'cmd_line': ':' +
+                                    str(self.view.rowcol(r.a)[0] + 1) +
+                                    subcmd})
 
                                                                     
 class ExPrint(sublime_plugin.TextCommand):
