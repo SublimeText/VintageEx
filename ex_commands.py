@@ -520,6 +520,29 @@ class ExDelete(sublime_plugin.TextCommand):
 
 
 class ExGlobal(sublime_plugin.TextCommand):
+    """Ex command(s): :global
+
+    :global filters lines where a pattern matches and then applies the supplied
+    action to all those lines.
+
+    Examples:
+        :10,20g/FOO/delete
+
+        This command deletes all lines between line 10 and line 20 where 'FOO'
+        matches.
+
+        :g:XXX:s!old!NEW!g
+
+        This command replaces all instances of 'old' with 'NEW' in every line
+        where 'XXX' matches.
+    
+    By default, :global searches all lines in the buffer.
+
+    If you want to filter lines where a pattern does NOT match, add an
+    exclamation point:
+        
+        :g!/DON'T TOUCH THIS/delete
+    """
     def run(self, edit, range='%', forced=False, pattern=''):
         try:
             _, global_pattern, subcmd = pattern.split(pattern[0], 2)
