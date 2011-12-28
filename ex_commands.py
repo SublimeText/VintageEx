@@ -659,3 +659,8 @@ class ExWriteAndQuitCommand(sublime_plugin.TextCommand):
 
         self.view.run_command('save')
         self.view.window().run_command('ex_quit')
+
+
+class ExBrowse(sublime_plugin.TextCommand):
+    def run(self, edit):
+        self.view.window().run_command('prompt_open_file')

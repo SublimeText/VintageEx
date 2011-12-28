@@ -260,6 +260,13 @@ EX_COMMANDS = {
                                 ),
                                 error_on=(ex_error.ERR_NO_BANG_ALLOWED,)
                                 ),
+    ('browse', 'bro'): ex_cmd_data(
+                                command='ex_browse',
+                                invocations=(),
+                                error_on=(ex_error.ERR_NO_BANG_ALLOWED,
+                                          ex_error.ERR_NO_RANGE_ALLOWED,
+                                          ex_error.ERR_TRAILING_CHARS,)
+                                ),
 }
 
 
