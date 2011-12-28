@@ -72,6 +72,8 @@ def gather_buffer_info(v):
 
 
 def get_region_by_range(view, text_range, split_visual=False):
+    # If GLOBAL_RANGES exists, the ExGlobal command has been run right before
+    # the current command, and we know we must process these lines.
     # XXX move this further down into the range parsing?
     global GLOBAL_RANGES
     if GLOBAL_RANGES:
