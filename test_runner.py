@@ -72,3 +72,4 @@ class TestDataDispatcher(sublime_plugin.EventListener):
 
             v.window().focus_view(view)
             view.window().run_command('close')
+

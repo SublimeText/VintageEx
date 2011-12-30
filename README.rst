@@ -16,7 +16,7 @@ Compatibility
 * Linux (less good)
 * OSX (worst)
 
-VintageEx aims at full cross-platform compatibility. Presently, most command
+VintageEx aims at full cross-platform compatibility. Presently, most commands
 will work fine on all three OSes as long as they don't interact with shells.
 
 Installation
@@ -38,9 +38,9 @@ want to use VintageEx.
 Overview
 ========
 
-To open the command line, press `:`.
+To open the command line, press ``:``.
 
 VintageEx offers tab completion of top-level commands, so you can type a letter
 and press `Tab` to cycle through available commands.
 
-To see the implemented commands, you can look through `ex_commands.py`.
+To see the implemented commands, you can look through ``ex_commands.py``.
