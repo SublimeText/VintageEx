@@ -74,7 +74,7 @@ def calculate_range_part(view, range_part, start_line=None):
             else:
                 end = view.sel()[0].begin()
             return ex_location.reverse_search(view, search_term, end=end)
-        return ex_location.search(view, search_term)
+        return ex_location.search(view, search_term, start_line=start_line)
     if range_part in ('$', '.'):
         return ex_location.calculate_relative_ref(view, range_part, start_line)
 
