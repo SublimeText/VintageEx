@@ -23,6 +23,11 @@ def select_eof(view):
     select_point(view, view.size(), view.size())
 
 
+def select_line(view, line_nr):
+    pt = view.text_point(line_nr - 1, 0)
+    select_point(view, pt)
+
+
 def select_bof(view):
     select_point(view, 0, 0)
  
@@ -81,14 +86,23 @@ class TestPatitioningRanges(unittest.TestCase):
 class TestCalculatingRanges(unittest.TestCase):
     def testCalculateCorrectRange(self):
         values = (
-            ('0', (0, 0)),
-            ('1', (1, 1)),
-            ('1,1', (1, 1)),
-            ('%,1', (1, 538)),
-            ('1,%', (1, 538)),
-            ('1+99,160-10', (100, 150)),
-            ('/THIRTY/+10,100', (40, 100)),
+            (calculate_range(g_test_view, '0'), (0, 0)),
+            (calculate_range(g_test_view, '1'), (1, 1)),
+            (calculate_range(g_test_view, '1,1'), (1, 1)),
+            (calculate_range(g_test_view, '%,1'), (1, 538)),
+            (calculate_range(g_test_view, '1,%'), (1, 538)),
+            (calculate_range(g_test_view, '1+99,160-10'), (100, 150)),
+            (calculate_range(g_test_view, '/THIRTY/+10,100'), (40, 100)),
         )
 
-        for raw_range, expected_result in values:
-            self.assertEquals(calculate_range(g_test_view, raw_range), expected_result)
+        select_line(g_test_view, 31)
+        values += (
+            (calculate_range(g_test_view, '10,/THIRTY/'), (10, 31)),
+            (calculate_range(g_test_view, '10;/THIRTY/'), (10, 30)),
+        )
+
+        for actual, expected in values:
+            self.assertEquals(actual, expected)
+    
+    def tearDown(self):
+        select_bof(g_test_view)
