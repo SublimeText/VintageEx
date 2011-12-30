@@ -80,32 +80,48 @@ def calculate_range_part(view, range_part, start_line=None):
 
         
 def calculate_range(view, raw_range, is_only_range=False):
-    """takes an unparsed :ex range in text and returns the actual lines it
-    refers to, 1-based
+    """Takes an unparsed :ex range as a string and returns the actual lines it
+    refers to (1-based).
+
+        Returns: A tuple representing a line range in :view:.
+
+        :view:
+            Buffer where the range will be calculated.
+        :raw_range:
+            :ex range (string) used to calculate the actual line range.
+        :is_only_range:
+            Whether :raw_range: is followed by a command or not.
     """
-    # xxx ugly quick solution. .groups() are different for the REGEXES used.
+    # FIXME: Ugly quick solution: .groups() are different for the REGEXES used.
     if not is_only_range:
         parsed_range = partition_raw_range(raw_range)
     else:
         parsed_range = partition_raw_only_range(raw_range)
+
+    # In full ranges, '%' can appear in any (or both) sides and will make the
+    # range span the whole buffer. (Examples: %,% or %,$ or 10;%)
     if parsed_range.left == '%' or parsed_range.right == '%':
-        left, left_offset = '1', '0'
-        right, right_offset = '$', '0'
+        left, loffset = '1', '0'
+        right, roffset = '$', '0'
+    # TODO: Vim allows incomplete ranges and substitutes missing addresses
+    # with ".". (Examples: ,100delete or 100,delete)
     elif parsed_range.separator:
-        left, left_offset = parsed_range.left, parsed_range.left_offset
-        right, right_offset = parsed_range.right, parsed_range.right_offset
+        left, loffset = parsed_range.left, parsed_range.left_offset
+        right, roffset = parsed_range.right, parsed_range.right_offset
     elif parsed_range.left:
-        left = calculate_range_part(view, 
-                            parsed_range.left) + \
+        left = calculate_range_part(view, parsed_range.left) + \
                                             int(parsed_range.left_offset)
         return left, left
     
+    # In ranges separated by ";", the right-hand address is calculated starting
+    # at the left-side address, and not based on the caret's position.
     if parsed_range.separator == ';':
-        left = calculate_range_part(view, left) + int(left_offset)
-        right = calculate_range_part(view, right, start_line=left - 1) + int(right_offset)
-        # XXX vim asks the user before reversing ranges, but we don't because
-        # reversing the order will be the most common desired result when
-        # performing a reversed search.
+        left = calculate_range_part(view, left) + int(loffset)
+        right = calculate_range_part(view, right, start_line=left - 1) + \
+                                                                int(roffset)
+        # Vim asks the user before reversing ranges, but we won't because
+        # reversing the order will be the desired result most of the time.
         return min(left, right), max(left, right)
-    return calculate_range_part(view, left) + int(left_offset), \
-                calculate_range_part(view, right) + int(right_offset)
+
+    return calculate_range_part(view, left) + int(loffset), \
+               calculate_range_part(view, right) + int(roffset)
