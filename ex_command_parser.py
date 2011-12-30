@@ -306,6 +306,10 @@ def parse_command(cmd):
     # strip :
     cmd_name = cmd[1:]
 
+    # In Vim, ":<enter>" more or less does nothing. 
+    if not cmd_name:
+        return
+    
     # first the odd commands
     if is_only_range(cmd_name):
         return EX_CMD(name=':',
@@ -317,10 +321,11 @@ def parse_command(cmd):
                         )
 
     range_ = get_cmd_line_range(cmd_name)
-    if range_: cmd_name = cmd_name[len(range_):]
+    if range_:
+        cmd_name = cmd_name[len(range_):]
 
     if not (cmd_name.startswith('!') or cmd_name[0].isalpha()):
-        return None
+        return
     
     if cmd_name.startswith('!'):
         args = cmd_name[1:]
@@ -336,13 +341,13 @@ def parse_command(cmd):
     command = extract_command_name(cmd_name)
     args = cmd_name[len(command):]
 
-    bang = False
-    if args.startswith('!'):
-        bang = True
+    bang = args.startswith('!')
+    if bang: 
         args = args[1:]
 
     cmd_data = find_command(command)
-    if not cmd_data: return None
+    if not cmd_data:
+        return
     cmd_data = EX_COMMANDS[cmd_data]
 
     cmd_args = {}
@@ -352,7 +357,7 @@ def parse_command(cmd):
             found_args = found_args.groupdict()
             # get rid of unset arguments so they don't clobber defaults
             found_args = dict((k, v) for k, v in found_args.iteritems()
-                                                        if not v is None)
+                                                        if v is not None)
             cmd_args.update(found_args)
             break
 
