@@ -134,10 +134,8 @@ def ensure_line_block(view, r):
 
 class ExGoto(sublime_plugin.TextCommand):
     def run(self, edit, range=''):
-        assert range, 'Range required.'
         a, b = ex_range.calculate_range(self.view, range, is_only_range=True)
-        target = (max(a, b) if all((a, b)) else (a or b)) or 0
-        self.view.run_command('vi_goto_line', {'repeat': target})
+        self.view.run_command('vi_goto_line', {'repeat': b})
         self.view.show(self.view.sel()[0])
 
 
