@@ -267,6 +267,11 @@ EX_COMMANDS = {
                                           ex_error.ERR_NO_RANGE_ALLOWED,
                                           ex_error.ERR_TRAILING_CHARS,)
                                 ),
+    ('edit', 'e'): ex_cmd_data(
+                                command='ex_edit',
+                                invocations=(re.compile(r"^$"),),
+                                error_on=()
+                                ),
 }
 
 

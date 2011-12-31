@@ -13,6 +13,7 @@ import subprocess
 from vintage import g_registers
 
 import ex_range
+import ex_error
 import shell
 from plat.windows import get_oem_cp
 
@@ -664,3 +665,16 @@ class ExWriteAndQuitCommand(sublime_plugin.TextCommand):
 class ExBrowse(sublime_plugin.TextCommand):
     def run(self, edit):
         self.view.window().run_command('prompt_open_file')
+
+
+class ExEdit(sublime_plugin.TextCommand):
+    # fixme: does not work
+    def run(self, edit, forced=False):
+        if forced:
+            self.view.run_command('revert')
+            return
+        elif self.view.is_dirty():
+            ex_error.display_error(ex_error.ERR_UNSAVED_CHANGES)
+            return
+            
+        handle_not_implemented()
