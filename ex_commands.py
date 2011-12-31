@@ -672,7 +672,8 @@ class ExEdit(sublime_plugin.TextCommand):
         self.run(args)
 
     def run(self, forced=False):
-        if forced:
+        # todo: restore active line_nr too
+        if forced or not self.view.is_dirty():
             self.view.run_command('revert')
             return
         elif self.view.is_dirty():
