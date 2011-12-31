@@ -668,8 +668,10 @@ class ExBrowse(sublime_plugin.TextCommand):
 
 
 class ExEdit(sublime_plugin.TextCommand):
-    # fixme: does not work
-    def run(self, edit, forced=False):
+    def run_(self, args):
+        self.run(args)
+
+    def run(self, forced=False):
         if forced:
             self.view.run_command('revert')
             return
