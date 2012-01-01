@@ -122,8 +122,8 @@ EX_COMMANDS = {
                                 command='ex_print_working_dir',
                                 invocations=(),
                                 error_on=(ex_error.ERR_NO_RANGE_ALLOWED,
-                                            ex_error.ERR_NO_BANG_ALLOWED,
-                                            ex_error.ERR_TRAILING_CHARS)
+                                          ex_error.ERR_NO_BANG_ALLOWED,
+                                          ex_error.ERR_TRAILING_CHARS)
                                 ),
     ('buffers', 'buffers'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
