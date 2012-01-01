@@ -5,7 +5,6 @@ from collections import namedtuple
 
 from ex_command_parser import EX_RANGE_REGEXP
 from ex_command_parser import EX_ONLY_RANGE_REGEXP
-import ex_location
 
 
 EX_RANGE = namedtuple('ex_range', 'left left_offset separator right right_offset')
@@ -76,7 +75,7 @@ def calculate_range_part(view, range_part, start_line=None):
             return ex_location.reverse_search(view, search_term, end=end)
         return ex_location.search(view, search_term, start_line=start_line)
     if range_part in ('$', '.'):
-        return ex_location.calculate_relative_ref(view, range_part, start_line)
+        return calculate_relative_ref(view, range_part, start_line)
 
         
 def calculate_range(view, raw_range, is_only_range=False):
@@ -125,3 +124,16 @@ def calculate_range(view, raw_range, is_only_range=False):
 
     return calculate_range_part(view, left) + int(loffset), \
                calculate_range_part(view, right) + int(roffset)
+
+ 
+def calculate_relative_ref(view, where, start_line=None):
+    if where == '$':
+        return view.rowcol(view.size())[0] + 1
+    if where == '.':
+        if start_line:
+            return view.rowcol(view.text_point(start_line, 0))[0] + 1
+        return view.rowcol(view.sel()[0].begin())[0] + 1
+
+
+# Avoid circular import.
+import ex_location

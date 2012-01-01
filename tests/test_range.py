@@ -1,36 +1,16 @@
 import unittest
 
 from test_runner import g_test_view
+from tests import select_bof
+from tests import select_eof
+from tests import select_line
 
 from ex_range import calculate_range_part
 from ex_range import EX_RANGE
 from ex_range import partition_raw_only_range
 from ex_range import calculate_range
-from ex_location import calculate_relative_ref
+from ex_range import calculate_relative_ref
 
-import sublime
-
-
-def select_point(view, left_end, right_end=None):
-    if right_end is None:
-        right_end = left_end 
-
-    view.sel().clear()
-    view.sel().add(sublime.Region(left_end, right_end))
-
-
-def select_eof(view):
-    select_point(view, view.size(), view.size())
-
-
-def select_line(view, line_nr):
-    pt = view.text_point(line_nr - 1, 0)
-    select_point(view, pt)
-
-
-def select_bof(view):
-    select_point(view, 0, 0)
- 
 
 class TestCalculateRangeParts(unittest.TestCase):
     def testCalculateRangeParts(self):
@@ -55,6 +35,12 @@ class TestCalculateRangeParts(unittest.TestCase):
         
 
 class TestCalculateRelativeRef(unittest.TestCase):
+    def StartUp(self):
+        select_bof(g_test_view)
+
+    def tearDown(self):
+        select_bof(g_test_view)
+
     def testCalculateRelativeRef(self):
         values = (
             (calculate_relative_ref(g_test_view, '.'), 1),
@@ -65,6 +51,17 @@ class TestCalculateRelativeRef(unittest.TestCase):
 
         for actual, expected in values:
             self.assertEquals(actual, expected)
+
+    def testCalculateRelativeRef2(self):
+        self.assertEquals(calculate_relative_ref(g_test_view, '.'), 1)
+        self.assertEquals(calculate_relative_ref(g_test_view, '$'), 538)
+
+        select_line(g_test_view, 100)
+        self.assertEquals(calculate_relative_ref(g_test_view, '.'), 100)
+
+        select_line(g_test_view, 200)
+        self.assertEquals(calculate_relative_ref(g_test_view, '.'), 200)
+
             
 
 class TestPatitioningRanges(unittest.TestCase):
