@@ -153,7 +153,8 @@ EX_COMMANDS = {
     ('quit', 'q'): ex_cmd_data(
                                 command='ex_quit',
                                 invocations=(),
-                                error_on=(ex_error.ERR_TRAILING_CHARS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,
+                                          ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('qall', 'qa'): ex_cmd_data(
                                 command='ex_quit_all',
