@@ -119,7 +119,7 @@ def calculate_range(view, raw_range, is_only_range=False):
         right = calculate_range_part(view, right, start_line=left - 1) + \
                                                                 int(roffset)
         # Vim asks the user before reversing ranges, but we won't because
-        # reversing the order will be the desired result most of the time.
+        # reversing the order will be the desired choice most of the time.
         return min(left, right), max(left, right)
 
     return calculate_range_part(view, left) + int(loffset), \
