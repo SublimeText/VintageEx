@@ -273,6 +273,13 @@ EX_COMMANDS = {
                                 invocations=(re.compile(r"^$"),),
                                 error_on=()
                                 ),
+    ('cquit', 'cq'): ex_cmd_data(
+                                command='ex_cquit',
+                                invocations=(),
+                                error_on=(ex_error.ERR_TRAILING_CHARS,
+                                          ex_error.ERR_NO_RANGE_ALLOWED,
+                                          ex_error.ERR_NO_BANG_ALLOWED,)
+                                ),
 }
 
 
