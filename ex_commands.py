@@ -679,3 +679,10 @@ class ExEdit(sublime_plugin.TextCommand):
             return
             
         handle_not_implemented()
+
+
+class ExNop(sublime_plugin.TextCommand):
+    """Do nothing.
+    """
+    def run_(self, args):
+        pass

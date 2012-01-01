@@ -311,9 +311,16 @@ def parse_command(cmd):
     # strip :
     cmd_name = cmd[1:]
 
-    # In Vim, ":<enter>" more or less does nothing. 
+    # Do nothing if the command's just ":".
     if not cmd_name:
-        return
+        return EX_CMD(
+                name='NOP',
+                command='ex_nop',
+                forced=False,
+                range='.',
+                args={},
+                parse_errors=None
+        )
     
     # first the odd commands
     if is_only_range(cmd_name):
