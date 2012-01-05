@@ -267,16 +267,15 @@ class ExMap(sublime_plugin.TextCommand):
 class ExAbbreviate(sublime_plugin.TextCommand):
     # for them moment, just open a completions file.
     def run(self, edit):
-        abbreviations_file = os.path.join(
-                                    sublime.packages_path(),
-                                    'User/Vintage Abbreviations.sublime-completions'
-                                    )
-        if not os.path.exists(abbreviations_file):
-            with open(abbreviations_file, 'w'):
-                pass
+        abbs_file_name = 'VintageEx Abbreviations.sublime-completions'
+        abbreviations = os.path.join(sublime.packages_path(),
+                                     'User/' + abbs_file_name)
+        if not os.path.exists(abbreviations):
+            with open(abbreviations, 'w') as f:
+                f.write('{\n\t"scope": "*"\n\t"completions: [\n\t\n\t]\n}\n')
         
         self.view.window().run_command('open_file',
-                                            {'file': abbreviations_file})
+                                    {'file': "${packages}/User/%s" % abbs_file_name})
 
 
 class ExPrintWorkingDir(sublime_plugin.TextCommand):
@@ -487,6 +486,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
             range = "%d,%d+%d" % (b, b, int(count))
 
         target_region = get_region_by_range(self.view, range)
+        print self.view.sel()[0], target_region
         replace_count = 0 if (flags and 'g' in flags) else 1
         for r in reversed(target_region):
             # be explicit about replacing the line, because we might be looking
@@ -686,7 +686,17 @@ class ExNop(sublime_plugin.TextCommand):
     """
     def run_(self, args):
         pass
+        
 
 class ExCquit(sublime_plugin.TextCommand):
     def run(self, edit):
         self.view.window().run_command('exit')
+
+
+class ExExit(sublime_plugin.TextCommand):
+    def run(self, edit):
+        w = self.view.window()
+        w.run_command('save')
+        w.run_command('close')
+        if len(self.window.views()) == 0:
+            w.run_command('close')

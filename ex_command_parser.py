@@ -280,6 +280,18 @@ EX_COMMANDS = {
                                           ex_error.ERR_NO_RANGE_ALLOWED,
                                           ex_error.ERR_NO_BANG_ALLOWED,)
                                 ),
+    # TODO: implement all arguments, etc.
+    ('xit', 'x'): ex_cmd_data(
+                                command='ex_exit',
+                                invocations=(),
+                                error_on=()
+                                ),
+    # TODO: implement all arguments, etc.
+    ('exit', 'exi'): ex_cmd_data(
+                                command='ex_exit',
+                                invocations=(),
+                                error_on=()
+                                ),
 }
 
 
