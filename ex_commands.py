@@ -686,7 +686,7 @@ class ExNop(sublime_plugin.TextCommand):
     """
     def run_(self, args):
         pass
-        
+
 
 class ExCquit(sublime_plugin.TextCommand):
     def run(self, edit):
