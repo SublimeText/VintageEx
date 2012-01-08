@@ -104,15 +104,17 @@ def compute_address(view, text_range):
 
     Return values:
         - SUCCESS: address (positive integer)
-        - ERROR: -1 (can't compute valid address)
+        - ERROR: None (can't compute valid address)
     """
     # XXX strip in the parsing phase instead
     text_range = text_range.strip()
     # Note that some address error checking is also performed at the parsing
     # stage, so that '%' doesn't reach here, for example.
     a, b = ex_range.calculate_range(view, text_range.strip())
-    address = (max(a, b) if all((a, b)) else (a or b)) or 0
-    return address - 1
+    # FIXME: 0 should be a valid address?
+    if not (0 < a <= view.rowcol(view.size())[0] + 1):
+        return None
+    return a - 1
 
 
 def get_startup_info():
@@ -375,8 +377,11 @@ class ExFile(sublime_plugin.TextCommand):
 
 class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        assert range, "Need a range."
         address = compute_address(self.view, address)
+        if address is None:
+            # FIXME: Should be Invalid Address instead.
+            ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
+            return
 
         line_block = [] 
         for r in get_region_by_range(self.view, range):
@@ -409,8 +414,10 @@ class ExMove(sublime_plugin.TextCommand):
 
 class ExCopy(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        assert range, "Need a range."
         address = compute_address(self.view, address)
+        if address is None:
+            ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
+            return
 
         line_block = [] 
         for r in get_region_by_range(self.view, range):

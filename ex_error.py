@@ -10,6 +10,7 @@ ERR_UNKNOWN_COMMAND = 492 # Command can't take arguments.
 ERR_TRAILING_CHARS = 488 # Unknown command.
 ERR_NO_BANG_ALLOWED = 477 # Command doesn't allow !.
 ERR_INVALID_RANGE = 16 # Invalid range.
+ERR_INVALID_ADDRESS = 14 # Invalid range.
 ERR_NO_RANGE_ALLOWED = 481 # Command can't take a range.
 ERR_UNSAVED_CHANGES = 37 # The buffer has been modified but not saved.
 
@@ -19,6 +20,7 @@ ERR_MESSAGES = {
     ERR_UNKNOWN_COMMAND: 'Not an editor command.',
     ERR_NO_BANG_ALLOWED: 'No ! allowed.',
     ERR_INVALID_RANGE: 'Invalid range.',
+    ERR_INVALID_ADDRESS: 'Invalid address.',
     ERR_NO_RANGE_ALLOWED: 'No range allowed.',
     ERR_UNSAVED_CHANGES: 'There are unsaved changes.'
 }
