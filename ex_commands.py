@@ -493,11 +493,14 @@ class ExSubstitute(sublime_plugin.TextCommand):
             range = "%d,%d+%d" % (b, b, int(count))
 
         target_region = get_region_by_range(self.view, range)
-        print self.view.sel()[0], target_region
         replace_count = 0 if (flags and 'g' in flags) else 1
         for r in reversed(target_region):
             # be explicit about replacing the line, because we might be looking
             # at a Ctrl+D sequence of regions (not spanning a whole line)
+            # TODO: Improve this: make sure view.line() doesn't extend past
+            # the desired line. For example, in VISUAL LINE MODE.
+            if self.view.substr(r.end() - 1) == '\n':
+                r = sublime.Region(r.begin(), r.end() - 1)
             line_text = self.view.substr(self.view.line(r))
             rv = re.sub(left, right, line_text, count=replace_count)
             self.view.replace(edit, self.view.line(r), rv)
