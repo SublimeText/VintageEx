@@ -9,8 +9,6 @@ import ex_error
 
 
 # Defines an ex command. This data is used to parse strings into ex commands.
-# More precisely, the invocations element defines possible arguments for the
-# corresponding command.
 #   
 #   command
 #       The Sublime Text command to be executed. 
@@ -30,7 +28,7 @@ EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 # addresses. These are matched by EX_ONLY_RANGE_REGEXP instead. We don't need
 # to match them here, because they are not possible when a range precedes a
 # command.
-# FIXME: 2,del will be accepted, but I'm not sure what it should do.
+# FIXME: 2,del will be accepted, and the missing member substituted with ".".
 EX_RANGE_REGEXP = re.compile(r'''(?x)
         ^(?:
             (?P<laddress>
