@@ -72,9 +72,12 @@ EX_ONLY_RANGE_REGEXP = re.compile(r'''(?x)
         ''')
 
 # Almost identical to above, but exclude '%'.
-# Note that Vim's help seems to be wrong about valid address. It says '%' is a
-# valid address, but in practice it doesn't work.
-# FIXME: add proper names like range, laddress, raddress, loffset, roffset
+# Vim's documentation on valid addresses is wrong. For postfixed addresses,
+# as in :copy10,20, only the left end is parsed and used; the rest is discarded
+# and not even errors are thrown if the right end is bogus, like in
+# :copy10XXX.
+# FIXME: add names to captures: range, laddress, raddress, loffset, roffset
+# FIXME: postfixed addresses must be within buffer bounds.
 EX_ADDRESS_REGEXP = re.compile(r'''(?x)
                     ^(?P<address>
                         (
