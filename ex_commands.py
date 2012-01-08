@@ -274,7 +274,7 @@ class ExAbbreviate(sublime_plugin.TextCommand):
                                      'User/' + abbs_file_name)
         if not os.path.exists(abbreviations):
             with open(abbreviations, 'w') as f:
-                f.write('{\n\t"scope": "text",\n\t"completions": [\n\t\n\t]\n}\n')
+                f.write('{\n\t"scope": "",\n\t"completions": [\n\t\n\t]\n}\n')
         
         self.view.window().run_command('open_file',
                                     {'file': "${packages}/User/%s" % abbs_file_name})
