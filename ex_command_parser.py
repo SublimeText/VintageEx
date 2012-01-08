@@ -80,27 +80,14 @@ EX_ONLY_RANGE_REGEXP = re.compile(r'''(?x)
 # FIXME: postfixed addresses must be within buffer bounds.
 EX_ADDRESS_REGEXP = re.compile(r'''(?x)
                     ^(?P<address>
-                        (
+                        (?:
                             [$.]| # relative line symbol or...
                             \d+| # absolute line number or...
                             /.*?(?<!\\)/| # forward search, such as :/foo/ or...
                             \?.*?(?<!\\)\? # reverse search, such as :?bar?
                         )
-                        ([-+]\d+)* # optional offset, like in :$-10
-                        (?: # optional right address
-                            ([,;]) # range separator
-                                (
-                                    # almost identical as above
-                                    [%$.]| # % only valid here
-                                    \d+|
-                                    /.*?(?<!\\)/|
-                                    \?.*?(?<!\\)\?
-                                )
-                                ([-+]\d+)*
-                        )?
+                        (?:[-+]\d+)* # optional offset, like in :$-10
                     )
-                    |
-                    (^[/?].*)$ # covers cases like /foo and ?bar
                 ''')
 
 

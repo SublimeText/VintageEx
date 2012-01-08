@@ -9,51 +9,46 @@ from ex_range import EX_RANGE
 
 class TestAddressParser(unittest.TestCase):
     def testSimpleAddresses(self):
-        actual = EX_ADDRESS_REGEXP.search('$').groups()
-        expected = ('$', '$', None, None, None, None, None)
-        self.assertEquals(actual, expected)
+        values = (
+            ('$', '$'),
+            ('.', '.'),
+            ('1', '1'),
+            ('100', '100'),
+        )
 
-        actual = EX_ADDRESS_REGEXP.search('.').groups()
-        expected = ('.', '.', None, None, None, None, None)
-        self.assertEquals(actual, expected)
-        
-        # FIXME: not sure whether this is the correct behavior.
-        actual = EX_ADDRESS_REGEXP.match('%')
-        self.assertFalse(actual)
-        
-        self.assertFalse(EX_ADDRESS_REGEXP.match('a'))
-        self.assertFalse(EX_ADDRESS_REGEXP.match('aa'))
+        for actual, expected in values:
+            actual = EX_ADDRESS_REGEXP.search(actual).groupdict()
+            self.assertEquals(actual, dict(address=expected))
+    
+    def testInvaliSimpleAddresses(self):
+        values = ('%', 'a', 'aa')
 
-        actual = EX_ADDRESS_REGEXP.search('1').groups()
-        expected = ('1', '1', None, None, None, None, None)
-        self.assertEquals(actual, expected)
-        
-        actual = EX_ADDRESS_REGEXP.search('123').groups()
-        expected = ('123', '123', None, None, None, None, None)
-        self.assertEquals(actual, expected)
+        for value in values:
+            self.assertFalse(EX_ADDRESS_REGEXP.match(value))
     
     def testSimpleRanges(self):
         # todo
         ('%;.', ('%;.', '%', None, ';', '.', None, None))
         # ('%,.', ('%,.', '%', None, ',', '.', None, None)),
         tests = (
-                ('$,$', ('$,$', '$', None, ',', '$', None, None)),
-                ('.,.', ('.,.', '.', None, ',', '.', None, None)),
-                ('.,$', ('.,$', '.', None, ',', '$', None, None)),
-                ('$,.', ('$,.', '$', None, ',', '.', None, None)),
-                ('$;$', ('$;$', '$', None, ';', '$', None, None)),
-                ('.;.', ('.;.', '.', None, ';', '.', None, None)),
-                ('.;$', ('.;$', '.', None, ';', '$', None, None)),
-                ('$;.', ('$;.', '$', None, ';', '.', None, None)),
-                ('1,0', ('1,0', '1', None, ',', '0', None, None)),
-                ('10,10', ('10,10', '10', None, ',', '10', None, None)),
-                ('20,20', ('20,20', '20', None, ',', '20', None, None)),
-                ('.,100', ('.,100', '.', None, ',', '100', None, None)),
-                ('100,.', ('100,.', '100', None, ',', '.', None, None)),
+            ('$,$', '$'),
+            ('.,.', '.'),
+            ('.,$', '.'),
+            ('$,.', '$'),
+            ('$;$', '$'),
+            ('.;.', '.'),
+            ('.;$', '.'),
+            ('$;.', '$'),
+            ('1,0', '1'),
+            ('10,10', '10'),
+            ('20,20', '20'),
+            ('.,100', '.'),
+            ('100,.', '100'),
         )
 
         for t in tests:
-            self.assertEquals(EX_ADDRESS_REGEXP.search(t[0]).groups(), t[1])
+            actual = EX_ADDRESS_REGEXP.search(t[0]).groupdict()
+            self.assertEquals(actual, dict(address=t[1]))
 
     def testInvalidSimpleRanges(self):
         values = ('%;.', '%,.')
@@ -62,13 +57,14 @@ class TestAddressParser(unittest.TestCase):
 
     def testSimpleRangesWithOffsets(self):
         values = (
-                ('$-10,$+5', ('$-10,$+5', '$', '-10', ',', '$', '+5', None)),
-                ('.+10,%-5', ('.+10,%-5', '.', '+10', ',', '%', '-5', None)),
-                ('10-10,10+50', ('10-10,10+50', '10', '-10', ',', '10', '+50', None)),
+                ('$-10,$+5', '$-10'),
+                ('.+10,%-5', '.+10'),
+                ('10-10,10+50', '10-10'),
         )
 
         for v in values:
-            self.assertEquals(EX_ADDRESS_REGEXP.search(v[0]).groups(), v[1])
+            actual = EX_ADDRESS_REGEXP.search(v[0]).groupdict()
+            self.assertEquals(actual, dict(address=v[1]))
 
     def testRangesSearching(self):
         self.assertTrue(EX_ADDRESS_REGEXP.match('/foo/'))
@@ -85,19 +81,22 @@ class TestAddressParser(unittest.TestCase):
         self.assertTrue(EX_ADDRESS_REGEXP.match('/ foo bar /'))
         self.assertTrue(EX_ADDRESS_REGEXP.match('? foo bar ?'))
 
-    def testRangesSearchingWithEscapes(self):
-        actual = EX_ADDRESS_REGEXP.search(r'/foo\//,$')
-        self.assertEquals(actual.group(), r'/foo\//,$')
-        actual = EX_ADDRESS_REGEXP.search(r'?foo\??,$')
-        self.assertEquals(actual.group(), r'?foo\??,$')
+    def testSearchBasedAddressesWithEscapes(self):
+        values = (
+            (EX_ADDRESS_REGEXP.search(r'/foo\//,$').groupdict(), {'address': r'/foo\//'}),
+            (EX_ADDRESS_REGEXP.search(r'?foo\??,$').groupdict(), {'address': r'?foo\??'}),
+        )
 
-    def testExtractRange(self):
-        foo = EX_ADDRESS_REGEXP.search(r'100,200delete')
-        self.assertEquals(foo.group(), '100,200')
-        foo = EX_ADDRESS_REGEXP.search('.,200delete')
-        self.assertEquals(foo.group(), '.,200')
-        foo = EX_ADDRESS_REGEXP.search(r'.+100,/foo/-20delete')
-        self.assertEquals(foo.group(), '.+100,/foo/-20')
+        for actual, expected in values:
+            self.assertEquals(actual, expected)
+
+    # def testExtractRange(self):
+    #     foo = EX_ADDRESS_REGEXP.search(r'100,200delete')
+    #     self.assertEquals(foo.group(), '100,200')
+    #     foo = EX_ADDRESS_REGEXP.search('.,200delete')
+    #     self.assertEquals(foo.group(), '.,200')
+    #     foo = EX_ADDRESS_REGEXP.search(r'.+100,/foo/-20delete')
+    #     self.assertEquals(foo.group(), '.+100,/foo/-20')
 
 
 class TestOnlyRange(unittest.TestCase):
