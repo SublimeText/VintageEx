@@ -3,15 +3,15 @@
 
 from collections import namedtuple
 
-from ex_command_parser import EX_RANGE_REGEXP
-from ex_command_parser import EX_ONLY_RANGE_REGEXP
+from ex_command_parser import EX_PREFIX_RANGE
+from ex_command_parser import EX_STANDALONE_RANGE
 
 
 EX_RANGE = namedtuple('ex_range', 'left left_offset separator right right_offset')
 
 
 def partition_raw_only_range(range):
-    parts = EX_ONLY_RANGE_REGEXP.search(range).groupdict()
+    parts = EX_STANDALONE_RANGE.search(range).groupdict()
     if parts['openended']:
         return EX_RANGE(
                     left=parts['openended'],
@@ -41,7 +41,7 @@ def partition_raw_range(range):
             right: $
             right_offset: -15
     """
-    parts = EX_RANGE_REGEXP.search(range).groupdict()
+    parts = EX_PREFIX_RANGE.search(range).groupdict()
     return EX_RANGE(
                 left=parts['laddress'],
                 left_offset=parts['loffset'] or '0',
