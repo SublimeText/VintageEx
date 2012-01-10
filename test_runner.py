@@ -5,14 +5,15 @@ import os
 import unittest
 import StringIO
 
-# import itertools
+
+TEST_DATA_FILE_BASENAME = 'vintageex_test_data.txt'
+TEST_DATA_PATH = os.path.join(
+                    sublime.packages_path(),
+                    'VintageEx/tests/data/%s' % TEST_DATA_FILE_BASENAME)
+
 
 g_test_view = None
 g_testing_what = None
-
-TEST_DATA_PATH = os.path.join(sublime.packages_path(), 'VintageEx/tests/data/vintageex_test_data.txt')
-DATA_FILE_BASENAME = 'vintageex_test_data.txt'
-
 
 test_suites = {
         'parser': ['vintage_ex_run_parser_tests'],
@@ -20,9 +21,6 @@ test_suites = {
         'location': ['vintage_ex_run_data_file_based_tests'],
         'commands': [],
 }
-# FIXME: Running multiple test suites breaks them
-# test_suites['all'] = list(itertools.chain(*[suite for suite in
-                                                # test_suites.itervalues()]))
 
 
 class VintageExTestRunnerCommander(sublime_plugin.WindowCommand):
@@ -44,7 +42,6 @@ class VintageExRunParserTestsCommand(sublime_plugin.WindowCommand):
         from tests import test_parser
         bucket = StringIO.StringIO()
         suite = unittest.TestLoader().loadTestsFromModule(test_parser)
-        # suite = unittest.TestLoader().loadTestsFromModule(test_commands)
         unittest.TextTestRunner(stream=bucket, verbosity=1).run(suite)
 
         v = self.window.new_file()
@@ -66,7 +63,7 @@ def reset_caret(view):
 
 class TestDataDispatcher(sublime_plugin.EventListener):
     def on_load(self, view):
-        if view.file_name() and os.path.basename(view.file_name()) == DATA_FILE_BASENAME:
+        if view.file_name() and os.path.basename(view.file_name()) == TEST_DATA_FILE_BASENAME:
             global g_test_view
             g_test_view = view
             current_tests = __import__('tests.%s' % g_testing_what,
@@ -86,10 +83,10 @@ class TestDataDispatcher(sublime_plugin.EventListener):
             view.window().run_command('close')
     
     def on_activated(self, view):
-        if view.file_name() and os.path.basename(view.file_name()) == DATA_FILE_BASENAME:
+        if view.file_name() and os.path.basename(view.file_name()) == TEST_DATA_FILE_BASENAME:
             reset_caret(view)
    
     def on_deactivated(self, view):
         # Make sure we always start with a single selection at BOF.
-        if view.file_name() and os.path.basename(view.file_name()) == DATA_FILE_BASENAME:
+        if view.file_name() and os.path.basename(view.file_name()) == TEST_DATA_FILE_BASENAME:
             reset_caret(view)
