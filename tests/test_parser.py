@@ -67,19 +67,22 @@ class TestAddressParser(unittest.TestCase):
             self.assertEquals(actual, dict(address=v[1]))
 
     def testRangesSearching(self):
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('/foo/'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('/foo/,/bar/'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('/foo/,?bar?'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('?foo?,?bar?'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('?foo?,/bar/'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('/foo/;/bar/'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('/foo/;?bar?'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('?foo?;?bar?'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('?foo?;/bar/'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('?foo?'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('/foo bar/'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('/ foo bar /'))
-        self.assertTrue(EX_POSTFIX_ADDRESS.match('? foo bar ?'))
+        values = ('/foo/',
+                    '/foo/,/bar/',
+                    '/foo/,?bar?',
+                    '?foo?,?bar?',
+                    '?foo?,/bar/',
+                    '/foo/;/bar/',
+                    '/foo/;?bar?',
+                    '?foo?;?bar?',
+                    '?foo?;/bar/',
+                    '?foo?',
+                    '/foo bar/',
+                    '/ foo bar /',
+                    '? foo bar ?',)
+
+        for a_range in values:
+            self.assertTrue(EX_POSTFIX_ADDRESS.match(a_range))
 
     def testSearchBasedAddressesWithEscapes(self):
         values = (
@@ -111,132 +114,181 @@ class TestAddressParser(unittest.TestCase):
 
 class TestOnlyRange(unittest.TestCase):
     def testSimpleAddresses(self):
-        self.assertTrue(EX_STANDALONE_RANGE.match('%'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('$'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('.'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('1'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('10'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('100'))
+        values = ('%',
+                '$',
+                '.',
+                '1',
+                '10',
+                '100',)
+
+        for v in values:
+            self.assertTrue(EX_STANDALONE_RANGE.match(v))
+        
         self.assertFalse(EX_STANDALONE_RANGE.match('a'))
-        self.assertFalse(EX_STANDALONE_RANGE.match(':'))
 
     def testAddressBySearchOnly(self):
-        self.assertTrue(EX_STANDALONE_RANGE.match('/foo/'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('/bar/'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('/100/'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('?foo?'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('?bar?'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('?100?'))
+        values =  ('/foo/',
+                    '/bar/',
+                    '/100/',
+                    '?foo?',
+                    '?bar?',
+                    '?100?',)
+
+        for v in values:
+            self.assertTrue(EX_STANDALONE_RANGE.match(v))
     
     def testAddressWithOffsets(self):
-        self.assertTrue(EX_STANDALONE_RANGE.match('/foo/+10'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('/bar/-100'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('/100/+100'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('?foo?-10'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('?bar?+10+10'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('?100?+10-10'))
+        values = ('/foo/+10',
+                '/bar/-100',
+                '/100/+100',
+                '?foo?-10',
+                '?bar?+10+10',
+                '?100?+10-10',)
+        
+        for v in values:
+            self.assertTrue(EX_STANDALONE_RANGE.match(v))
 
     def testSimpleRanges(self):
-        self.assertTrue(EX_STANDALONE_RANGE.match('.,$'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('$,.'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('%,.'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('.,%'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('$,%'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('%,$'))
+        values = ('.,$',
+                    '$,.',
+                    '%,.',
+                    '.,%',
+                    '$,%',
+                    '%,$',
+                    # FIXME: This one is legal in Vim, but I don't what it does.
+                    '.,a',
+                    '100,1',)
+
+        for v in values:
+            self.assertTrue(EX_STANDALONE_RANGE.match(v))
+        
         self.assertFalse(EX_STANDALONE_RANGE.match('a,$'))
-        # FIXME: This one is legal in Vim, but I don't what it does.
-        self.assertTrue(EX_STANDALONE_RANGE.match('.,a'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('100,1'))
 
     def testSimpleRangesWithOffsets(self):
-        self.assertTrue(EX_STANDALONE_RANGE.match('.,$-10'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('$-10,.+1'))
-        self.assertFalse(EX_STANDALONE_RANGE.match('%-10,.-10'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('.+10,%+1'))
-        # FIXME: This should be illegal.
-        self.assertFalse(EX_STANDALONE_RANGE.match('$+a,%'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('100+100,1-100'))
-        # Not valid in Vim either.
-        self.assertFalse(EX_STANDALONE_RANGE.match('+100,-100'))
+        values = ('.,$-10',
+        '$-10,.+1',
+        '.+10,%+1',
+        '100+100,1-100',)
+
+        for v in values:
+            self.assertTrue(EX_STANDALONE_RANGE.match(v))
+        
+        values = ('+100,-100',
+                    '%-10,.-10',
+                    # FIXME: This should be illegal.
+                    '$+a,%',)
+        
+        for v in values:
+            self.assertFalse(EX_STANDALONE_RANGE.match(v))
 
     def testComplexRanges(self):
-        self.assertTrue(EX_STANDALONE_RANGE.match('/foo/,?bar?'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('/foo/,/bar/'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('?foo?,?bar?'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('/foo/,$'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('$,/foo/'))
-        self.assertTrue(EX_STANDALONE_RANGE.match('$,/foo/'))
+        values = ('/foo/,?bar?',
+                    '/foo/,/bar/',
+                    '?foo?,?bar?',
+                    '/foo/,$',
+                    '$,/foo/',
+                    '$,/foo/',)
+
+        for v in values:
+            self.assertTrue(EX_STANDALONE_RANGE.match(v))
 
 
 class TestRange(unittest.TestCase):
     def testSimpleAddresses(self):
-        self.assertTrue(EX_PREFIX_RANGE.match('%'))
-        self.assertTrue(EX_PREFIX_RANGE.match('$'))
-        self.assertTrue(EX_PREFIX_RANGE.match('.'))
-        self.assertTrue(EX_PREFIX_RANGE.match('1'))
-        self.assertTrue(EX_PREFIX_RANGE.match('10'))
-        self.assertTrue(EX_PREFIX_RANGE.match('100'))
-        self.assertFalse(EX_PREFIX_RANGE.match('a'))
-        self.assertFalse(EX_PREFIX_RANGE.match(':'))
+        values = ('%',
+                    '$',
+                    '.',
+                    '1',
+                    '10',
+                    '100',)
+        
+        for v in values:
+            self.assertTrue(EX_PREFIX_RANGE.match(v))
+        
+        values = ('a',
+                    ':',)
+        
+        for v in values:
+            self.assertFalse(EX_PREFIX_RANGE.match(v))
 
     def testAddressBySearchOnly(self):
-        self.assertTrue(EX_PREFIX_RANGE.match('/foo/'))
-        self.assertTrue(EX_PREFIX_RANGE.match('/bar/'))
-        self.assertTrue(EX_PREFIX_RANGE.match('/100/'))
-        self.assertTrue(EX_PREFIX_RANGE.match('?foo?'))
-        self.assertTrue(EX_PREFIX_RANGE.match('?bar?'))
-        self.assertTrue(EX_PREFIX_RANGE.match('?100?'))
+        values = ('/foo/',
+                    '/bar/',
+                    '/100/',
+                    '?foo?',
+                    '?bar?',
+                    '?100?',)
+
+        for v in values:
+            self.assertTrue(EX_PREFIX_RANGE.match(v))
     
     def testAddressWithOffsets(self):
-        self.assertTrue(EX_PREFIX_RANGE.match('/foo/+10'))
-        self.assertTrue(EX_PREFIX_RANGE.match('/bar/-100'))
-        self.assertTrue(EX_PREFIX_RANGE.match('/100/+100'))
-        self.assertTrue(EX_PREFIX_RANGE.match('?foo?-10'))
-        self.assertTrue(EX_PREFIX_RANGE.match('?bar?+10+10'))
-        self.assertTrue(EX_PREFIX_RANGE.match('?100?+10-10'))
+        values = ('/foo/+10',
+                    '/bar/-100',
+                    '/100/+100',
+                    '?foo?-10',
+                    '?bar?+10+10',
+                    '?100?+10-10',)
+
+        for v in values:
+            self.assertTrue(EX_PREFIX_RANGE.match(v))
 
     def testSimpleRanges(self):
-        self.assertTrue(EX_PREFIX_RANGE.match('.,$'))
-        self.assertTrue(EX_PREFIX_RANGE.match('$,.'))
-        self.assertFalse(EX_PREFIX_RANGE.match('%,.'))
-        self.assertTrue(EX_PREFIX_RANGE.match('.,%'))
-        self.assertTrue(EX_PREFIX_RANGE.match('$,%'))
-        self.assertFalse(EX_PREFIX_RANGE.match('%,$'))
-        self.assertFalse(EX_PREFIX_RANGE.match('a,$'))
-        self.assertFalse(EX_PREFIX_RANGE.match('.,a'))
-        self.assertTrue(EX_PREFIX_RANGE.match('100,1'))
+        values = ('.,$',
+                    '$,.',
+                    '.,%',
+                    '$,%',
+                    '100,1',)
+
+        for v in values:
+            self.assertTrue(EX_PREFIX_RANGE.match(v))
+
+        values = ('%,.',
+                    '%,$',
+                    'a,$',
+                    '.,a',)
+        
+        for v in values:
+            self.assertFalse(EX_PREFIX_RANGE.match(v))
 
     def testSimpleRangesWithOffsets(self):
-        self.assertTrue(EX_PREFIX_RANGE.match('.,$-10'))
-        self.assertTrue(EX_PREFIX_RANGE.match('$-10,.+1'))
-        self.assertFalse(EX_PREFIX_RANGE.match('%-10,.-10-10'))
-        self.assertTrue(EX_PREFIX_RANGE.match('.+10+10,%+1'))
-        # This should be illegal.
-        self.assertFalse(EX_PREFIX_RANGE.match('$+a,%'))
-        self.assertTrue(EX_PREFIX_RANGE.match('100+100,1-100'))
-        # Not valid in Vim either.
-        self.assertFalse(EX_PREFIX_RANGE.match('+100,-100'))
+        values = ('.,$-10',
+                    '$-10,.+1',
+                    '.+10+10,%+1',
+                    '100+100,1-100',)
+        
+        for v in values:
+            self.assertTrue(EX_PREFIX_RANGE.match(v))
+
+        values = (# This should be illegal.
+                  '$+a,%',
+                  # Not valid in Vim either.
+                  '+100,-100',
+                  '%-10,.-10-10',)
+        
+        for v in values:
+            self.assertFalse(EX_PREFIX_RANGE.match(v))
 
     def testComplexRanges(self):
-        self.assertTrue(EX_PREFIX_RANGE.match('/foo/,?bar?'))
-        self.assertTrue(EX_PREFIX_RANGE.match('/foo/,/bar/'))
-        self.assertTrue(EX_PREFIX_RANGE.match('?foo?,?bar?'))
-        self.assertTrue(EX_PREFIX_RANGE.match('/foo/,$'))
-        self.assertTrue(EX_PREFIX_RANGE.match('$,/foo/'))
-        self.assertTrue(EX_PREFIX_RANGE.match('$,/foo/'))
+        values = ('/foo/,?bar?',
+                    '/foo/,/bar/',
+                    '?foo?,?bar?',
+                    '/foo/,$',
+                    '$,/foo/',
+                    '$,/foo/',)
+        
+        for v in values:
+            self.assertTrue(EX_PREFIX_RANGE.match(v))
 
 
 class TestPartitionRange(unittest.TestCase):
         def testDetectRanges(self):
-            actual = partition_raw_range('10,20abc')
-            expected = EX_RANGE('10', '0', ',', '20', '0')
-            self.assertEquals(actual, expected)
-            actual = partition_raw_range('10+10,20+10abc')
-            expected = EX_RANGE('10', '+10', ',', '20', '+10')
-            self.assertEquals(actual, expected)
-            actual = partition_raw_range('.,$abc')
-            expected = EX_RANGE('.', '0', ',', '$', '0')
-            self.assertEquals(actual, expected)
-            actual = partition_raw_range('.-10,$-5abc')
-            expected = EX_RANGE('.', '-10', ',', '$', '-5')
-            self.assertEquals(actual, expected)
+            values = (
+                ('10,20abc',        ('10', '0', ',', '20', '0')),
+                ('10+10,20+10abc',  ('10', '+10', ',', '20', '+10')),
+                ('.,$abc',          ('.', '0', ',', '$', '0')),
+                ('.-10,$-5abc',     ('.', '-10', ',', '$', '-5')),
+            )
+
+            for actual, expected in values:
+                self.assertEquals(partition_raw_range(actual), EX_RANGE(*expected))
