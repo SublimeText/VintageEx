@@ -1,6 +1,6 @@
 ﻿# encoding: utf-8
 
-PACKAGE_VERSION = "12.1.11"
+PACKAGE_VERSION = "12.1.15"
 
 """Commands to build and manage .sublime-package archives with distutils."""
 
@@ -556,7 +556,7 @@ class install(Command):
 
     def initialize_options(self):
         pass
-    
+
     def finalize_options(self):
         pass
 
@@ -571,7 +571,7 @@ class test(Command):
 
     def initialize_options(self):
         pass
-    
+
     def finalize_options(self):
         pass
 
