@@ -14,6 +14,8 @@ class TestAddressParser(unittest.TestCase):
             ('.', '.'),
             ('1', '1'),
             ('100', '100'),
+            ('+100', '+100'),
+            ('-100', '-100'),
         )
 
         for actual, expected in values:
@@ -114,12 +116,16 @@ class TestAddressParser(unittest.TestCase):
 
 class TestOnlyRange(unittest.TestCase):
     def testSimpleAddresses(self):
-        values = ('%',
+        values = (
+                '%',
                 '$',
                 '.',
                 '1',
                 '10',
-                '100',)
+                '100',
+                '+100',
+                '-100',
+                )
 
         for v in values:
             self.assertTrue(EX_STANDALONE_RANGE.match(v))
@@ -129,7 +135,11 @@ class TestOnlyRange(unittest.TestCase):
     def testIncompleteRanges(self):
         values = (
             '100,',
+            '+100,',
+            '-100,',
             ',100',
+            ',+100',
+            ',-100',
             '100+100,',
             ',100+100',
             ',/foo/+100',
@@ -183,13 +193,15 @@ class TestOnlyRange(unittest.TestCase):
         values = ('.,$-10',
         '$-10,.+1',
         '.+10,%+1',
-        '100+100,1-100',)
+        '100+100,1-100',
+        '+100,-100',
+        # According to Vim, this should be illegal (command error).
+        '%-10,.-10',)
 
         for v in values:
             self.assertTrue(EX_STANDALONE_RANGE.match(v))
 
-        values = ('+100,-100',
-                    '%-10,.-10',
+        values = (
                     # FIXME: This should be illegal.
                     '$+a,%',)
 
@@ -210,12 +222,14 @@ class TestOnlyRange(unittest.TestCase):
 
 class TestRange(unittest.TestCase):
     def testSimpleAddresses(self):
-        values = ('%',
-                    '$',
-                    '.',
-                    '1',
-                    '10',
-                    '100',)
+        values = (
+                    '%abc',
+                    '$abc',
+                    '.abc',
+                    '1abc',
+                    '10abc',
+                    '100abc',
+                )
 
         for v in values:
             self.assertTrue(EX_PREFIX_RANGE.match(v))
@@ -227,50 +241,53 @@ class TestRange(unittest.TestCase):
             self.assertFalse(EX_PREFIX_RANGE.match(v))
 
     def testAddressBySearchOnly(self):
-        values = ('/foo/',
-                    '/bar/',
-                    '/100/',
-                    '?foo?',
-                    '?bar?',
-                    '?100?',)
+        values = ('/foo/abc',
+                    '/bar/abc',
+                    '/100/abc',
+                    '?foo?abc',
+                    '?bar?abc',
+                    '?100?abc',)
 
         for v in values:
             self.assertTrue(EX_PREFIX_RANGE.match(v))
 
     def testAddressWithOffsets(self):
-        values = ('/foo/+10',
-                    '/bar/-100',
-                    '/100/+100',
-                    '?foo?-10',
-                    '?bar?+10+10',
-                    '?100?+10-10',)
+        values = ('/foo/+10abc',
+                    '/bar/-100abc',
+                    '/100/+100abc',
+                    '?foo?-10abc',
+                    '?bar?+10+10abc',
+                    '?100?+10-10abc',)
 
         for v in values:
             self.assertTrue(EX_PREFIX_RANGE.match(v))
 
     def testSimpleRanges(self):
-        values = ('.,$',
-                    '$,.',
-                    '.,%',
-                    '$,%',
-                    '100,1',)
+        values = ('.,$abc',
+                    '$,.abc',
+                    '.,%abc',
+                    '$,%abc',
+                    '100,1abc',
+                    '%,.abc',
+                    '%,$abc',
+                    '.,abc',
+                )
 
         for v in values:
             self.assertTrue(EX_PREFIX_RANGE.match(v))
 
-        values = ('%,.',
-                    '%,$',
+        values = (
                     'a,$',
-                    '.,a',)
+                )
 
         for v in values:
             self.assertFalse(EX_PREFIX_RANGE.match(v))
 
     def testSimpleRangesWithOffsets(self):
-        values = ('.,$-10',
-                    '$-10,.+1',
-                    '.+10+10,%+1',
-                    '100+100,1-100',)
+        values = ('.,$-10abc',
+                    '$-10,.+1abc',
+                    '.+10+10,%+1abc',
+                    '100+100,1-100abc',)
 
         for v in values:
             self.assertTrue(EX_PREFIX_RANGE.match(v))
@@ -285,12 +302,12 @@ class TestRange(unittest.TestCase):
             self.assertFalse(EX_PREFIX_RANGE.match(v))
 
     def testComplexRanges(self):
-        values = ('/foo/,?bar?',
-                    '/foo/,/bar/',
-                    '?foo?,?bar?',
-                    '/foo/,$',
-                    '$,/foo/',
-                    '$,/foo/',)
+        values = ('/foo/,?bar?abc',
+                    '/foo/,/bar/abc',
+                    '?foo?,?bar?abc',
+                    '/foo/,$abc',
+                    '$,/foo/abc',
+                    '$,/foo/abc',)
 
         for v in values:
             self.assertTrue(EX_PREFIX_RANGE.match(v))

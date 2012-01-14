@@ -28,9 +28,9 @@ EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 
 # TODO: test all these regexes separately.
 # Address that can only appear in a prefix range (before a command).
-PREFIX_ADDRESS = r'[.$%]|(?:/.*?/|\?.*?\?){1,2}|\d+|[\'][a-zA-Z0-9<>]'
+PREFIX_ADDRESS = r'[.$%]|(?:/.*?/|\?.*?\?){1,2}|[+-]?\d+|[\'][a-zA-Z0-9<>]'
 # Address that can only appear after a command.
-POSTFIX_ADDRESS = r'[.$]|(?:/.*?(?<!\\)/|\?.*?(?<!\\)\?){1,2}|\d+|[\'][a-zA-Z0-9<>]'
+POSTFIX_ADDRESS = r'[.$]|(?:/.*?(?<!\\)/|\?.*?(?<!\\)\?){1,2}|[+-]?\d+|[\'][a-zA-Z0-9<>]'
 ADDRESS_OFFSET = r'[-+]\d+'
 ADDRESS_SEPARATOR = r'[,;]'
 # Can only appear standalone.
