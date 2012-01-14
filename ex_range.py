@@ -3,7 +3,6 @@
 
 from collections import namedtuple
 
-from ex_command_parser import EX_PREFIX_RANGE
 from ex_command_parser import EX_STANDALONE_RANGE
 
 
@@ -19,6 +18,14 @@ def partition_raw_only_range(range):
                     separator='',
                     right='',
                     right_offset='0'
+                    )
+    elif parts['incomplete']:
+        return EX_RANGE(
+                    left=parts['inc_laddress'] or '.',
+                    left_offset=parts['inc_loffset'] or '0',
+                    separator=parts['suf_alt_separator'] or parts['pref_alt_separator'],
+                    right=parts['inc_raddress'] or '.',
+                    right_offset=parts['inc_loffset'] or '0',
                     )
     else:
         return EX_RANGE(
@@ -41,7 +48,20 @@ def partition_raw_range(range):
             right: $
             right_offset: -15
     """
-    parts = EX_PREFIX_RANGE.search(range).groupdict()
+    # At this point we can be sure that ``range`` is a valid prefix range.
+    # ``EX_PREFIX_RANGE`` won't match correctly here because the suffixed
+    # command has been stripped, so we use ``EX_STANDALONE_RANGE`` instead.
+    # parts = EX_PREFIX_RANGE.search(range).groupdict()
+    parts = EX_STANDALONE_RANGE.search(range).groupdict()
+    if parts['incomplete']:
+        return EX_RANGE(
+                    left=parts['inc_laddress'] or '.',
+                    left_offset=parts['inc_loffset'] or '0',
+                    separator=parts['suf_alt_separator'] or parts['pref_alt_separator'],
+                    right=parts['inc_raddress'] or '.',
+                    right_offset=parts['inc_loffset'] or '0',
+                    )
+
     return EX_RANGE(
                 left=parts['laddress'],
                 left_offset=parts['loffset'] or '0',
@@ -77,7 +97,7 @@ def calculate_range_part(view, range_part, start_line=None):
     if range_part in ('$', '.'):
         return calculate_relative_ref(view, range_part, start_line)
 
-        
+
 def calculate_range(view, raw_range, is_only_range=False):
     """Takes an unparsed :ex range as a string and returns the actual lines it
     refers to (1-based).
@@ -99,11 +119,12 @@ def calculate_range(view, raw_range, is_only_range=False):
 
     # In full ranges, '%' can appear in any (or both) sides and will make the
     # range span the whole buffer. (Examples: %,% or %,$ or 10;%)
+    # TODO:
+    # In Vim, %-10 is illegal and throws an error, but we simply ignore
+    # offsets with %.
     if parsed_range.left == '%' or parsed_range.right == '%':
         left, loffset = '1', '0'
         right, roffset = '$', '0'
-    # TODO: Vim allows incomplete ranges and substitutes missing addresses
-    # with ".". (Examples: ,100delete or 100,delete)
     elif parsed_range.separator:
         left, loffset = parsed_range.left, parsed_range.left_offset
         right, roffset = parsed_range.right, parsed_range.right_offset
@@ -111,7 +132,7 @@ def calculate_range(view, raw_range, is_only_range=False):
         left = calculate_range_part(view, parsed_range.left) + \
                                             int(parsed_range.left_offset)
         return left, left
-    
+
     # In ranges separated by ";", the right-hand address is calculated starting
     # at the left-side address, and not based on the caret's position.
     if parsed_range.separator == ';':
@@ -125,7 +146,7 @@ def calculate_range(view, raw_range, is_only_range=False):
     return calculate_range_part(view, left) + int(loffset), \
                calculate_range_part(view, right) + int(roffset)
 
- 
+
 def calculate_relative_ref(view, where, start_line=None):
     if where == '$':
         return view.rowcol(view.size())[0] + 1

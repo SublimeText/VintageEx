@@ -1,4 +1,5 @@
 import unittest
+import re
 
 from test_runner import g_test_view
 from tests import select_bof
@@ -10,6 +11,7 @@ from ex_range import EX_RANGE
 from ex_range import partition_raw_only_range
 from ex_range import calculate_range
 from ex_range import calculate_relative_ref
+from ex_command_parser import INCOMPLETE_RANGE_SEPARATOR
 
 
 class TestCalculateRangeParts(unittest.TestCase):
@@ -29,10 +31,10 @@ class TestCalculateRangeParts(unittest.TestCase):
 
         for actual, expected in values:
             self.assertEquals(actual, expected)
-    
+
     def tearDown(self):
         select_bof(g_test_view)
-        
+
 
 class TestCalculateRelativeRef(unittest.TestCase):
     def StartUp(self):
@@ -62,7 +64,7 @@ class TestCalculateRelativeRef(unittest.TestCase):
         select_line(g_test_view, 200)
         self.assertEquals(calculate_relative_ref(g_test_view, '.'), 200)
 
-            
+
 
 class TestPatitioningRanges(unittest.TestCase):
     def testPartitionRawOnlyRange(self):
@@ -100,6 +102,17 @@ class TestCalculatingRanges(unittest.TestCase):
 
         for actual, expected in values:
             self.assertEquals(actual, expected)
-    
+
     def tearDown(self):
         select_bof(g_test_view)
+
+
+class TestIncompleteRanges(unittest.TestCase):
+    def testMatchOnlyOneSide(self):
+        values = (
+            (r',', r','),
+        )
+
+        rx = re.compile(INCOMPLETE_RANGE_SEPARATOR)
+        for v, expected in values:
+            self.assertEquals(rx.match(v).group(), expected)
