@@ -84,35 +84,37 @@ EX_PREFIX_RANGE = re.compile(
 # simply represent an address to move the caret to.
 EX_STANDALONE_RANGE = re.compile(
                             r'''(?x)
-                                # A full range consisting of...
-                                ^(?P<incomplete>
-                                    (?:
-                                        (?P<inc_laddress>%(address)s)
-                                        (?P<inc_loffset>%(address_offset)s)*
-                                        (?P<suf_alt_separator>%(alt_separator)s)
+                                ^(?:
+                                    # A full range consisting of...
+                                    (?P<incomplete>
+                                        (?:
+                                            (?P<inc_laddress>%(address)s)
+                                            (?P<inc_loffset>%(address_offset)s)*
+                                            (?P<suf_alt_separator>%(alt_separator)s)
+                                        )|
+                                        (?:
+                                            (?P<pref_alt_separator>%(alt_separator)s)
+                                            (?P<inc_raddress>%(address)s)
+                                            (?P<inc_roffset>%(address_offset)s)*
+                                        )
                                     )|
                                     (?:
-                                        (?P<pref_alt_separator>%(alt_separator)s)
-                                        (?P<inc_raddress>%(address)s)
-                                        (?P<inc_roffset>%(address_offset)s)*
-                                    )
-                                )$|
-                                (?:
-                                    # a left address...
-                                    (?P<laddress>%(address)s)
-                                    # optionally followed by offsets...
-                                    (?P<loffset>%(address_offset)s)*
-                                    # and an optional right address...
-                                    (?:
-                                        # (including the address separator)
-                                        (?P<separator>%(address_separator)s)
-                                        (?P<raddress>%(address)s)
-                                        # and any number of offsets...
-                                        (?P<roffset>%(address_offset)s)*
-                                    )?
-                                )$|
-                                # or an openended search-based address.
-                                (?P<openended>%(openended)s)$
+                                        # a left address...
+                                        (?P<laddress>%(address)s)
+                                        # optionally followed by offsets...
+                                        (?P<loffset>%(address_offset)s)*
+                                        # and an optional right address...
+                                        (?:
+                                            # (including the address separator)
+                                            (?P<separator>%(address_separator)s)
+                                            (?P<raddress>%(address)s)
+                                            # and any number of offsets...
+                                            (?P<roffset>%(address_offset)s)*
+                                        )?
+                                    )|
+                                    # or an openended search-based address.
+                                    (?P<openended>%(openended)s)
+                                )$
                             ''' % {'address':           PREFIX_ADDRESS,
                                    'address_separator': ADDRESS_SEPARATOR,
                                    'address_offset':    ADDRESS_OFFSET,
