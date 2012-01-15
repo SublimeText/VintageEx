@@ -1,120 +1,260 @@
+import re
 import unittest
 
+from ex_command_parser import ADDRESS_OFFSET
+from ex_command_parser import ADDRESS_SEPARATOR
 from ex_command_parser import EX_POSTFIX_ADDRESS
-from ex_command_parser import EX_STANDALONE_RANGE
 from ex_command_parser import EX_PREFIX_RANGE
-from ex_range import partition_raw_range
+from ex_command_parser import EX_STANDALONE_RANGE
+from ex_command_parser import OPENENDED_SEARCH_ADDRESS
+from ex_command_parser import POSTFIX_ADDRESS
+from ex_command_parser import PREFIX_ADDRESS
 from ex_range import EX_RANGE
+from ex_range import partition_raw_range
 
 
-class TestAddressParser(unittest.TestCase):
-    def testSimpleAddresses(self):
+rx_ADDRESS_OFFSET = re.compile(ADDRESS_OFFSET)
+rx_ADDRESS_SEPARATOR = re.compile(ADDRESS_SEPARATOR)
+rx_OPENENDED_SEARCH_ADDRESS = re.compile(OPENENDED_SEARCH_ADDRESS)
+rx_POSTFIX_ADDRESS = re.compile(POSTFIX_ADDRESS)
+rx_PREFIX_ADDRESS = re.compile(PREFIX_ADDRESS)
+
+
+class RegexTestCaseMixin(object):
+    def assertRegexGroupWithManyCases(self, regex, values):
+        for value, expected in values:
+            self.assertEquals(regex.search(value).group(), expected)
+
+    def asserRegexCapturesWithManyCases(self, regex, values):
+        for actual, expected in values:
+            actual = regex.search(actual).groupdict()
+            self.assertEquals(actual, dict(zip(actual.keys(), expected)))
+
+class OpenendedSearchAddress(unittest.TestCase, RegexTestCaseMixin):
+    def testCanFindOpenendedSearchAddress(self):
+        values = (
+            ('/blah100 \\ 10,20', '/blah100 \\ 10,20'),
+            ('?blah100 \\ 10,20', '?blah100 \\ 10,20'),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_OPENENDED_SEARCH_ADDRESS, values)
+
+
+class AddressSeparator(unittest.TestCase, RegexTestCaseMixin):
+    def testCanFindAddressSeparator(self):
+        values = (
+            (',', ','),
+            (';', ';'),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_ADDRESS_SEPARATOR, values)
+
+
+class AddressOffset(unittest.TestCase, RegexTestCaseMixin):
+    def testCanFindOffsets(self):
+        values = (
+            ('+1', '+1'),
+            ('+100', '+100'),
+            ('-1', '-1'),
+            ('-100', '-100'),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_ADDRESS_OFFSET, values)
+
+
+class PostfixAddress(unittest.TestCase, RegexTestCaseMixin):
+    def testSymbols(self):
         values = (
             ('$', '$'),
             ('.', '.'),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_POSTFIX_ADDRESS, values)
+
+    def testAddressBySearch(self):
+        values = (
+            ('/foo/', '/foo/'),
+            ('/foo\\//', '/foo\\//'),
+            ('/ foo /', '/ foo /'),
+            ('/foo//foo/', '/foo//foo/'),
+            ('?foo?', '?foo?'),
+            ('?foo\\??', '?foo\\??'),
+            ('?foo??foo?', '?foo??foo?'),
+            ('? foo ?', '? foo ?'),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_POSTFIX_ADDRESS, values)
+
+    def testNumericAddresses(self):
+        values = (
             ('1', '1'),
             ('100', '100'),
             ('+100', '+100'),
             ('-100', '-100'),
         )
 
-        for actual, expected in values:
-            actual = EX_POSTFIX_ADDRESS.search(actual).groupdict()
-            self.assertEquals(actual, dict(address=expected))
+        self.assertRegexGroupWithManyCases(rx_POSTFIX_ADDRESS, values)
+
+    def testAddressByBookmark(self):
+        values = (
+            ("'1", "'1"),
+            ("'9", "'9"),
+            ("'a", "'a"),
+            ("'z", "'z"),
+            ("'A", "'A"),
+            ("'Z", "'Z"),
+            ("'<", "'<"),
+            ("'>", "'>"),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_POSTFIX_ADDRESS, values)
+
+
+class PrefixAddress(unittest.TestCase, RegexTestCaseMixin):
+    def testSymbols(self):
+        values = (
+            ('$', '$'),
+            ('.', '.'),
+            ('%', '%'),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_PREFIX_ADDRESS, values)
+
+    def testAddressBySearch(self):
+        values = (
+            ('/foo/', '/foo/'),
+            ('/ foo /', '/ foo /'),
+            ('/foo//foo/', '/foo//foo/'),
+            ('?foo?', '?foo?'),
+            ('?foo??foo?', '?foo??foo?'),
+            ('? foo ?', '? foo ?'),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_PREFIX_ADDRESS, values)
+
+    def testNumericAddresses(self):
+        values = (
+            ('1', '1'),
+            ('100', '100'),
+            ('+100', '+100'),
+            ('-100', '-100'),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_PREFIX_ADDRESS, values)
+
+    def testAddressByBookmark(self):
+        values = (
+            ("'1", "'1"),
+            ("'9", "'9"),
+            ("'a", "'a"),
+            ("'z", "'z"),
+            ("'A", "'A"),
+            ("'Z", "'Z"),
+            ("'<", "'<"),
+            ("'>", "'>"),
+        )
+
+        self.assertRegexGroupWithManyCases(rx_PREFIX_ADDRESS, values)
+
+
+class PostfixAddressParser(unittest.TestCase, RegexTestCaseMixin):
+    def testSimpleAddresses(self):
+        values = (
+            ('$', ('$',)),
+            ('.', ('.',)),
+            ('1', ('1',)),
+            ('100', ('100',)),
+            ('+100', ('+100',)),
+            ('-100', ('-100',)),
+            ('100XXX', ('100',)),
+            ("'a", ("'a",)),
+            ("'aXX", ("'a",)),
+            ("'z", ("'z",)),
+            ("'1", ("'1",)),
+            ("'9", ("'9",)),
+            ("'<", ("'<",)),
+            ("'>", ("'>",)),
+        )
+
+        self.asserRegexCapturesWithManyCases(EX_POSTFIX_ADDRESS, values)
 
     def testInvaliSimpleAddresses(self):
-        values = ('%', 'a', 'aa')
+        values = ('%', 'a', 'aa', 'a10')
 
         for value in values:
             self.assertFalse(EX_POSTFIX_ADDRESS.match(value))
 
     def testSimpleRanges(self):
-        # todo
-        ('%;.', ('%;.', '%', None, ';', '.', None, None))
-        # ('%,.', ('%,.', '%', None, ',', '.', None, None)),
-        tests = (
-            ('$,$', '$'),
-            ('.,.', '.'),
-            ('.,$', '.'),
-            ('$,.', '$'),
-            ('$;$', '$'),
-            ('.;.', '.'),
-            ('.;$', '.'),
-            ('$;.', '$'),
-            ('1,0', '1'),
-            ('10,10', '10'),
-            ('20,20', '20'),
-            ('.,100', '.'),
-            ('100,.', '100'),
+        values = (
+            ('$,$', ('$',)),
+            ('.,.', ('.',)),
+            ('.,$', ('.',)),
+            ('$,.', ('$',)),
+            ('1,0', ('1',)),
+            ('10,10', ('10',)),
+            ('20,20', ('20',)),
+            ('.,100', ('.',)),
+            ('100,.', ('100',)),
+            ('$;.', ('$',)),
+            ('$;$', ('$',)),
+            ('.;.', ('.',)),
+            ('.;$', ('.',)),
+            ('20,30XX', ('20',)),
         )
 
-        for t in tests:
-            actual = EX_POSTFIX_ADDRESS.search(t[0]).groupdict()
-            self.assertEquals(actual, dict(address=t[1]))
+        self.asserRegexCapturesWithManyCases(EX_POSTFIX_ADDRESS, values)
 
     def testInvalidSimpleRanges(self):
-        values = ('%;.', '%,.')
+        values = ('%', '%;.', '%,.')
         for v in values:
             self.assertFalse(EX_POSTFIX_ADDRESS.match(v))
 
     def testSimpleRangesWithOffsets(self):
         values = (
-                ('$-10,$+5', '$-10'),
-                ('.+10,%-5', '.+10'),
-                ('10-10,10+50', '10-10'),
+                ('$-10,$+5', ('$-10',)),
+                ('.+10,%-5', ('.+10',)),
+                ('10-10,10+50', ('10-10',)),
         )
 
-        for v in values:
-            actual = EX_POSTFIX_ADDRESS.search(v[0]).groupdict()
-            self.assertEquals(actual, dict(address=v[1]))
+        self.asserRegexCapturesWithManyCases(EX_POSTFIX_ADDRESS, values)
 
-    def testRangesSearching(self):
-        values = ('/foo/',
-                    '/foo/,/bar/',
-                    '/foo/,?bar?',
-                    '?foo?,?bar?',
-                    '?foo?,/bar/',
-                    '/foo/;/bar/',
-                    '/foo/;?bar?',
-                    '?foo?;?bar?',
-                    '?foo?;/bar/',
-                    '?foo?',
-                    '/foo bar/',
-                    '/ foo bar /',
-                    '? foo bar ?',)
+    def testRangesBySearching(self):
+        values = (
+                ('/foo/', ('/foo/',)),
+                ('/foo/,/bar/', ('/foo/',)),
+                ('/foo/,?bar?', ('/foo/',)),
+                ('?foo?,?bar?', ('?foo?',)),
+                ('?foo?,/bar/', ('?foo?',)),
+                ('/foo/;/bar/', ('/foo/',)),
+                ('/foo/;?bar?', ('/foo/',)),
+                ('?foo?;?bar?', ('?foo?',)),
+                ('?foo?;/bar/', ('?foo?',)),
+                ('?foo?', ('?foo?',)),
+                ('/foo bar/', ('/foo bar/',)),
+                ('/ foo bar /', ('/ foo bar /',)),
+                ('? foo bar ?', ('? foo bar ?',)),
+                )
 
-        for a_range in values:
-            self.assertTrue(EX_POSTFIX_ADDRESS.match(a_range))
+        self.asserRegexCapturesWithManyCases(EX_POSTFIX_ADDRESS, values)
 
     def testSearchBasedAddressesWithEscapes(self):
         values = (
-            (EX_POSTFIX_ADDRESS.search(r'/foo\//,$').groupdict(), {'address': r'/foo\//'}),
-            (EX_POSTFIX_ADDRESS.search(r'?foo\??,$').groupdict(), {'address': r'?foo\??'}),
+            ('/foo\//,$', ('/foo\//',)),
+            ('?foo\??,$', ('?foo\??',)),
         )
 
-        for actual, expected in values:
-            self.assertEquals(actual, expected)
+        self.asserRegexCapturesWithManyCases(EX_POSTFIX_ADDRESS, values)
 
     def testOpenEndedSearches(self):
         values = (
-            (r'/foo bar', r'/foo bar'),
-            (r'?foo bar', r'?foo bar'),
+            ('/foo bar', ('/foo bar',)),
+            ('?foo bar', ('?foo bar',)),
         )
 
-        for actual, expected in values:
-            actual = EX_POSTFIX_ADDRESS.search(actual).groupdict()
-            self.assertEquals(actual, dict(address=expected))
-
-    # def testExtractRange(self):
-    #     foo = EX_POSTFIX_ADDRESS.search(r'100,200delete')
-    #     self.assertEquals(foo.group(), '100,200')
-    #     foo = EX_POSTFIX_ADDRESS.search('.,200delete')
-    #     self.assertEquals(foo.group(), '.,200')
-    #     foo = EX_POSTFIX_ADDRESS.search(r'.+100,/foo/-20delete')
-    #     self.assertEquals(foo.group(), '.+100,/foo/-20')
+        self.asserRegexCapturesWithManyCases(EX_POSTFIX_ADDRESS, values)
 
 
-class TestOnlyRange(unittest.TestCase):
+class StandAloneRangeParser(unittest.TestCase):
     def testSimpleAddresses(self):
         values = (
                 '%',

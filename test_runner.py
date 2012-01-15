@@ -37,7 +37,7 @@ class VintageExTestRunnerCommander(sublime_plugin.WindowCommand):
 class VintageExRunParserTestsCommand(sublime_plugin.WindowCommand):
     def is_enabled(self):
         return os.getcwd() == os.path.join(sublime.packages_path(), 'VintageEx')
-        
+
     def run(self):
         from tests import test_parser
         bucket = StringIO.StringIO()
@@ -54,7 +54,7 @@ class VintageExRunParserTestsCommand(sublime_plugin.WindowCommand):
 class VintageExRunDataFileBasedTests(sublime_plugin.WindowCommand):
     def run(self):
         self.window.open_file(TEST_DATA_PATH)
-    
+
 
 def reset_caret(view):
     view.sel().clear()
@@ -81,11 +81,11 @@ class TestDataDispatcher(sublime_plugin.EventListener):
 
             v.window().focus_view(view)
             view.window().run_command('close')
-    
+
     def on_activated(self, view):
         if view.file_name() and os.path.basename(view.file_name()) == TEST_DATA_FILE_BASENAME:
             reset_caret(view)
-   
+
     def on_deactivated(self, view):
         # Make sure we always start with a single selection at BOF.
         if view.file_name() and os.path.basename(view.file_name()) == TEST_DATA_FILE_BASENAME:

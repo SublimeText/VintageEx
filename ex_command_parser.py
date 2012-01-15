@@ -26,7 +26,7 @@ ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
 # TODO: elaborate on params info.
 EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 
-# TODO: test all these regexes separately.
+# TODO: Allow escapes in search-based addresses, as in POSTFIX_ADDRESS.
 # Address that can only appear in a prefix range (before a command).
 PREFIX_ADDRESS = r'[.$%]|(?:/.*?/|\?.*?\?){1,2}|[+-]?\d+|[\'][a-zA-Z0-9<>]'
 # Address that can only appear after a command.
