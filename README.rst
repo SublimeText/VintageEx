@@ -28,12 +28,16 @@ Sublime Text.
 .. _latest version: https://bitbucket.org/guillermooo/vintageex/downloads/VintageEx.sublime-package
 .. TOOD: add link to Vintage's help file
 
-VintageEx doesn't replace Vintage. If you want to use vi key bindings, you need
-to have installed and enable the Vintage package (shipped with Sublime Text).
-VintageEx extends the vi-like functionality available in Sublime Text by adding
-a command-line mode that tries to remain close to Vim's. Furthermore, VintageEx
-uses commands in the Vintage package, so you will need to enable Vintage if you
-want to use VintageEx.
+**VintageEx doesn't replace Vintage**: To use vi key bindings, you need to
+enable the Vintage package (shipped with Sublime Text and *ignored* by default).
+
+VintageEx extends the vi-like functionality provided py Vintage by adding
+a command-line mode that tries to remain close to Vim's.
+
+Also, because VintageEx uses commands in the Vintage package, this package
+must be under your ``Packages`` folder with that name. This is mostly important
+to keep in mind if you contribute code to Vintage and have deleted the original
+package.
 
 Overview
 ========
