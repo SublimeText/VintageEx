@@ -80,7 +80,7 @@ def calculate_range_part(view, range_part, start_line=None):
     if range_part.isdigit():
         return int(range_part)
 
-    if range_part[0] in '+-':
+    if range_part.startswith(('+', '-')):
         return calculate_relative_ref(view, '.', start_line) + int(range_part)
 
     if range_part.startswith('/') or range_part.startswith('?'):
