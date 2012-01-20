@@ -3,7 +3,7 @@ import sublime_plugin
 
 import sys
 import os
-    
+
 # We use several commands implemented in Vintange, so make it available here.
 sys.path.append(os.path.join(sublime.packages_path(), 'Vintage'))
 
@@ -59,14 +59,14 @@ def gather_buffer_info(v):
         path = v.name() or str(v.buffer_id())
         leaf = v.name() or 'untitled'
 
-    status = [] 
+    status = []
     if not v.file_name():
         status.append("t")
     if v.is_dirty():
         status.append("*")
     if v.is_read_only():
         status.append("r")
-    
+
     if status:
         leaf += ' (%s)' % ', '.join(status)
     return [leaf, path]
@@ -81,7 +81,7 @@ def get_region_by_range(view, text_range, split_visual=False):
         rv = GLOBAL_RANGES[:]
         GLOBAL_RANGES = []
         return rv
-        
+
     if text_range.replace(' ', '') == "'<,'>":
         if not split_visual:
             return list(view.sel())
@@ -94,7 +94,7 @@ def get_region_by_range(view, text_range, split_visual=False):
     a, b = ex_range.calculate_range(view, text_range)
     r = sublime.Region(view.text_point(a - 1, 0),
                         view.full_line(
-                            view.text_point(b - 1, 0)).end())    
+                            view.text_point(b - 1, 0)).end())
     return view.split_by_newlines(r)
 
 
@@ -136,6 +136,9 @@ def ensure_line_block(view, r):
 
 class ExGoto(sublime_plugin.TextCommand):
     def run(self, edit, range=''):
+        if not range:
+            # No-op: user issued ":".
+            return
         a, b = ex_range.calculate_range(self.view, range, is_only_range=True)
         self.view.run_command('vi_goto_line', {'repeat': b})
         self.view.show(self.view.sel()[0])
@@ -171,7 +174,7 @@ class ExShell(sublime_plugin.TextCommand):
     def open_shell(self, command):
         view_dir = os.path.dirname(self.view.file_name())
         return subprocess.Popen(command, cwd=view_dir)
-        
+
     def run(self, edit):
         if sublime.platform() == 'linux':
             term = os.path.expandvars('$COLORTERM') or \
@@ -275,7 +278,7 @@ class ExAbbreviate(sublime_plugin.TextCommand):
         if not os.path.exists(abbreviations):
             with open(abbreviations, 'w') as f:
                 f.write('{\n\t"scope": "",\n\t"completions": [\n\t\n\t]\n}\n')
-        
+
         self.view.window().run_command('open_file',
                                     {'file': "${packages}/User/%s" % abbs_file_name})
 
@@ -294,15 +297,16 @@ class ExWriteFile(sublime_plugin.TextCommand):
                 operator='',
                 target_redirect='',
                 subcmd=''):
-        
+
         if file_name and target_redirect:
             sublime.status_message('VintageEx: Too many arguments.')
             return
 
         appending = operator == '>>'
-        content = get_region_by_range(self.view, range)[0] if range else \
-                        sublime.Region(0, self.view.size())
-        
+        # FIXME: reversed? -- what's going on here!!
+        content = reversed(get_region_by_range(self.view, range)) if range else \
+                        [sublime.Region(0, self.view.size())]
+
         if target_redirect or file_name:
             target = self.view.window().new_file()
             target.set_name(target_redirect or file_name)
@@ -311,13 +315,17 @@ class ExWriteFile(sublime_plugin.TextCommand):
 
         start = 0 if not appending else target.size()
         prefix = '\n' if appending and target.size() > 0 else ''
-        
+
         if appending or target_redirect or file_name:
-            target.insert(edit, start, prefix + self.view.substr(content))
+            for frag in content:
+                target.insert(edit, start, prefix + self.view.substr(frag) + '\n')
         elif range:
-            text = self.view.substr(content) 
-            self.view.insert(edit, 0, text)
-            self.view.replace(edit, sublime.Region(len(text), 
+            start_deleting = 0
+            for frag in content:
+                text = self.view.substr(frag) + '\n'
+                self.view.insert(edit, 0, text)
+                start_deleting += len(text)
+            self.view.replace(edit, sublime.Region(start_deleting,
                                         self.view.size()), '')
         else:
             if self.view.is_dirty():
@@ -343,19 +351,19 @@ class ExFile(sublime_plugin.TextCommand):
         if self.view.file_name():
             fname = self.view.file_name()
         else:
-            fname = 'untitled' 
-        
+            fname = 'untitled'
+
         attrs = ''
         if self.view.is_read_only():
-            attrs = 'readonly' 
-        
+            attrs = 'readonly'
+
         if self.view.is_scratch():
             attrs = 'modified'
-        
+
         lines = 'no lines in the buffer'
         if self.view.rowcol(self.view.size())[0]:
             lines = self.view.rowcol(self.view.size())[0] + 1
-        
+
         # fixme: doesn't calculate the buffer's % correctly
         if not isinstance(lines, basestring):
             vr = self.view.visible_region()
@@ -363,7 +371,7 @@ class ExFile(sublime_plugin.TextCommand):
                                               self.view.rowcol(vr.end())[0]
             mid = (start_row + end_row + 2) / 2
             percent = float(mid) / lines * 100.0
-        
+
         msg = fname
         if attrs:
             msg += " [%s]" % attrs
@@ -371,7 +379,7 @@ class ExFile(sublime_plugin.TextCommand):
             msg += " -- %s --"  % lines
         else:
             msg += " %d line(s) --%d%%--" % (lines, int(percent))
-        
+
         sublime.status_message('VintageEx: %s' % msg)
 
 
@@ -383,7 +391,7 @@ class ExMove(sublime_plugin.TextCommand):
             ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
             return
 
-        line_block = [] 
+        line_block = []
         for r in get_region_by_range(self.view, range):
             ss = ensure_line_block(self.view, r)
             line_block.append(ss)
@@ -419,11 +427,11 @@ class ExCopy(sublime_plugin.TextCommand):
             ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
             return
 
-        line_block = [] 
+        line_block = []
         for r in get_region_by_range(self.view, range):
             ss = ensure_line_block(self.view, r)
             line_block.append(ss)
-        
+
         text = ''.join(line_block)
         if address != 0:
             dest = self.view.line(self.view.text_point(address, 0)).end() + 1
@@ -469,14 +477,14 @@ class ExSubstitute(sublime_plugin.TextCommand):
                 if right and right.isdigit():
                     count = int(right)
                 elif right:
-                    sublime.status_message('VintageEx: Bad pattern.') 
+                    sublime.status_message('VintageEx: Bad pattern.')
                     return
             elif left and left.strip().isdigit():
                 count = int(left)
-            
+
             if flags or count:
                 pattern = ''
-        
+
         if not pattern:
             left, right = ExSubstitute.last_pattern
 
@@ -517,14 +525,14 @@ class ExDelete(sublime_plugin.TextCommand):
             self.view.sel().add(r)
             if register:
                 to_store.append(self.view.substr(self.view.full_line(r)))
-        
+
         if register:
             text = ''.join(to_store)
             # needed for lines without a newline character
             if not text.endswith('\n'):
                 text = text + '\n'
             set_register(text, register)
-        
+
         self.view.run_command('split_selection_into_lines')
         self.view.run_command('run_macro_file',
                         {'file': 'Packages/Default/Delete Line.sublime-macro'})
@@ -546,12 +554,12 @@ class ExGlobal(sublime_plugin.TextCommand):
 
         This command replaces all instances of 'old' with 'NEW' in every line
         where 'XXX' matches.
-    
+
     By default, :global searches all lines in the buffer.
 
     If you want to filter lines where a pattern does NOT match, add an
     exclamation point:
-        
+
         :g!/DON'T TOUCH THIS/delete
     """
     def run(self, edit, range='%', forced=False, pattern=''):
@@ -560,7 +568,7 @@ class ExGlobal(sublime_plugin.TextCommand):
         except ValueError:
             sublime.status_message("VintageEx: Bad :global pattern. (:%sglobal%s)" % (range, pattern))
             return
-        
+
         # Make sure we always have a subcommand to exectute. This is what
         # Vim does too.
         subcmd = subcmd or 'print'
@@ -577,7 +585,7 @@ class ExGlobal(sublime_plugin.TextCommand):
                                     str(self.view.rowcol(r.a)[0] + 1) +
                                     subcmd})
 
-                                                                    
+
 class ExPrint(sublime_plugin.TextCommand):
     def run(self, edit, range='.', count='1', flags=''):
         if not count.isdigit():
@@ -624,7 +632,7 @@ class ExQuitCommand(sublime_plugin.WindowCommand):
         if v.is_dirty():
             sublime.status_message("There are unsaved changes!")
             return
-         
+
         self.window.run_command('close')
         if len(self.window.views()) == 0:
             self.window.run_command('close')
@@ -687,15 +695,8 @@ class ExEdit(sublime_plugin.TextCommand):
         elif self.view.is_dirty():
             ex_error.display_error(ex_error.ERR_UNSAVED_CHANGES)
             return
-            
+
         handle_not_implemented()
-
-
-class ExNop(sublime_plugin.TextCommand):
-    """Do nothing.
-    """
-    def run_(self, args):
-        pass
 
 
 class ExCquit(sublime_plugin.TextCommand):

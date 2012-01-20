@@ -28,7 +28,7 @@ EX_CMD = namedtuple('ex_command', 'name command forced range args parse_errors')
 
 # TODO: Allow escapes in search-based addresses, as in POSTFIX_ADDRESS.
 # Address that can only appear in a prefix range (before a command).
-PREFIX_ADDRESS = r'[.$%]|(?:/.*?/|\?.*?\?){1,2}|[+-]?\d+|[\'][a-zA-Z0-9<>]'
+PREFIX_ADDRESS = r'[.$%]|(?:/.*?(?<!\\)/|\?.*?(?<!\\)\?){1,2}|[+-]?\d+|[\'][a-zA-Z0-9<>]'
 # Address that can only appear after a command.
 POSTFIX_ADDRESS = r'[.$]|(?:/.*?(?<!\\)/|\?.*?(?<!\\)\?){1,2}|[+-]?\d+|[\'][a-zA-Z0-9<>]'
 ADDRESS_OFFSET = r'[-+]\d+'
@@ -337,6 +337,18 @@ EX_COMMANDS = {
                                 invocations=(),
                                 error_on=()
                                 ),
+    (':', ':'): ex_cmd_data(
+                        command='ex_goto',
+                        invocations=(),
+                        error_on=(),
+                        ),
+    ('!', '!'): ex_cmd_data(
+                        command='ex_shell_out',
+                        invocations=(
+                                re.compile(r'(?P<shell_cmd>.+)$'),
+                        ),
+                        error_on=(),
+                        )
 }
 
 
@@ -367,51 +379,30 @@ def get_cmd_line_range(cmd_line):
 
 
 def extract_command_name(cmd_line):
-    return ''.join(takewhile(lambda c: c.isalpha(), cmd_line))
+    if cmd_line[0] in ':!':
+        return cmd_line[0]
+    if cmd_line:
+        return ''.join(takewhile(lambda c: c.isalpha(), cmd_line))
 
 
 def parse_command(cmd):
-    # strip :
-    cmd_name = cmd[1:]
+    cmd_name = cmd.strip()
+    if len(cmd_name) > 1:
+        cmd_name = cmd_name[1:]
+    elif not cmd_name == ':':
+        return None
 
-    # Do nothing if the command's just ":".
-    if not cmd_name:
-        return EX_CMD(
-                name='NOP',
-                command='ex_nop',
-                forced=False,
-                range='.',
-                args={},
-                parse_errors=None
-        )
-
-    # first the odd commands
     if is_only_range(cmd_name):
-        return EX_CMD(name=':',
-                        command='ex_goto',
-                        forced=False,
-                        range=cmd_name,
-                        args={},
-                        parse_errors=None
-                        )
+        range_ = cmd_name
+        cmd_name = ':'
+    else:
+        range_ = get_cmd_line_range(cmd_name)
+        if range_:
+            cmd_name = cmd_name[len(range_):]
 
-    range_ = get_cmd_line_range(cmd_name)
-    if range_:
-        cmd_name = cmd_name[len(range_):]
-
-    if not (cmd_name.startswith('!') or cmd_name[0].isalpha()):
+    # FIXME: is this needed?
+    if not (cmd_name.startswith(('!', ':')) or cmd_name[0].isalpha()):
         return
-
-    if cmd_name.startswith('!'):
-        args = cmd_name[1:]
-        cmd_name = '!'
-        return EX_CMD(name=cmd_name,
-                        command='ex_shell_out',
-                        forced=False,
-                        range=range_,
-                        args={'shell_cmd': args},
-                        parse_errors=None
-                        )
 
     command = extract_command_name(cmd_name)
     args = cmd_name[len(command):]

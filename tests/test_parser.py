@@ -9,6 +9,12 @@ from ex_command_parser import EX_STANDALONE_RANGE
 from ex_command_parser import OPENENDED_SEARCH_ADDRESS
 from ex_command_parser import POSTFIX_ADDRESS
 from ex_command_parser import PREFIX_ADDRESS
+from ex_command_parser import find_command
+from ex_command_parser import is_only_range
+from ex_command_parser import get_cmd_line_range
+from ex_command_parser import extract_command_name
+from ex_command_parser import parse_command
+from ex_command_parser import EX_CMD
 from ex_range import EX_RANGE
 from ex_range import partition_raw_range
 
@@ -475,3 +481,105 @@ class TestPartitionRange(unittest.TestCase):
 
             for actual, expected in values:
                 self.assertEquals(partition_raw_range(actual), EX_RANGE(*expected))
+
+
+class FindCommand(unittest.TestCase):
+    def testFindPartial(self):
+        values = (
+            ('she', ('shell', 'sh')),
+            ('brow', ('browse', 'bro')),
+        )
+
+        for v, expected in values:
+            actual = find_command(v)
+            self.assertEquals(actual, expected)
+
+    def testFindExact(self):
+        values = (
+            ('shell', ('shell', 'sh')),
+            ('browse', ('browse', 'bro')),
+        )
+
+        for v, expected in values:
+            actual = find_command(v)
+            self.assertEquals(actual, expected)
+
+    def testFindNone(self):
+        actual = find_command('foo')
+        self.assertEquals(actual, None)
+
+
+class IsOnlyRange(unittest.TestCase):
+    def testWeFindStandAloneRangesCorrectly(self):
+        values = (
+            '100,200',
+            '100+100',
+            '/foo/+100',
+        )
+
+        for v in values:
+            self.assertTrue(is_only_range(v))
+
+    def testWeDontMatchAgainstRangePlusCommand(self):
+        values = (
+            '100foo',
+            '100+100foo',
+            '/foo/+100foo',
+            'xxx'
+        )
+
+        for v in values:
+            self.assertFalse(is_only_range(v))
+
+
+class GetCommandRange(unittest.TestCase):
+    def testExtractCorrectRange(self):
+        values = (
+            ('100abc', '100'),
+            ('100+10abc', '100+10'),
+            ('100-10abc', '100-10'),
+            ('100,-10abc', '100,-10'),
+            ('/100/,-10abc', '/100/,-10'),
+        )
+
+        for v, expected in values:
+            self.assertEquals(get_cmd_line_range(v), expected)
+
+
+class ExtractCommandName(unittest.TestCase):
+    def testExtractShortCommandNames(self):
+        values = (
+            (':', ':'),
+            ('!', '!'),
+        )
+
+        for v, expected in values:
+            self.assertEquals(extract_command_name(v), expected)
+
+    def testExtractValidCommandNamesCorrectly(self):
+        values = (
+            ('foo100', 'foo'),
+            ('foo', 'foo'),
+            ('foo:', 'foo'),
+            ('foo/', 'foo'),
+        )
+
+        for v, expected in values:
+            self.assertEquals(extract_command_name(v), expected)
+
+
+class ParseCommand(unittest.TestCase):
+    def testParseCommandsCorrectly(self):
+        values = (
+            (':100', EX_CMD(
+                        name=':',
+                        command='ex_goto',
+                        forced=False,
+                        range='100',
+                        args={},
+                        parse_errors=[],
+                    )),
+        )
+
+        for v, expected in values:
+            self.assertEquals(parse_command(v), expected)
