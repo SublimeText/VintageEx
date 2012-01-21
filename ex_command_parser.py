@@ -347,7 +347,8 @@ EX_COMMANDS = {
                         invocations=(
                                 re.compile(r'(?P<shell_cmd>.+)$'),
                         ),
-                        error_on=(),
+                        # FIXME: :!! is a different command to :!
+                        error_on=(ex_error.ERR_NO_BANG_ALLOWED,),
                         )
 }
 

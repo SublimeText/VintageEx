@@ -13,6 +13,7 @@ import subprocess
 from vintage import g_registers
 
 import ex_range
+from ex_range import compute_address
 import ex_error
 import shell
 from plat.windows import get_oem_cp
@@ -21,16 +22,13 @@ from plat.windows import get_oem_cp
 GLOBAL_RANGES = []
 
 
-def is_any_buffer_unsaved(window):
+def is_any_buffer_dirty(window):
     for v in window.views():
         if v.is_dirty():
             return True
 
 
-def handle_not_implemented():
-    sublime.status_message('VintageEx: Not implemented')
-
-
+# TODO: this code must be shared with Vintage, not reimplemented here.
 def set_register(text, register):
     global g_registers
     if register == '*' or register == '+':
@@ -98,25 +96,6 @@ def get_region_by_range(view, text_range, split_visual=False):
     return view.split_by_newlines(r)
 
 
-def compute_address(view, text_range):
-    """Computes a single-line address based on ``text_range``, which is a
-    string that should be a valid Vi(m) address.
-
-    Return values:
-        - SUCCESS: address (positive integer)
-        - ERROR: None (can't compute valid address)
-    """
-    # XXX strip in the parsing phase instead
-    text_range = text_range.strip()
-    # Note that some address error checking is also performed at the parsing
-    # stage, so that '%' doesn't reach here, for example.
-    a, b = ex_range.calculate_range(view, text_range.strip())
-    # FIXME: 0 should be a valid address?
-    if not (0 < a <= view.rowcol(view.size())[0] + 1):
-        return None
-    return a - 1
-
-
 def get_startup_info():
     # Hide the child process window.
     startupinfo = subprocess.STARTUPINFO()
@@ -160,7 +139,7 @@ class ExShellOut(sublime_plugin.TextCommand):
             else:
                 shell.run_and_wait(shell_cmd)
         except NotImplementedError:
-            handle_not_implemented()
+            ex_error.handle_not_implemented()
 
 
 class ExShell(sublime_plugin.TextCommand):
@@ -184,7 +163,7 @@ class ExShell(sublime_plugin.TextCommand):
             self.open_shell(['cmd.exe', '/k']).wait()
         else:
             # XXX OSX (make check explicit)
-            handle_not_implemented()
+            ex_error.handle_not_implemented()
 
 
 class ExReadShellOut(sublime_plugin.TextCommand):
@@ -214,7 +193,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                     rv = p.communicate()[0].decode(cp)[:-2].strip()
                     self.view.insert(edit, s.begin(), rv)
             else:
-                handle_not_implemented()
+                ex_error.handle_not_implemented()
         # Read a file into the current view.
         else:
             # Read the current buffer's contents and insert below current line.
@@ -228,7 +207,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
             # XXX read file "name"
             # we need proper filesystem autocompletion here
             else:
-                handle_not_implemented()
+                ex_error.handle_not_implemented()
                 return
 
 
@@ -649,7 +628,7 @@ class ExQuitAllCommand(sublime_plugin.WindowCommand):
             for v in self.window.views():
                 if v.is_dirty():
                     v.set_scratch(True)
-        elif is_any_buffer_unsaved(self.window):
+        elif is_any_buffer_dirty(self.window):
             sublime.status_message("There are unsaved changes!")
             return
 
@@ -665,7 +644,7 @@ class ExWriteAndQuitCommand(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False):
         # TODO: implement this
         if forced:
-            handle_not_implemented()
+            ex_error.handle_not_implemented()
             return
         if self.view.is_read_only():
             sublime.status_message("Can't write a read-only buffer.")
@@ -696,7 +675,7 @@ class ExEdit(sublime_plugin.TextCommand):
             ex_error.display_error(ex_error.ERR_UNSAVED_CHANGES)
             return
 
-        handle_not_implemented()
+        ex_error.handle_not_implemented()
 
 
 class ExCquit(sublime_plugin.TextCommand):

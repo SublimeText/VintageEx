@@ -160,5 +160,23 @@ def calculate_relative_ref(view, where, start_line=None):
         return view.rowcol(view.sel()[0].begin())[0] + 1
 
 
+def compute_address(view, text_range):
+    """Computes a single-line address based on ``text_range``, which is a
+    string that should be a valid Vi(m) address.
+
+    Return values:
+        - SUCCESS: address (0-based line address, positive integer)
+        - ERROR: None (can't compute valid address)
+    """
+    # XXX strip in the parsing phase instead
+    text_range = text_range.strip()
+    # Note that some address error checking is also performed at the parsing
+    # stage, so that '%' doesn't reach here, for example.
+    a, b = calculate_range(view, text_range.strip())
+    # FIXME: 0 should be a valid address?
+    if not (0 < a <= view.rowcol(view.size())[0] + 1):
+        return None
+    return a - 1
+
 # Avoid circular import.
 import ex_location

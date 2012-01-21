@@ -11,6 +11,7 @@ from ex_range import EX_RANGE
 from ex_range import partition_raw_only_range
 from ex_range import calculate_range
 from ex_range import calculate_relative_ref
+from ex_range import compute_address
 from ex_command_parser import INCOMPLETE_RANGE_SEPARATOR
 
 
@@ -116,3 +117,26 @@ class TestIncompleteRanges(unittest.TestCase):
         rx = re.compile(INCOMPLETE_RANGE_SEPARATOR)
         for v, expected in values:
             self.assertEquals(rx.match(v).group(), expected)
+
+
+class ComputeAddress(unittest.TestCase):
+    def setUp(self):
+        select_eof(g_test_view)
+
+    def tearDown(self):
+        select_bof(g_test_view)
+
+    def testComputeAddressCorrectly(self):
+        values = (
+            ('100', 99),
+            ('200', 199),
+        )
+
+        for v, expected in values:
+            self.assertEquals(compute_address(g_test_view, v), expected)
+
+    def testOutOfBoundsAddressShouldReturnNone(self):
+        self.assertEquals(compute_address(g_test_view, '1000'), None)
+
+    def testInvalidAddressShouldReturnNone(self):
+        self.assertRaises(AttributeError, compute_address, g_test_view, 'XXX')
