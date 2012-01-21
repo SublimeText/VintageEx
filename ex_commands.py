@@ -17,6 +17,7 @@ from ex_range import compute_address
 import ex_error
 import shell
 from plat.windows import get_oem_cp
+from plat.windows import get_startup_info
 
 
 GLOBAL_RANGES = []
@@ -94,13 +95,6 @@ def get_region_by_range(view, text_range, split_visual=False):
                         view.full_line(
                             view.text_point(b - 1, 0)).end())
     return view.split_by_newlines(r)
-
-
-def get_startup_info():
-    # Hide the child process window.
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    return startupinfo
 
 
 def ensure_line_block(view, r):
