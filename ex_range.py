@@ -86,8 +86,8 @@ def calculate_range_part(view, range_part, start_line=None):
     if range_part.startswith(('/', '?')):
         # we need to strip the search marks. FIXME won't work in edge cases
         # like ?foo\/ (doublecheck with vim)
-        if (not range_part.endswith(r'\/') or range_part.endswith(r'\?')
-                and (range_part.endswith('?') or range_part.endswith('/'))):
+        if (not range_part.endswith((r'\/', r'\?'))
+            and range_part.endswith(('?', '/'))):
                 search_term = range_part[1:-1]
         else:
             search_term = range_part[1:]
