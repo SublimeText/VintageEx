@@ -92,8 +92,7 @@ def get_region_by_range(view, text_range, split_visual=False):
 
     a, b = ex_range.calculate_range(view, text_range)
     r = sublime.Region(view.text_point(a - 1, 0),
-                        view.full_line(
-                            view.text_point(b - 1, 0)).end())
+                       view.full_line(view.text_point(b - 1, 0)).end())
     return view.split_by_newlines(r)
 
 
@@ -277,7 +276,7 @@ class ExWriteFile(sublime_plugin.TextCommand):
 
         appending = operator == '>>'
         # FIXME: reversed? -- what's going on here!!
-        content = reversed(get_region_by_range(self.view, range)) if range else \
+        content = get_region_by_range(self.view, range) if range else \
                         [sublime.Region(0, self.view.size())]
 
         if target_redirect or file_name:
@@ -290,7 +289,7 @@ class ExWriteFile(sublime_plugin.TextCommand):
         prefix = '\n' if appending and target.size() > 0 else ''
 
         if appending or target_redirect or file_name:
-            for frag in content:
+            for frag in reversed(content):
                 target.insert(edit, start, prefix + self.view.substr(frag) + '\n')
         elif range:
             start_deleting = 0
