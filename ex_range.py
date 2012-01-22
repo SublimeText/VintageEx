@@ -83,7 +83,7 @@ def calculate_range_part(view, range_part, start_line=None):
     if range_part.startswith(('+', '-')):
         return calculate_relative_ref(view, '.', start_line) + int(range_part)
 
-    if range_part.startswith('/') or range_part.startswith('?'):
+    if range_part.startswith(('/', '?')):
         # we need to strip the search marks. FIXME won't work in edge cases
         # like ?foo\/ (doublecheck with vim)
         if (not range_part.endswith(r'\/') or range_part.endswith(r'\?')
