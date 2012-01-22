@@ -42,9 +42,50 @@ INCOMPLETE_RANGE_SEPARATOR = ','
 # Matches ranges preceding commands.
 # TODO: +100,-100del should be valid ranges too.
 EX_PREFIX_RANGE = re.compile(
+                    r'''(?x)
+                        # Ranges missing a member, like 10, and ,10
+                        ^(?:
+                            (?P<incomplete>
+                                (?:
+                                    (?P<inc_laddress>%(address)s)
+                                    (?P<inc_loffset>%(address_offset)s)*
+                                    (?P<suf_alt_separator>%(alt_separator)s)
+                                )|
+                                (?:
+                                    (?P<pref_alt_separator>%(alt_separator)s)
+                                    (?P<inc_raddress>%(address)s)
+                                    (?P<inc_roffset>%(address_offset)s)*
+                                )
+                            )|
+                                # A left address...
+                                (?P<laddress>%(address)s)
+                                # with optional offsets...
+                                (?P<loffset>%(address_offset)s)*
+                                # and an optional right address...
+                                (?:
+                                   # (which includes the address separator)
+                                   (?P<separator>%(address_separator)s)
+                                   (?P<raddress>%(address)s)
+                                   # with optional offsets.
+                                   (?P<roffset>%(address_offset)s)*
+                                )?
+                        )
+                        # We need to make sure that we match up to the separator, which
+                        # comes before the actual ex command. As far as I can tell, ex commands always
+                        # start with A-Za-z.
+                        (?=[a-zA-Z])
+                    ''' % {'address':           PREFIX_ADDRESS,
+                           'address_separator': ADDRESS_SEPARATOR,
+                           'address_offset':    ADDRESS_OFFSET,
+                           'alt_separator':     INCOMPLETE_RANGE_SEPARATOR,}
+                    )
+
+# Matches ranges that stand alone, without being followed by anything. They
+# simply represent an address to move the caret to.
+EX_STANDALONE_RANGE = re.compile(
                         r'''(?x)
-                            # Ranges missing a member, like 10, and ,10
                             ^(?:
+                                # A full range consisting of...
                                 (?P<incomplete>
                                     (?:
                                         (?P<inc_laddress>%(address)s)
@@ -57,70 +98,29 @@ EX_PREFIX_RANGE = re.compile(
                                         (?P<inc_roffset>%(address_offset)s)*
                                     )
                                 )|
-                                    # A left address...
+                                (?:
+                                    # a left address...
                                     (?P<laddress>%(address)s)
-                                    # with optional offsets...
+                                    # optionally followed by offsets...
                                     (?P<loffset>%(address_offset)s)*
                                     # and an optional right address...
                                     (?:
-                                       # (which includes the address separator)
-                                       (?P<separator>%(address_separator)s)
-                                       (?P<raddress>%(address)s)
-                                       # with optional offsets.
-                                       (?P<roffset>%(address_offset)s)*
+                                        # (including the address separator)
+                                        (?P<separator>%(address_separator)s)
+                                        (?P<raddress>%(address)s)
+                                        # and any number of offsets...
+                                        (?P<roffset>%(address_offset)s)*
                                     )?
-                            )
-                            # We need to make sure that we match up to the separator, which
-                            # comes before the actual ex command. As far as I can tell, ex commands always
-                            # start with A-Za-z.
-                            (?=[a-zA-Z])
+                                )|
+                                # or an openended search-based address.
+                                (?P<openended>%(openended)s)
+                            )$
                         ''' % {'address':           PREFIX_ADDRESS,
                                'address_separator': ADDRESS_SEPARATOR,
                                'address_offset':    ADDRESS_OFFSET,
+                               'openended':         OPENENDED_SEARCH_ADDRESS,
                                'alt_separator':     INCOMPLETE_RANGE_SEPARATOR,}
                         )
-
-# Matches ranges that stand alone, without being followed by anything. They
-# simply represent an address to move the caret to.
-EX_STANDALONE_RANGE = re.compile(
-                            r'''(?x)
-                                ^(?:
-                                    # A full range consisting of...
-                                    (?P<incomplete>
-                                        (?:
-                                            (?P<inc_laddress>%(address)s)
-                                            (?P<inc_loffset>%(address_offset)s)*
-                                            (?P<suf_alt_separator>%(alt_separator)s)
-                                        )|
-                                        (?:
-                                            (?P<pref_alt_separator>%(alt_separator)s)
-                                            (?P<inc_raddress>%(address)s)
-                                            (?P<inc_roffset>%(address_offset)s)*
-                                        )
-                                    )|
-                                    (?:
-                                        # a left address...
-                                        (?P<laddress>%(address)s)
-                                        # optionally followed by offsets...
-                                        (?P<loffset>%(address_offset)s)*
-                                        # and an optional right address...
-                                        (?:
-                                            # (including the address separator)
-                                            (?P<separator>%(address_separator)s)
-                                            (?P<raddress>%(address)s)
-                                            # and any number of offsets...
-                                            (?P<roffset>%(address_offset)s)*
-                                        )?
-                                    )|
-                                    # or an openended search-based address.
-                                    (?P<openended>%(openended)s)
-                                )$
-                            ''' % {'address':           PREFIX_ADDRESS,
-                                   'address_separator': ADDRESS_SEPARATOR,
-                                   'address_offset':    ADDRESS_OFFSET,
-                                   'openended':         OPENENDED_SEARCH_ADDRESS,
-                                   'alt_separator':     INCOMPLETE_RANGE_SEPARATOR,}
-                            )
 
 # Matches addresses after commands, like :copy10.
 #
