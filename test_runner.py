@@ -7,7 +7,8 @@ import StringIO
 
 
 TEST_DATA_FILE_BASENAME = 'vintageex_test_data.txt'
-TEST_DATA_PATH = os.path.join(sublime.packages_path(), 'VintageEx/tests/data/%s' % TEST_DATA_FILE_BASENAME)
+TEST_DATA_PATH = os.path.join(sublime.packages_path(),
+                              'VintageEx/tests/data/%s' % TEST_DATA_FILE_BASENAME)
 
 
 g_test_view = None
@@ -18,6 +19,15 @@ test_suites = {
         'range': ['vintage_ex_run_data_file_based_tests', 'tests.test_range'],
         'location': ['vintage_ex_run_data_file_based_tests', 'tests.test_location'],
 }
+
+
+def print_to_view(view, obtain_content):
+    edit = view.begin_edit()
+    view.insert(edit, 0, obtain_content())
+    view.end_edit(edit)
+    view.set_scratch(True)
+
+    return view
 
 
 class ShowVintageExTestSuites(sublime_plugin.WindowCommand):
@@ -44,11 +54,7 @@ class VintageExRunSimpleTestsCommand(sublime_plugin.WindowCommand):
         suite = unittest.defaultTestLoader.loadTestsFromName(suite)
         unittest.TextTestRunner(stream=bucket, verbosity=1).run(suite)
 
-        v = self.window.new_file()
-        edit = v.begin_edit()
-        v.insert(edit, 0, bucket.getvalue())
-        v.end_edit(edit)
-        v.set_scratch(True)
+        print_to_view(self.window.new_file(), bucket.getvalue)
 
 
 class VintageExRunDataFileBasedTests(sublime_plugin.WindowCommand):
@@ -68,11 +74,7 @@ class TestDataDispatcher(sublime_plugin.EventListener):
             bucket = StringIO.StringIO()
             unittest.TextTestRunner(stream=bucket, verbosity=1).run(suite)
 
-            v = view.window().new_file()
-            edit = v.begin_edit()
-            v.insert(edit, 0, bucket.getvalue())
-            v.end_edit(edit)
-            v.set_scratch(True)
-
+            v = print_to_view(view.window().new_file(), bucket.getvalue)
+            # In this order, or Sublime Text will fail.
             v.window().focus_view(view)
             view.window().run_command('close')
