@@ -13,7 +13,7 @@ import subprocess
 from vintage import g_registers
 
 import ex_range
-from ex_range import compute_address
+from ex_range import calculate_address
 import ex_error
 import shell
 from plat.windows import get_oem_cp
@@ -357,7 +357,7 @@ class ExFile(sublime_plugin.TextCommand):
 
 class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        address = compute_address(self.view, address)
+        address = calculate_address(self.view, address)
         if address is None:
             # FIXME: Should be Invalid Address instead.
             ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
@@ -394,7 +394,7 @@ class ExMove(sublime_plugin.TextCommand):
 
 class ExCopy(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
-        address = compute_address(self.view, address)
+        address = calculate_address(self.view, address)
         if address is None:
             ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
             return
