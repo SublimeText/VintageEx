@@ -360,7 +360,7 @@ class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
         address = compute_address(self.view, address)
         if address is None:
-            # FIXME: Should be Invalid Address instead.
+            print "XXX XXX"
             ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
             return
 

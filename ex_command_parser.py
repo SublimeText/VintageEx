@@ -247,7 +247,7 @@ EX_COMMANDS = {
                                    EX_POSTFIX_ADDRESS,
                                 ),
                                 error_on=(ex_error.ERR_NO_BANG_ALLOWED,
-                                          ex_error.ERR_INVALID_RANGE,)
+                                          ex_error.ERR_ADDRESS_REQUIRED,)
                                 ),
     ('copy', 'co'): ex_cmd_data(
                                 command='ex_copy',
@@ -255,7 +255,7 @@ EX_COMMANDS = {
                                    EX_POSTFIX_ADDRESS,
                                 ),
                                 error_on=(ex_error.ERR_NO_BANG_ALLOWED,
-                                          ex_error.ERR_INVALID_RANGE,)
+                                          ex_error.ERR_ADDRESS_REQUIRED,)
                                 ),
     ('t', 't'): ex_cmd_data(
                                 command='ex_copy',
@@ -263,7 +263,7 @@ EX_COMMANDS = {
                                    EX_POSTFIX_ADDRESS,
                                 ),
                                 error_on=(ex_error.ERR_NO_BANG_ALLOWED,
-                                          ex_error.ERR_INVALID_RANGE,)
+                                          ex_error.ERR_ADDRESS_REQUIRED,)
                                 ),
     ('substitute', 's'): ex_cmd_data(
                                 command='ex_substitute',
@@ -438,6 +438,8 @@ def parse_command(cmd):
             parse_errors.append(ex_error.ERR_NO_RANGE_ALLOWED)
         if err == ex_error.ERR_INVALID_RANGE and not cmd_args:
             parse_errors.append(ex_error.ERR_INVALID_RANGE)
+        if err == ex_error.ERR_ADDRESS_REQUIRED and not cmd_args:
+            parse_errors.append(ex_error.ERR_ADDRESS_REQUIRED)
 
     return EX_CMD(name=command,
                     command=cmd_data.command,
