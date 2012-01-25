@@ -13,6 +13,7 @@ ERR_INVALID_RANGE = 16 # Invalid range.
 ERR_INVALID_ADDRESS = 14 # Invalid range.
 ERR_NO_RANGE_ALLOWED = 481 # Command can't take a range.
 ERR_UNSAVED_CHANGES = 37 # The buffer has been modified but not saved.
+ERR_ADDRESS_REQUIRED = 14 # Command needs an address.
 
 
 ERR_MESSAGES = {
@@ -22,7 +23,8 @@ ERR_MESSAGES = {
     ERR_INVALID_RANGE: 'Invalid range.',
     ERR_INVALID_ADDRESS: 'Invalid address.',
     ERR_NO_RANGE_ALLOWED: 'No range allowed.',
-    ERR_UNSAVED_CHANGES: 'There are unsaved changes.'
+    ERR_UNSAVED_CHANGES: 'There are unsaved changes.',
+    ERR_ADDRESS_REQUIRED: 'Invalid address.',
 }
 
 
