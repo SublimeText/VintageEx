@@ -83,11 +83,11 @@ def calculate_range_part(view, range_part, start_line=None):
     if range_part.startswith(('+', '-')):
         return calculate_relative_ref(view, '.', start_line) + int(range_part)
 
-    if range_part.startswith('/') or range_part.startswith('?'):
+    if range_part.startswith(('/', '?')):
         # we need to strip the search marks. FIXME won't work in edge cases
         # like ?foo\/ (doublecheck with vim)
-        if (not range_part.endswith(r'\/') or range_part.endswith(r'\?')
-                and (range_part.endswith('?') or range_part.endswith('/'))):
+        if (not range_part.endswith((r'\/', r'\?'))
+            and range_part.endswith(('?', '/'))):
                 search_term = range_part[1:-1]
         else:
             search_term = range_part[1:]
@@ -121,6 +121,17 @@ def calculate_range(view, raw_range, is_only_range=False):
     else:
         parsed_range = partition_raw_only_range(raw_range)
 
+    # FIXME: make sure this works with whitespace between markers, and doublecheck
+    # with Vim to see whether '<;>' is allowed.
+    # '<,>' returns all selected line blocks
+    if parsed_range.left == "'<" and parsed_range.right == "'>":
+        all_line_blocks = []
+        for sel in view.sel():
+            start = view.rowcol(sel.begin())[0] + 1
+            end = view.rowcol(sel.end())[0] + 1
+            all_line_blocks.append((start, end))
+        return all_line_blocks
+
     # In full ranges, '%' can appear in any (or both) sides and will make the
     # range span the whole buffer. (Examples: %,% or %,$ or 10;%)
     # TODO:
@@ -135,7 +146,7 @@ def calculate_range(view, raw_range, is_only_range=False):
     elif parsed_range.left:
         left = calculate_range_part(view, parsed_range.left) + \
                                             int(parsed_range.left_offset)
-        return left, left
+        return [(left, left)]
 
     # In ranges separated by ";", the right-hand address is calculated starting
     # at the left-side address, and not based on the caret's position.
@@ -145,10 +156,10 @@ def calculate_range(view, raw_range, is_only_range=False):
                                                                 int(roffset)
         # Vim asks the user before reversing ranges, but we won't because
         # reversing the order will be the desired choice most of the time.
-        return min(left, right), max(left, right)
+        return [(min(left, right), max(left, right))]
 
-    return calculate_range_part(view, left) + int(loffset), \
-               calculate_range_part(view, right) + int(roffset)
+    return [(calculate_range_part(view, left) + int(loffset), \
+               calculate_range_part(view, right) + int(roffset))]
 
 
 def calculate_relative_ref(view, where, start_line=None):
@@ -160,19 +171,19 @@ def calculate_relative_ref(view, where, start_line=None):
         return view.rowcol(view.sel()[0].begin())[0] + 1
 
 
-def compute_address(view, text_range):
-    """Computes a single-line address based on ``text_range``, which is a
+def calculate_address(view, text_range):
+    """Calculates a single-line address based on ``text_range``, which is a
     string that should be a valid Vi(m) address.
 
     Return values:
         - SUCCESS: address (0-based line address, positive integer)
-        - ERROR: None (can't compute valid address)
+        - ERROR: None (can't calculate valid address)
     """
     # XXX strip in the parsing phase instead
     text_range = text_range.strip()
     # Note that some address error checking is also performed at the parsing
     # stage, so that '%' doesn't reach here, for example.
-    a, b = calculate_range(view, text_range.strip())
+    a, b = calculate_range(view, text_range.strip())[0]
     # FIXME: 0 should be a valid address?
     if not (0 < a <= view.rowcol(view.size())[0] + 1):
         return None

@@ -11,7 +11,7 @@ from ex_range import EX_RANGE
 from ex_range import partition_raw_only_range
 from ex_range import calculate_range
 from ex_range import calculate_relative_ref
-from ex_range import compute_address
+from ex_range import calculate_address
 from ex_command_parser import INCOMPLETE_RANGE_SEPARATOR
 
 
@@ -86,19 +86,19 @@ class TestPatitioningRanges(unittest.TestCase):
 class TestCalculatingRanges(unittest.TestCase):
     def testCalculateCorrectRange(self):
         values = (
-            (calculate_range(g_test_view, '0'), (0, 0)),
-            (calculate_range(g_test_view, '1'), (1, 1)),
-            (calculate_range(g_test_view, '1,1'), (1, 1)),
-            (calculate_range(g_test_view, '%,1'), (1, 538)),
-            (calculate_range(g_test_view, '1,%'), (1, 538)),
-            (calculate_range(g_test_view, '1+99,160-10'), (100, 150)),
-            (calculate_range(g_test_view, '/THIRTY/+10,100'), (40, 100)),
+            (calculate_range(g_test_view, '0'), [(0, 0)]),
+            (calculate_range(g_test_view, '1'), [(1, 1)]),
+            (calculate_range(g_test_view, '1,1'), [(1, 1)]),
+            (calculate_range(g_test_view, '%,1'), [(1, 538)]),
+            (calculate_range(g_test_view, '1,%'), [(1, 538)]),
+            (calculate_range(g_test_view, '1+99,160-10'), [(100, 150)]),
+            (calculate_range(g_test_view, '/THIRTY/+10,100'), [(40, 100)]),
         )
 
         select_line(g_test_view, 31)
         values += (
-            (calculate_range(g_test_view, '10,/THIRTY/'), (10, 31)),
-            (calculate_range(g_test_view, '10;/THIRTY/'), (10, 30)),
+            (calculate_range(g_test_view, '10,/THIRTY/'), [(10, 31)]),
+            (calculate_range(g_test_view, '10;/THIRTY/'), [(10, 30)]),
         )
 
         for actual, expected in values:
@@ -119,24 +119,24 @@ class TestIncompleteRanges(unittest.TestCase):
             self.assertEquals(rx.match(v).group(), expected)
 
 
-class ComputeAddress(unittest.TestCase):
+class CalculateAddress(unittest.TestCase):
     def setUp(self):
         select_eof(g_test_view)
 
     def tearDown(self):
         select_bof(g_test_view)
 
-    def testComputeAddressCorrectly(self):
+    def testCalculateAddressCorrectly(self):
         values = (
             ('100', 99),
             ('200', 199),
         )
 
         for v, expected in values:
-            self.assertEquals(compute_address(g_test_view, v), expected)
+            self.assertEquals(calculate_address(g_test_view, v), expected)
 
     def testOutOfBoundsAddressShouldReturnNone(self):
-        self.assertEquals(compute_address(g_test_view, '1000'), None)
+        self.assertEquals(calculate_address(g_test_view, '1000'), None)
 
     def testInvalidAddressShouldReturnNone(self):
-        self.assertRaises(AttributeError, compute_address, g_test_view, 'XXX')
+        self.assertRaises(AttributeError, calculate_address, g_test_view, 'XXX')
