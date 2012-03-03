@@ -150,8 +150,7 @@ class ExShell(sublime_plugin.TextCommand):
 
     def run(self, edit):
         if sublime.platform() == 'linux':
-            term = os.path.expandvars('$COLORTERM') or \
-                                                    os.path.expandvars('$TERM')
+            term = os.environ.get('COLORTERM') or os.environ.get("TERM")
             self.open_shell([term, '-e', 'bash']).wait()
         elif sublime.platform() == 'windows':
             self.open_shell(['cmd.exe', '/k']).wait()
