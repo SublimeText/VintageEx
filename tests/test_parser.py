@@ -540,6 +540,7 @@ class GetCommandRange(unittest.TestCase):
             ('100-10abc', '100-10'),
             ('100,-10abc', '100,-10'),
             ('/100/,-10abc', '/100/,-10'),
+            ('.!foo', '.'),
         )
 
         for v, expected in values:

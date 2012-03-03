@@ -11,6 +11,6 @@ def run_and_wait(cmd):
 
 def filter_region(text, command):
     shell = os.path.expandvars("$SHELL")
-    p = subprocess.Popen([shell, '-c', 'cat %s | %s' % (text, command)],
+    p = subprocess.Popen([shell, '-c', 'echo "%s" | %s' % (text, command)],
                          stdout=subprocess.PIPE)
     return p.communicate()[0][:-1]

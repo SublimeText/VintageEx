@@ -72,8 +72,8 @@ EX_PREFIX_RANGE = re.compile(
                             )
                             # We need to make sure that we match up to the separator, which
                             # comes before the actual ex command. As far as I can tell, ex commands always
-                            # start with A-Za-z.
-                            (?=[a-zA-Z])
+                            # start with A-Za-z or !.
+                            (?=[a-zA-Z]|!)
                         ''' % {'address':           PREFIX_ADDRESS,
                                'address_separator': ADDRESS_SEPARATOR,
                                'address_offset':    ADDRESS_OFFSET,
@@ -392,6 +392,7 @@ def parse_command(cmd):
         cmd_name = cmd_name[1:]
     elif not cmd_name == ':':
         return None
+
 
     if is_only_range(cmd_name):
         range_ = cmd_name
