@@ -80,19 +80,15 @@ def get_region_by_range(view, text_range, split_visual=False):
         GLOBAL_RANGES = []
         return rv
 
-    if text_range.replace(' ', '') == "'<,'>":
-        if not split_visual:
-            return list(view.sel())
-        else:
-            rv = []
-            for r in list(view.sel()):
-                rv.extend(view.split_by_newlines(r))
-            return rv
+    regions = ex_range.calculate_range(view, text_range)
+    lines = []
+    for region in regions:
+        a, b = region
+        r = sublime.Region(view.text_point(a - 1, 0),
+                           view.full_line(view.text_point(b - 1, 0)).end())
+        lines.extend(view.split_by_newlines(r))
 
-    a, b = ex_range.calculate_range(view, text_range)
-    r = sublime.Region(view.text_point(a - 1, 0),
-                       view.full_line(view.text_point(b - 1, 0)).end())
-    return view.split_by_newlines(r)
+    return lines
 
 
 def ensure_line_block(view, r):
@@ -110,7 +106,7 @@ class ExGoto(sublime_plugin.TextCommand):
         if not range:
             # No-op: user issued ":".
             return
-        a, b = ex_range.calculate_range(self.view, range, is_only_range=True)
+        a, b = ex_range.calculate_range(self.view, range, is_only_range=True)[0]
         self.view.run_command('vi_goto_line', {'repeat': b})
         self.view.show(self.view.sel()[0])
 
@@ -162,7 +158,7 @@ class ExReadShellOut(sublime_plugin.TextCommand):
     def run(self, edit, range='', name='', plusplus_args='', forced=False):
         target_line = self.view.line(self.view.sel()[0].begin())
         if range:
-            range = max(ex_range.calculate_range(self.view, range))
+            range = max(ex_range.calculate_range(self.view, range)[0])
             target_line = self.view.line(self.view.text_point(range, 0))
         target_point = min(target_line.b + 1, self.view.size())
 
@@ -466,12 +462,13 @@ class ExSubstitute(sublime_plugin.TextCommand):
         if count and range == '.':
             range = '.,.+%d' % int(count)
         elif count:
-            a, b = ex_range.calculate_range(self.view, range)
+            a, b = ex_range.calculate_range(self.view, range)[0]
             if not a and b:
                 b = max(a, b)
             range = "%d,%d+%d" % (b, b, int(count))
 
         target_region = get_region_by_range(self.view, range)
+        print "XXX", target_region
         replace_count = 0 if (flags and 'g' in flags) else 1
         for r in reversed(target_region):
             # be explicit about replacing the line, because we might be looking
@@ -681,4 +678,4 @@ class ExExit(sublime_plugin.TextCommand):
         w.run_command('save')
         w.run_command('close')
         if len(self.window.views()) == 0:
-            w.run_command('close')
+            w.run_cXXXmmand('clXXXse')

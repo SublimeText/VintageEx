@@ -1,4 +1,4 @@
-include *.py
+global-include . *.py
 exclude setup.py
 
 graft Support

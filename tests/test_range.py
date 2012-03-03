@@ -86,19 +86,19 @@ class TestPatitioningRanges(unittest.TestCase):
 class TestCalculatingRanges(unittest.TestCase):
     def testCalculateCorrectRange(self):
         values = (
-            (calculate_range(g_test_view, '0'), (0, 0)),
-            (calculate_range(g_test_view, '1'), (1, 1)),
-            (calculate_range(g_test_view, '1,1'), (1, 1)),
-            (calculate_range(g_test_view, '%,1'), (1, 538)),
-            (calculate_range(g_test_view, '1,%'), (1, 538)),
-            (calculate_range(g_test_view, '1+99,160-10'), (100, 150)),
-            (calculate_range(g_test_view, '/THIRTY/+10,100'), (40, 100)),
+            (calculate_range(g_test_view, '0'), [(0, 0)]),
+            (calculate_range(g_test_view, '1'), [(1, 1)]),
+            (calculate_range(g_test_view, '1,1'), [(1, 1)]),
+            (calculate_range(g_test_view, '%,1'), [(1, 538)]),
+            (calculate_range(g_test_view, '1,%'), [(1, 538)]),
+            (calculate_range(g_test_view, '1+99,160-10'), [(100, 150)]),
+            (calculate_range(g_test_view, '/THIRTY/+10,100'), [(40, 100)]),
         )
 
         select_line(g_test_view, 31)
         values += (
-            (calculate_range(g_test_view, '10,/THIRTY/'), (10, 31)),
-            (calculate_range(g_test_view, '10;/THIRTY/'), (10, 30)),
+            (calculate_range(g_test_view, '10,/THIRTY/'), [(10, 31)]),
+            (calculate_range(g_test_view, '10;/THIRTY/'), [(10, 30)]),
         )
 
         for actual, expected in values:
