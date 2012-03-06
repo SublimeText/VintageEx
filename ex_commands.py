@@ -353,7 +353,6 @@ class ExMove(sublime_plugin.TextCommand):
     def run(self, edit, range='.', forced=False, address=''):
         address = ex_range.calculate_address(self.view, address)
         if address is None:
-            print "XXX XXX"
             ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
             return
 
@@ -467,7 +466,6 @@ class ExSubstitute(sublime_plugin.TextCommand):
             range = "%d,%d+%d" % (b, b, int(count))
 
         target_region = get_region_by_range(self.view, range)
-        print "XXX", target_region
         replace_count = 0 if (flags and 'g' in flags) else 1
         for r in reversed(target_region):
             # be explicit about replacing the line, because we might be looking
@@ -677,4 +675,4 @@ class ExExit(sublime_plugin.TextCommand):
         w.run_command('save')
         w.run_command('close')
         if len(self.window.views()) == 0:
-            w.run_cXXXmmand('clXXXse')
+            w.run_command('close')
