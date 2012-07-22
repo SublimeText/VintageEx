@@ -17,6 +17,7 @@ from plat.windows import get_startup_info
 import ex_error
 import ex_range
 import shell
+import substitute
 
 
 GLOBAL_RANGES = []
@@ -419,6 +420,25 @@ class ExSubstitute(sublime_plugin.TextCommand):
     def run(self, edit, range='.', pattern=''):
         range = range or '.'
 
+        # TODO(guillermooo): We must allow :s too.
+        try:
+            (pattern,
+             replacement,
+             flags,
+             count) = substitute.SubstituteCommandParser(pattern).parse()
+        except SyntaxError, e:
+            sublime.status_message("VintageEx: (substitute) %s" % e)
+            return
+
+        if not pattern:
+            pattern = ExSubstitute.last_pattern
+            if not flags:
+                # TODO(guillermooo): Doublecheck this with Vim.
+                flags = ExSubstitute.last_flags
+        else:
+            ExSubstitute.last_pattern = pattern
+            ExSubstitute.last_flags = flags
+
         # we either accept a full pattern plus flags and count arg
         # ... or ...
         # simply a command in the following forms:
@@ -426,36 +446,10 @@ class ExSubstitute(sublime_plugin.TextCommand):
         #   :s gi
         #   :s gi 10
         #   :s 10
-        try:
-            sep, left, _, right, _, flags, count = \
-                            ExSubstitute.parts_rgex.search(pattern).groups()
-            ExSubstitute.last_pattern = (left, right)
-            ExSubstitute.last_flags = flags
-        except AttributeError:
-            if not ExSubstitute.last_pattern:
-                sublime.status_message("VintageEx: No pattern available.")
-                return
-            left, _, right = pattern.strip().partition(' ')
-            flags, count = '', None
-            if left and left.strip().isalpha():
-                flags = left
-                if right and right.isdigit():
-                    count = int(right)
-                elif right:
-                    sublime.status_message('VintageEx: Bad pattern.')
-                    return
-            elif left and left.strip().isdigit():
-                count = int(left)
 
-            if flags or count:
-                pattern = ''
-
-        if not pattern:
-            left, right = ExSubstitute.last_pattern
-
-        re_flags = 0
-        re_flags |= re.IGNORECASE if (flags and 'i' in flags) else 0
-        left = re.compile(left, flags=re_flags)
+        computed_flags = 0
+        computed_flags |= re.IGNORECASE if (flags and 'i' in flags) else 0
+        pattern = re.compile(pattern, flags=computed_flags)
 
         if count and range == '.':
             range = '.,.+%d' % int(count)
@@ -475,7 +469,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
             if self.view.substr(r.end() - 1) == '\n':
                 r = sublime.Region(r.begin(), r.end() - 1)
             line_text = self.view.substr(self.view.line(r))
-            rv = re.sub(left, right, line_text, count=replace_count)
+            rv = re.sub(pattern, replacement, line_text, count=replace_count)
             self.view.replace(edit, self.view.line(r), rv)
 
 
