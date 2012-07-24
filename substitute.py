@@ -1,7 +1,7 @@
 TOKEN_ESCAPE = "\\" # r"\" is SyntaxError, but len(r"\\") > len("\\") !!!
 TOKEN_WHITE_SPACE = ' \t'
 TOKEN_ESCAPED_CHARS = '\\'
-TOKEN_SEPARATORS = '!$:/'
+TOKEN_SEPARATORS = '!$:/&@%'
 TOKEN_FLAGS = 'gi'
 
 class SubstituteCommandParser(object):
@@ -9,7 +9,9 @@ class SubstituteCommandParser(object):
         Parses a substitute: command and returns [PATTERN, REPLACEMENT, FLAGS, COUNT].
 
         GRAMMAR
-            # substitute : SEP string SEP string (SEP (FLAGS)? (COUNT)?)?
+            # substitute : short | long
+            # short      : (FLAGS)? (COUNT)?
+            # long       : SEP string (SEP (string)? (SEP (FLAGS)? (COUNT)?)?)?
             # string     : CHAR | ESCAPE
             # SEP        : [!$:/]
             # CHAR       : [^\]
@@ -112,14 +114,39 @@ class SubstituteCommandParser(object):
         self.clear_current_token()
 
     def parse(self):
+        if self.get_char() in TOKEN_SEPARATORS:
+            self.parse_long()
+        else:
+            self.parse_short()
+
+        return self.result
+
+    def parse_short(self):
+        if not self.at_eof():
+            self.match_FLAG()
+            self.update_result()
+
+        if not self.result:
+            self.result.append('')
+
+        if not self.at_eof():
+            self.match_COUNT()
+            self.update_result()
+
+        if len(self.result) < 2:
+            self.result.append('')
+
+    def parse_long(self):
         self.match_SEPARATOR()
         self.clear_current_token()
 
-        self.parse_string()
-        self.update_result()
+        if not self.at_eof():
+            self.parse_string()
+            self.update_result()
 
-        self.match_SEPARATOR()
-        self.clear_current_token()
+        if not self.at_eof():
+            self.match_SEPARATOR()
+            self.clear_current_token()
 
         if not self.at_eof():
             self.parse_string()
@@ -143,11 +170,15 @@ class SubstituteCommandParser(object):
         while len(self.result) < 4:
             self.result.append('')
 
-        return self.result
-
 
 if __name__ == '__main__':
     invocations = (
+            r":",
+            r"g",
+            r"g100",
+            r"g 100",
+            r"100",
+            r":foo",
             r":foo\\x::gi100",
             r":foo::",
             r":::",
@@ -159,5 +190,5 @@ if __name__ == '__main__':
         )
 
     for inv in invocations:
-        p = StringParser(inv)
+        p = SubstituteCommandParser(inv)
         print p.parse()

@@ -414,38 +414,44 @@ class ExCopy(sublime_plugin.TextCommand):
 
 
 class ExSubstitute(sublime_plugin.TextCommand):
-    last_pattern = None
-    last_flags = ''
-    parts_rgex = re.compile(r"([:/])(.*?)(\1)(.*?)(\1)([a-zA-Z]+)?( \d+)?")
+    most_recent_pat = None
+    most_recent_flags = ''
+    most_recent_replacement = ''
+
     def run(self, edit, range='.', pattern=''):
         range = range or '.'
 
-        # TODO(guillermooo): We must allow :s too.
-        try:
-            (pattern,
-             replacement,
-             flags,
-             count) = substitute.SubstituteCommandParser(pattern).parse()
-        except SyntaxError, e:
-            sublime.status_message("VintageEx: (substitute) %s" % e)
-            return
+        # :s
+        if not pattern:
+            pattern = ExSubstitute.most_recent_pat
+            replacement = ExSubstitute.most_recent_replacement
+            flags = ''
+            count = 0
+        # :s g 100 | :s/ | :s// | s:/foo/bar/g 100 | etc.
+        else:
+            try:
+                parts = substitute.SubstituteCommandParser(pattern).parse()
+            except SyntaxError, e:
+                sublime.status_message("VintageEx: (substitute) %s" % e)
+                return
+            else:
+                if len(parts) == 4:
+                    # This is a full command in the form :s/foo/bar/g 100 or a
+                    # partial version of it.
+                    (pattern, replacement, flags, count) = parts
+                else:
+                    # This is a short command in the form :s g 100 or a partial
+                    # version of it.
+                    (flags, count) = parts
+                    pattern = ExSubstitute.most_recent_pat
+                    replacement = ExSubstitute.most_recent_replacement
 
         if not pattern:
-            pattern = ExSubstitute.last_pattern
-            if not flags:
-                # TODO(guillermooo): Doublecheck this with Vim.
-                flags = ExSubstitute.last_flags
+            pattern = ExSubstitute.most_recent_pat
         else:
-            ExSubstitute.last_pattern = pattern
-            ExSubstitute.last_flags = flags
-
-        # we either accept a full pattern plus flags and count arg
-        # ... or ...
-        # simply a command in the following forms:
-        #   :s
-        #   :s gi
-        #   :s gi 10
-        #   :s 10
+            ExSubstitute.most_recent_pat = pattern
+            ExSubstitute.most_recent_replacement = replacement
+            ExSubstitute.most_recent_flags = flags
 
         computed_flags = 0
         computed_flags |= re.IGNORECASE if (flags and 'i' in flags) else 0
