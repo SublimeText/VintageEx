@@ -1,8 +1,27 @@
+import re
+
+# TODO(guillermooo): separate lexer from parser
+# TODO(guillermooo): test parser properly
+
+class RegexToken(object):
+    """
+    Allows for membership test with ``X in regex_token``.
+    """
+    def __init__(self, pattern):
+        self.pattern = re.compile(pattern)
+
+    def __contains__(self, item):
+        return self.pattern.search(item)
+
+
 TOKEN_ESCAPE = "\\" # r"\" is SyntaxError, but len(r"\\") > len("\\") !!!
 TOKEN_WHITE_SPACE = ' \t'
 TOKEN_ESCAPED_CHARS = '\\'
-TOKEN_SEPARATORS = '!$:/&@%'
+# According to :help :v in Vim, any character can be a separator but alphanumeric
+# characters. However, spaces throw an error too, son include them here.
+TOKEN_SEPARATORS = RegexToken(r'[^a-zA-Z0-9 ]')
 TOKEN_FLAGS = 'gi'
+
 
 class SubstituteCommandParser(object):
     """
@@ -76,7 +95,7 @@ class SubstituteCommandParser(object):
             raise SyntaxError("Expected a separator, found EOF.")
         elif self.get_char() in TOKEN_SEPARATORS:
             if self.current_separator and self.current_separator != self.get_char():
-                raise SyntaxError("Expected '%s' separator, found %s." % (self.current_separator, self.get_char()))
+                raise SyntaxError("Expected '%s' separator, found '%s'." % (self.current_separator, self.get_char()))
             else:
                 self.current_token += self.get_char()
                 self.current_separator = self.get_char()
@@ -119,6 +138,9 @@ class SubstituteCommandParser(object):
         else:
             self.parse_short()
 
+        if not self.at_eof():
+            raise SyntaxError("Bad pattern: '%s'." % self.string)
+
         return self.result
 
     def parse_short(self):
@@ -133,8 +155,9 @@ class SubstituteCommandParser(object):
             self.match_COUNT()
             self.update_result()
 
-        if len(self.result) < 2:
-            self.result.append('')
+        if self.at_eof():
+            if len(self.result) < 2:
+                self.result.append('')
 
     def parse_long(self):
         self.match_SEPARATOR()
