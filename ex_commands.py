@@ -413,6 +413,14 @@ class ExCopy(sublime_plugin.TextCommand):
         self.view.sel().add(sublime.Region(cursor_dest, cursor_dest))
 
 
+class ExDoubleAmpersand(sublime_plugin.TextCommand):
+    """ Command :&&
+    """
+    def run(self, edit, range='.', flags='', count=''):
+        self.view.run_command('ex_substitute', {'range': range,
+                                                'pattern': flags + count})
+
+
 class ExSubstitute(sublime_plugin.TextCommand):
     most_recent_pat = None
     most_recent_flags = ''
