@@ -460,6 +460,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
                 parts = substitute.split(pattern)
             except SyntaxError, e:
                 sublime.status_message("VintageEx: (substitute) %s" % e)
+                print "VintageEx: (substitute) %s" % e
                 return
             else:
                 if len(parts) == 4:

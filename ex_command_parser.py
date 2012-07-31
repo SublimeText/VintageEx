@@ -273,8 +273,10 @@ EX_COMMANDS = {
                                 ),
     ('&&', '&&'): ex_cmd_data(
                                 command='ex_double_ampersand',
-                                invocations=(re.compile(r'(?P<flags>[gi]+)\s*(?P<count>[0-9]+)'),
-                                             re.compile(r'\s*(?P<flags>[gi]+)\s*'),
+                                # We don't want to mantain flag values here, so accept anything and
+                                # let :substitute handle the values.
+                                invocations=(re.compile(r'(?P<flags>.+?)\s*(?P<count>[0-9]+)'),
+                                             re.compile(r'\s*(?P<flags>.+?)\s*'),
                                              re.compile(r'\s*(?P<count>[0-9]+)\s*'),
                                              re.compile(r'^$'),
                                 ),

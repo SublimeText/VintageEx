@@ -34,7 +34,7 @@ class Lexer(object):
 class SubstituteLexer(Lexer):
     DELIMITER = "/:"
     WHITE_SPACE = ' \t'
-    FLAG = 'gi'
+    FLAG = 'giI'
 
     def __init__(self):
         self.delimiter = None
@@ -53,9 +53,13 @@ class SubstituteLexer(Lexer):
 
     def _match_flags(self):
         buf = []
-        while self.c != EOF and self.c in self.FLAG:
-            buf.append(self.c)
-            self.consume()
+        while self.c != EOF and not self.c.isdigit():
+            if self.c in self.FLAG:
+                buf.append(self.c)
+                self.consume()
+                continue
+            # TODO(guillermooo): should actually raise "Trailing characters" error.
+            raise SyntaxError("Invalid flag or not implemented.")
         return ''.join(buf)
 
     def _match_pattern(self):
