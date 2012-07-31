@@ -430,7 +430,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
         # :s g 100 | :s/ | :s// | s:/foo/bar/g 100 | etc.
         else:
             try:
-                parts = substitute.SubstituteCommandParser(pattern).parse()
+                parts = substitute.split(pattern)
             except SyntaxError, e:
                 sublime.status_message("VintageEx: (substitute) %s" % e)
                 return
@@ -455,7 +455,12 @@ class ExSubstitute(sublime_plugin.TextCommand):
 
         computed_flags = 0
         computed_flags |= re.IGNORECASE if (flags and 'i' in flags) else 0
-        pattern = re.compile(pattern, flags=computed_flags)
+        try:
+            pattern = re.compile(pattern, flags=computed_flags)
+        except Exception, e:
+            sublime.status_message("VintageEx [regex error]: %s ... in pattern '%s'" % (e.message, pattern))
+            print "VintageEx [regex error]: %s ... in pattern '%s'" % (e.message, pattern)
+            return
 
         if count and range == '.':
             range = '.,.+%d' % int(count)

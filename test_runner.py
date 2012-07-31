@@ -18,6 +18,7 @@ test_suites = {
         'parser': ['vintage_ex_run_simple_tests', 'tests.test_parser'],
         'range': ['vintage_ex_run_data_file_based_tests', 'tests.test_range'],
         'location': ['vintage_ex_run_data_file_based_tests', 'tests.test_location'],
+        'substitute': ['vintage_ex_run_simple_tests', 'tests.test_substitute'],
 }
 
 

@@ -1,217 +1,151 @@
-import re
+EOF = -1
 
-# TODO(guillermooo): separate lexer from parser
-# TODO(guillermooo): test parser properly
+class Lexer(object):
+    def __init__(self):
+        self.c = None # current character
+        self.cursor = 0
+        self.string = None
 
-class RegexToken(object):
-    """
-    Allows for membership test with ``X in regex_token``.
-    """
-    def __init__(self, pattern):
-        self.pattern = re.compile(pattern)
+    def _reset(self):
+        self.c = None
+        self.cursor = 0
+        self.string = None
 
-    def __contains__(self, item):
-        return self.pattern.search(item)
+    def consume(self):
+        self.cursor += 1
+        if self.cursor >= len(self.string):
+            self.c = EOF
+        else:
+            self.c = self.string[self.cursor]
 
+    def _do_parse(self):
+        pass
 
-TOKEN_ESCAPE = "\\" # r"\" is SyntaxError, but len(r"\\") > len("\\") !!!
-TOKEN_WHITE_SPACE = ' \t'
-TOKEN_ESCAPED_CHARS = '\\'
-# According to :help :v in Vim, any character can be a separator but alphanumeric
-# characters. However, spaces throw an error too, son include them here.
-TOKEN_SEPARATORS = RegexToken(r'[^a-zA-Z0-9 ]')
-TOKEN_FLAGS = 'gi'
-
-
-class SubstituteCommandParser(object):
-    """
-        Parses a substitute: command and returns [PATTERN, REPLACEMENT, FLAGS, COUNT].
-
-        GRAMMAR
-            # substitute : short | long
-            # short      : (FLAGS)? (COUNT)?
-            # long       : SEP string (SEP (string)? (SEP (FLAGS)? (COUNT)?)?)?
-            # string     : CHAR | ESCAPE
-            # SEP        : [!$:/]
-            # CHAR       : [^\]
-            # ESCAPE     : '\'
-            # FLAGS      : [gi]+
-            # COUNT      : [0-9]+
-    """
-
-    def __init__(self, string):
+    def parse(self, string):
+        self._reset()
         self.string = string
-        self.index = 0
-        self.result = []
-        self.current_token = ''
-        self.current_separator = ''
-
-    def advance_one(self):
-        self.index += 1
-
-    def advance_while_white_space(self):
-        while not self.at_eof() and (self.get_char() in TOKEN_WHITE_SPACE):
-            self.index += 1
-
-    def at_eof(self):
-        return self.index >= len(self.string)
-
-    def get_char(self):
-        return self.string[self.index]
-
-    def match_CHAR(self):
-        while True:
-            if (self.at_eof() or
-                (self.get_char() == TOKEN_ESCAPE) or
-                (self.get_char() == self.current_separator)):
-                    break
-            self.current_token += self.get_char()
-            self.advance_one()
-
-    def match_FLAG(self):
-        self.advance_while_white_space()
-        while True:
-            if self.at_eof():
-                    break
-            elif self.get_char() in TOKEN_FLAGS:
-                self.current_token += self.get_char()
-                self.advance_one()
-            else:
-                break
-
-    def match_COUNT(self):
-        self.advance_while_white_space()
-        while True:
-            if self.at_eof():
-                    break
-            elif self.get_char().isdigit():
-                self.current_token += self.get_char()
-                self.advance_one()
-            else:
-                break
-
-    def match_SEPARATOR(self):
-        if self.at_eof():
-            raise SyntaxError("Expected a separator, found EOF.")
-        elif self.get_char() in TOKEN_SEPARATORS:
-            if self.current_separator and self.current_separator != self.get_char():
-                raise SyntaxError("Expected '%s' separator, found '%s'." % (self.current_separator, self.get_char()))
-            else:
-                self.current_token += self.get_char()
-                self.current_separator = self.get_char()
-                self.advance_one()
+        if not string:
+            self.c = EOF
         else:
-            raise SyntaxError("Expected a separator, found %s." % self.get_char())
+            self.c = string[0]
+        return self._do_parse()
 
-    def match_ESCAPE(self):
-        if self.at_eof():
-            raise SyntaxError("Expected an escape sequence, found EOF.")
-        elif self.get_char() in TOKEN_ESCAPED_CHARS + self.current_separator:
-            self.current_token += self.get_char()
-            self.advance_one()
-        else:
-            raise SyntaxError("Expected an escape sequence, found %s." % self.get_char())
 
-    def parse_string(self):
-        while True:
-            if self.at_eof():
-                break
-            elif self.get_char() == self.current_separator:
-                break
-            elif self.get_char() == TOKEN_ESCAPE:
-                self.current_token += self.get_char()
-                self.advance_one()
-                self.match_ESCAPE()
+class SubstituteLexer(Lexer):
+    DELIMITER = "/:"
+    WHITE_SPACE = ' \t'
+    FLAG = 'gi'
+
+    def __init__(self):
+        self.delimiter = None
+
+    def _match_white_space(self):
+        while self.c != EOF and self.c in self.WHITE_SPACE:
+            # print "WHITESPACE", ":" + self.c + ":"
+            self.consume()
+
+    def _match_count(self):
+        buf = []
+        while self.c != EOF and self.c.isdigit():
+            buf.append(self.c)
+            self.consume()
+        return ''.join(buf)
+
+    def _match_flags(self):
+        buf = []
+        while self.c != EOF and self.c in self.FLAG:
+            buf.append(self.c)
+            self.consume()
+        return ''.join(buf)
+
+    def _match_pattern(self):
+        buf = []
+        while self.c != EOF and self.c != self.delimiter:
+            if self.c == '\\':
+                buf.append(self.c)
+                self.consume()
+                if self.c in '\\':
+                    # Don't store anything, we're escaping \.
+                    self.consume()
+                elif self.c == self.delimiter:
+                    # Overwrite the \ we've just stored.
+                    buf[-1] = self.delimiter
+                    self.consume()
+
+                if self.c == EOF:
+                    break
             else:
-                self.match_CHAR()
+                buf.append(self.c)
+                self.consume()
 
-    def clear_current_token(self):
-        self.current_token = ''
+        return ''.join(buf)
 
-    def update_result(self):
-        self.result.append(self.current_token)
-        self.clear_current_token()
+    def _parse_short(self):
+        buf = []
+        if self.c == EOF:
+            return ['', ''] # no flags, no count
 
-    def parse(self):
-        if self.get_char() in TOKEN_SEPARATORS:
-            self.parse_long()
+        if self.c.isalpha():
+            buf.append(self._match_flags())
+            self._match_white_space()
         else:
-            self.parse_short()
+            buf.append('')
 
-        if not self.at_eof():
-            raise SyntaxError("Bad pattern: '%s'." % self.string)
+        if self.c != EOF and self.c.isdigit():
+            buf.append(self._match_count())
+            self._match_white_space()
+        else:
+            buf.append('')
 
-        return self.result
-
-    def parse_short(self):
-        if not self.at_eof():
-            self.match_FLAG()
-            self.update_result()
-
-        if not self.result:
-            self.result.append('')
-
-        if not self.at_eof():
-            self.match_COUNT()
-            self.update_result()
-
-        if self.at_eof():
-            if len(self.result) < 2:
-                self.result.append('')
-
-    def parse_long(self):
-        self.match_SEPARATOR()
-        self.clear_current_token()
-
-        if not self.at_eof():
-            self.parse_string()
-            self.update_result()
-
-        if not self.at_eof():
-            self.match_SEPARATOR()
-            self.clear_current_token()
-
-        if not self.at_eof():
-            self.parse_string()
-            self.update_result()
-
-        if not self.at_eof():
-            self.match_SEPARATOR()
-            self.clear_current_token()
-
-        if not self.at_eof():
-            self.match_FLAG()
-            self.update_result()
-
-        if not self.at_eof():
-            self.match_COUNT()
-            self.update_result()
-
-        if not self.at_eof():
+        if self.c != EOF:
             raise SyntaxError("Trailing characters.")
 
-        while len(self.result) < 4:
-            self.result.append('')
+        return buf
+
+    def _parse_long(self):
+        buf = []
+
+        self.delimiter = self.c
+        self.consume()
+
+        if self.c == EOF:
+            return ['', '', '', '']
+
+        buf.append(self._match_pattern())
+
+        if self.c != EOF:
+            # We're at a separator now --we MUST be.
+            self.consume()
+            buf.append(self._match_pattern())
+        else:
+            buf.append('')
+
+        if self.c != EOF:
+            self.consume()
+            self._match_white_space()
+            buf.append(self._match_flags())
+        else:
+            buf.append('')
+
+        if self.c != EOF:
+            self._match_white_space()
+            buf.append(self._match_count())
+        else:
+            buf.append('')
+
+        self._match_white_space()
+        if self.c != EOF:
+            raise SyntaxError("Trailing characters.")
+
+        return buf
+
+    def _do_parse(self):
+        self._match_white_space()
+        if self.c != EOF and self.c in self.DELIMITER:
+            return self._parse_long()
+        else:
+            return self._parse_short()
 
 
-if __name__ == '__main__':
-    invocations = (
-            r":",
-            r"g",
-            r"g100",
-            r"g 100",
-            r"100",
-            r":foo",
-            r":foo\\x::gi100",
-            r":foo::",
-            r":::",
-            r"::foo:",
-            r":bar:foo",
-            r": xxx : foo ",
-            r": xxx : foo : gi100",
-            r"$\$foo\$$\\Xfoo\\X$ gi100",
-        )
-
-    for inv in invocations:
-        p = SubstituteCommandParser(inv)
-        print p.parse()
+def split(s):
+    return SubstituteLexer().parse(s)
