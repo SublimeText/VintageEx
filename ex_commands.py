@@ -413,6 +413,25 @@ class ExCopy(sublime_plugin.TextCommand):
         self.view.sel().add(sublime.Region(cursor_dest, cursor_dest))
 
 
+class ExOnly(sublime_plugin.TextCommand):
+    """ Command: :only
+    """
+    def run(self, edit, forced=False):
+        if not forced:
+            if is_any_buffer_dirty(self.view.window()):
+                ex_error.display_error(ex_error.ERR_OTHER_BUFFER_HAS_CHANGES)
+                return
+
+        w = self.view.window()
+        current_id = self.view.id()
+        for v in w.views():
+            if v.id() != current_id:
+                if forced and v.is_dirty():
+                    v.set_scratch(True)
+                w.focus_view(v)
+                w.run_command('close')
+
+
 class ExDoubleAmpersand(sublime_plugin.TextCommand):
     """ Command :&&
     """
