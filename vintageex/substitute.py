@@ -4,7 +4,7 @@ from vintageex.parsing import EOF
 
 
 class SubstituteLexer(Lexer):
-    DELIMITER = RegexToken(r'[^a-zA-Z0-9]')
+    DELIMITER = RegexToken(r'[^a-zA-Z0-9 ]')
     WHITE_SPACE = ' \t'
     FLAG = 'giI'
 

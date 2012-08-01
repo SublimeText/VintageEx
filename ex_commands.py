@@ -17,8 +17,8 @@ from plat.windows import get_startup_info
 import ex_error
 import ex_range
 import shell
-import substitute
-
+from vintageex import substitute
+from vintageex import global_command
 
 GLOBAL_RANGES = []
 
@@ -560,13 +560,20 @@ class ExGlobal(sublime_plugin.TextCommand):
 
         :g!/DON'T TOUCH THIS/delete
     """
+    most_recent_pat = None
     def run(self, edit, range='%', forced=False, pattern=''):
         try:
-            _, global_pattern, subcmd = pattern.split(pattern[0], 2)
+            global_pattern, subcmd = global_command.split(pattern)
         except ValueError:
-            sublime.status_message("VintageEx: Bad :global pattern. (:%sglobal%s)" % (range, pattern))
+            msg = "VintageEx: Bad :global pattern. (:%sglobal%s)" % (range, pattern)
+            sublime.status_message(msg)
+            print msg
             return
 
+        if global_pattern:
+            ExGlobal.most_recent_pat = global_pattern
+        else:
+            global_pattern = ExGlobal.most_recent_pat
         # Make sure we always have a subcommand to exectute. This is what
         # Vim does too.
         subcmd = subcmd or 'print'
@@ -574,7 +581,13 @@ class ExGlobal(sublime_plugin.TextCommand):
         rs = get_region_by_range(self.view, range)
 
         for r in rs:
-            match = re.search(global_pattern, self.view.substr(r))
+            try:
+                match = re.search(global_pattern, self.view.substr(r))
+            except Exception, e:
+                msg = "VintageEx (global): %s ... in pattern '%s'" % (str(e), global_pattern)
+                sublime.status_message(msg)
+                print msg
+                return
             if (match and not forced) or (not match and forced):
                 GLOBAL_RANGES.append(r)
 

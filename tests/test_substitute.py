@@ -1,6 +1,6 @@
 import unittest
 
-from substitute import SubstituteLexer
+from vintageex.substitute import SubstituteLexer
 from vintageex.parsing import RegexToken
 from vintageex.parsing import Lexer
 from vintageex.parsing import EOF
