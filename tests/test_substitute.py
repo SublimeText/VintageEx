@@ -1,9 +1,9 @@
 import unittest
 
-import substitute
 from substitute import SubstituteLexer
-from substitute import RegexToken
-from substitute import Lexer
+from vintageex.parsing import RegexToken
+from vintageex.parsing import Lexer
+from vintageex.parsing import EOF
 
 
 class TestRegexToken(unittest.TestCase):
@@ -24,7 +24,7 @@ class TestLexer(unittest.TestCase):
 
     def testEmptyInputSetsCursorToEOF(self):
         self.lexer.parse('')
-        self.assertEqual(self.lexer.c, substitute.EOF)
+        self.assertEqual(self.lexer.c, EOF)
 
     def testDoesReset(self):
         c, cursor, string = self.lexer.c, self.lexer.cursor, self.lexer.string
@@ -47,7 +47,7 @@ class TestLexer(unittest.TestCase):
     def testCanReachEOF(self):
         self.lexer.parse("f")
         self.lexer.consume()
-        self.assertEqual(self.lexer.c, substitute.EOF)
+        self.assertEqual(self.lexer.c, EOF)
 
     def testPassingInJunk(self):
         self.assertRaises(TypeError, self.lexer.parse, 100)
