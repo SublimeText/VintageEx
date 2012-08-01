@@ -1,6 +1,57 @@
 import unittest
 
+import substitute
 from substitute import SubstituteLexer
+from substitute import RegexToken
+from substitute import Lexer
+
+
+class TestRegexToken(unittest.TestCase):
+    def setUp(self):
+        self.token = RegexToken("f[o]+")
+
+    def testCanTestMembership(self):
+        self.assertTrue("fo" in self.token)
+        self.assertTrue("foo" in self.token)
+
+    def testCanTestEquality(self):
+        self.assertTrue("fo" == self.token)
+
+
+class TestLexer(unittest.TestCase):
+    def setUp(self):
+        self.lexer = Lexer()
+
+    def testEmptyInputSetsCursorToEOF(self):
+        self.lexer.parse('')
+        self.assertEqual(self.lexer.c, substitute.EOF)
+
+    def testDoesReset(self):
+        c, cursor, string = self.lexer.c, self.lexer.cursor, self.lexer.string
+        self.lexer.parse('')
+        self.lexer._reset()
+        self.assertEqual(c, self.lexer.c)
+        self.assertEqual(cursor, self.lexer.cursor)
+        self.assertEqual(string, self.lexer.string)
+
+    def testCursorIsPrimed(self):
+        self.lexer.parse("foo")
+        self.assertEqual(self.lexer.c, 'f')
+
+    def testCanConsume(self):
+        self.lexer.parse("foo")
+        self.lexer.consume()
+        self.assertEqual(self.lexer.c, 'o')
+        self.assertEqual(self.lexer.cursor, 1)
+
+    def testCanReachEOF(self):
+        self.lexer.parse("f")
+        self.lexer.consume()
+        self.assertEqual(self.lexer.c, substitute.EOF)
+
+    def testPassingInJunk(self):
+        self.assertRaises(TypeError, self.lexer.parse, 100)
+        self.assertRaises(TypeError, self.lexer.parse, [])
 
 
 class TestSubstituteLexer(unittest.TestCase):

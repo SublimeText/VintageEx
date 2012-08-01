@@ -1,3 +1,5 @@
+import re
+
 EOF = -1
 
 class Lexer(object):
@@ -22,6 +24,8 @@ class Lexer(object):
         pass
 
     def parse(self, string):
+        if not isinstance(string, basestring):
+            raise TypeError("Can only parse strings.")
         self._reset()
         self.string = string
         if not string:
@@ -31,8 +35,19 @@ class Lexer(object):
         return self._do_parse()
 
 
+class RegexToken(object):
+    def __init__(self, value):
+        self.regex = re.compile(value)
+
+    def __contains__(self, value):
+        return self.__eq__(value)
+
+    def __eq__(self, other):
+        return bool(self.regex.match(other))
+
+
 class SubstituteLexer(Lexer):
-    DELIMITER = "/:"
+    DELIMITER = RegexToken(r'[^a-zA-Z0-9]')
     WHITE_SPACE = ' \t'
     FLAG = 'giI'
 
