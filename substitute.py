@@ -41,7 +41,6 @@ class SubstituteLexer(Lexer):
 
     def _match_white_space(self):
         while self.c != EOF and self.c in self.WHITE_SPACE:
-            # print "WHITESPACE", ":" + self.c + ":"
             self.consume()
 
     def _match_count(self):
@@ -53,13 +52,10 @@ class SubstituteLexer(Lexer):
 
     def _match_flags(self):
         buf = []
-        while self.c != EOF and not self.c.isdigit():
+        while self.c != EOF and self.c in self.FLAG:
             if self.c in self.FLAG:
                 buf.append(self.c)
-                self.consume()
-                continue
-            # TODO(guillermooo): should actually raise "Trailing characters" error.
-            raise SyntaxError("Invalid flag or not implemented.")
+            self.consume()
         return ''.join(buf)
 
     def _match_pattern(self):
@@ -126,7 +122,8 @@ class SubstituteLexer(Lexer):
 
         if self.c != EOF:
             self.consume()
-            self._match_white_space()
+
+        if self.c != EOF and self.c in self.FLAG:
             buf.append(self._match_flags())
         else:
             buf.append('')
