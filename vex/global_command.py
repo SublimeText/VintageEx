@@ -1,6 +1,6 @@
-from vintageex.parsing import RegexToken
-from vintageex.parsing import Lexer
-from vintageex.parsing import EOF
+from vex.parsing import RegexToken
+from vex.parsing import Lexer
+from vex.parsing import EOF
 
 
 class GlobalLexer(Lexer):

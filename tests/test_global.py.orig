@@ -1,6 +1,6 @@
 import unittest
 
-from vex.global_command import GlobalLexer
+from vintage_ex.global_command import GlobalLexer
 
 
 class TestGlobalLexer(unittest.TestCase):
