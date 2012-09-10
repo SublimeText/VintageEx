@@ -36,5 +36,13 @@
 		[
 			{ "key": "selector", "operator": "equal", "operand": "text.excmdline" }
 		]
-	}
+
+	},
+
+	// The following belong rather in Vintage, but let's keep them here now.
+	{ "keys": ["/"], "command": "vi_search", "context": [{ "key": "setting.command_mode" }], "args": {"initial_text": "/"}},
+	{ "keys": ["?"], "command": "vi_search", "context": [{ "key": "setting.command_mode" }], "args": {"initial_text": "?"}},
+
+	{ "keys": ["n"], "command": "vi_repeat_search_forward", "context": [{ "key": "setting.command_mode" }]},
+	{ "keys": ["N"], "command": "vi_repeat_search_backward", "context": [{ "key": "setting.command_mode" }]}
 ]
