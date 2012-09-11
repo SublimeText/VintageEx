@@ -185,6 +185,11 @@ EX_COMMANDS = {
                                 invocations=(),
                                 error_on=(ex_error.ERR_TRAILING_CHARS,)
                                 ),
+    ('registers', 'reg'): ex_cmd_data(
+                                command='ex_list_registers',
+                                invocations=(),
+                                error_on=()
+                                ),
     ('map', 'map'): ex_cmd_data(
                                 command='ex_map',
                                 invocations=(),
