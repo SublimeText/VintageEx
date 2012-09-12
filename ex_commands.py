@@ -722,3 +722,20 @@ class ExExit(sublime_plugin.TextCommand):
         w.run_command('close')
         if len(self.window.views()) == 0:
             w.run_command('close')
+
+
+class ExListRegisters(sublime_plugin.TextCommand):
+    """Lists registers in quick panel and saves selected to `"` register."""
+
+    def run(self, edit):
+        if not g_registers:
+            sublime.status_message('VintageEx: no registers.')
+        self.view.window().show_quick_panel(
+            ['"{0}   {1}'.format(k, v) for k, v in g_registers.items()],
+            self.on_done)
+
+    def on_done(self, idx):
+        """Save selected value to `"` register."""
+        if idx == -1:
+            return
+        g_registers['"'] = g_registers.values()[idx]
