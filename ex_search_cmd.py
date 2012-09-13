@@ -8,6 +8,17 @@ import sublime_plugin
 import ex_location
 
 
+def compute_flags(view, term):
+    flags = 0 # case sensitive
+    search_mode = view.settings().get('vintage_search_mode')
+    if search_mode == 'smart_case':
+        if term.lower() == term:
+            flags = sublime.IGNORECASE
+    elif search_mode == 'case_insensitive':
+        flags = sublime.IGNORECASE
+    return flags
+
+
 class SearchImpl(object):
     last_term = ""
     def __init__(self, view, cmd, remember=True, start_sel=None):
@@ -24,6 +35,7 @@ class SearchImpl(object):
         elif not cmd:
             return
         self.cmd = cmd[1:]
+        self.flags = compute_flags(self.view, self.cmd)
 
     def search(self):
         if not getattr(self, "cmd", None):
@@ -35,36 +47,53 @@ class SearchImpl(object):
         next_match = None
         if self.reversed:
             current_line = self.view.line(self.view.sel()[0])
-            left_side = sublime.Region(current_line.begin(), self.view.sel()[0].begin())
-            if ex_location.search_in_range(self.view, self.cmd, left_side.begin(), left_side.end()):
-                next_match = ex_location.find_last_match(self.view, self.cmd, left_side.begin(), left_side.end())
+            left_side = sublime.Region(current_line.begin(),
+                                       self.view.sel()[0].begin())
+            if ex_location.search_in_range(self.view, self.cmd,
+                                           left_side.begin(),
+                                           left_side.end(),
+                                           self.flags):
+                next_match = ex_location.find_last_match(self.view,
+                                                         self.cmd,
+                                                         left_side.begin(),
+                                                         left_side.end(),
+                                                         self.flags)
             else:
                 line_nr = ex_location.reverse_search(self.view, self.cmd,
-                                                end=current_line.begin() - 1)
+                                                end=current_line.begin() - 1,
+                                                flags=self.flags)
                 if line_nr:
                     pt = self.view.text_point(line_nr - 1, 0)
-                    next_match = self.view.find(self.cmd, pt)
+                    line = self.view.full_line(pt)
+                    next_match = ex_location.find_last_match(self.view,
+                                                             self.cmd,
+                                                             line.begin(),
+                                                             line.end(),
+                                                             self.flags)
         else:
-            next_match = self.view.find(self.cmd, sel.end())
+            next_match = self.view.find(self.cmd, sel.end(), self.flags)
         if next_match:
             self.view.sel().clear()
             if not self.remember:
-                self.view.add_regions("vi_search", [next_match], "search.vi", sublime.DRAW_OUTLINED)
+                self.view.add_regions("vi_search", [next_match], "search.vi",
+                                      sublime.DRAW_OUTLINED)
             else:
                 self.view.sel().add(next_match)
             self.view.show(next_match)
         else:
-            sublime.status_message("VintageEx: Could not find:" + self.cmd)
+            sublime.status_message("VintageEx: Pattern not found:" + self.cmd)
 
 
 class ViRepeatSearchBackward(sublime_plugin.TextCommand):
    def run(self, edit):
-       SearchImpl(self.view, "?" + SearchImpl.last_term, start_sel=self.view.sel()).search()
+       SearchImpl(self.view, "?" + SearchImpl.last_term,
+                  start_sel=self.view.sel()).search()
 
 
 class ViRepeatSearchForward(sublime_plugin.TextCommand):
     def run(self, edit):
-        SearchImpl(self.view, SearchImpl.last_term, start_sel=self.view.sel()).search()
+        SearchImpl(self.view, SearchImpl.last_term,
+                   start_sel=self.view.sel()).search()
 
 
 class ViSearch(sublime_plugin.TextCommand):
@@ -77,7 +106,13 @@ class ViSearch(sublime_plugin.TextCommand):
 
     def on_done(self, s):
         self._restore_sel()
-        SearchImpl(self.view, s, start_sel=self.original_sel).search()
+        try:
+            SearchImpl(self.view, s, start_sel=self.original_sel).search()
+        except RuntimeError, e:
+            if 'parsing' in str(e):
+                print "VintageEx: Regex parsing error. Incomplete pattern: %s" % s
+            else:
+                raise e
         self.original_sel = None
         self._restore_sel()
 
@@ -85,7 +120,14 @@ class ViSearch(sublime_plugin.TextCommand):
         if s in ("/", "?"):
             return
         self._restore_sel()
-        SearchImpl(self.view, s, remember=False, start_sel=self.original_sel).search()
+        try:
+            SearchImpl(self.view, s, remember=False,
+                       start_sel=self.original_sel).search()
+        except RuntimeError, e:
+            if 'parsing' in str(e):
+                print "VintageEx: Regex parsing error. Expected error." 
+            else:
+                raise e
 
     def on_cancel(self):
         self._restore_sel()

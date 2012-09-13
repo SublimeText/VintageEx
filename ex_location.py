@@ -45,26 +45,26 @@ def find_line(view, start=0, end=-1, target=0):
     return -1
 
 
-def search_in_range(view, what, start, end):
-    match = view.find(what, start)
+def search_in_range(view, what, start, end, flags=0):
+    match = view.find(what, start, flags)
     if match and ((match.begin() >= start) and (match.end() <= end)):
         return True
 
 
-def find_last_match(view, what, start, end):
+def find_last_match(view, what, start, end, flags=0):
     """Find last occurrence of `what` between `start`, `end`.
     """
-    match = view.find(what, start)
+    match = view.find(what, start, flags)
     new_match = None
     while match:
-        new_match = view.find(what, match.end())
+        new_match = view.find(what, match.end(), flags)
         if new_match and new_match.end() <= end:
             match = new_match
         else:
             return match
 
 
-def reverse_search(view, what, start=0, end=-1):
+def reverse_search(view, what, start=0, end=-1, flags=0):
     """Do binary search to find `what` walking backwards in the buffer.
     """
     if end == -1:
@@ -79,9 +79,9 @@ def reverse_search(view, what, start=0, end=-1):
         line = view.line(middle)
         middle, eol = find_bol(view, line.a), find_eol(view, line.a)
 
-        if search_in_range(view, what, middle, hi):
+        if search_in_range(view, what, middle, hi, flags):
             lo = middle
-        elif search_in_range(view, what, lo, middle - 1):
+        elif search_in_range(view, what, lo, middle - 1, flags):
             hi = middle -1
         else:
             return calculate_relative_ref(view, '.')
@@ -94,14 +94,14 @@ def reverse_search(view, what, start=0, end=-1):
         last_match = sublime.Region(line.begin(), line.end())    
 
 
-def search(view, what, start_line=None):
+def search(view, what, start_line=None, flags=0):
     # TODO: don't make start_line default to the first sel's begin(). It's
     # confusing. ???
     if start_line:
         start = view.text_point(start_line, 0)
     else:
         start = view.sel()[0].begin()
-    reg = view.find(what, start)
+    reg = view.find(what, start, flags)
     if not reg is None:
         row = (view.rowcol(reg.begin())[0] + 1)
     else:
