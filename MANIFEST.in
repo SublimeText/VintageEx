@@ -1,5 +1,6 @@
 global-include . *.py
 exclude setup.py
+include *.sublime-settings
 
 graft Support
 
