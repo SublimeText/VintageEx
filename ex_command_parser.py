@@ -25,7 +25,7 @@ ex_cmd_data = namedtuple('ex_cmd_data', 'command invocations error_on')
 
 # Holds a parsed ex command data.
 # TODO: elaborate on params info.
-EX_CMD = namedtuple('ex_command', 'name command forced args parse_errors new_range can_have_range')
+EX_CMD = namedtuple('ex_command', 'name command forced args parse_errors line_range can_have_range')
 
 # Address that can only appear after a command.
 POSTFIX_ADDRESS = r'[.$]|(?:/.*?(?<!\\)/|\?.*?(?<!\\)\?){1,2}|[+-]?\d+|[\'][a-zA-Z0-9<>]'
@@ -354,5 +354,5 @@ def parse_command(cmd):
                     forced=bang,
                     args=cmd_args,
                     parse_errors=parse_errors,
-                    new_range=r_['range'],
+                    line_range=r_['range'],
                     can_have_range=can_have_range,)

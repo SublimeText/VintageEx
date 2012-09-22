@@ -57,7 +57,7 @@ class ViColonInput(sublime_plugin.WindowCommand):
             return
         if ex_cmd and ex_cmd.name:
             if ex_cmd.can_have_range:
-                ex_cmd.args["new_range"] = ex_cmd.new_range
+                ex_cmd.args["line_range"] = ex_cmd.line_range
             if ex_cmd.forced:
                 ex_cmd.args['forced'] = ex_cmd.forced
             self.window.run_command(ex_cmd.command, ex_cmd.args)
