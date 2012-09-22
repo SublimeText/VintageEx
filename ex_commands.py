@@ -17,9 +17,7 @@ from plat.windows import get_startup_info
 import ex_error
 import ex_range
 import shell
-from vex.parsers import global_command
-from vex.parsers import substitute
-from vex.parsers import rangeparser
+from vex import parsers
 
 GLOBAL_RANGES = []
 
@@ -361,7 +359,7 @@ class ExMove(sublime_plugin.TextCommand):
         # make sure we have a default range
         if not line_range['text_range']:
             line_range['text_range'] = '.'
-        address_parser = rangeparser.AddressParser(address)
+        address_parser = parsers.cmd_line.AddressParser(address)
         parsed_address = address_parser.parse()
         address = ex_range.calculate_address(self.view, parsed_address)
         if address is None:
@@ -399,7 +397,7 @@ class ExMove(sublime_plugin.TextCommand):
 class ExCopy(sublime_plugin.TextCommand):
     # todo: do null ranges always default to '.'?
     def run(self, edit, line_range=CURRENT_LINE_RANGE, forced=False, address=''):
-        address_parser = rangeparser.AddressParser(address)
+        address_parser = parsers.cmd_line.AddressParser(address)
         parsed_address = address_parser.parse()
         address = ex_range.calculate_address(self.view, parsed_address)
         if address is None:
@@ -469,7 +467,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
         # :s g 100 | :s/ | :s// | s:/foo/bar/g 100 | etc.
         else:
             try:
-                parts = substitute.split(pattern)
+                parts = parsers.s_cmd.split(pattern)
             except SyntaxError, e:
                 sublime.status_message("VintageEx: (substitute) %s" % e)
                 print "VintageEx: (substitute) %s" % e
@@ -571,7 +569,7 @@ class ExGlobal(sublime_plugin.TextCommand):
             line_range['text_range'] = '%'
             line_range['left_ref'] = '%'
         try:
-            global_pattern, subcmd = global_command.split(pattern)
+            global_pattern, subcmd = parsers.g_cmd.split(pattern)
         except ValueError:
             msg = "VintageEx: Bad :global pattern. (%s)" % pattern
             sublime.status_message(msg)

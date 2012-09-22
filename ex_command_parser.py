@@ -6,7 +6,7 @@ import re
 from itertools import takewhile
 
 import ex_error
-from vex.parsers import rangeparser
+from vex import parsers
 
 
 # Data used to parse strings into ex commands and map them to an actual
@@ -313,7 +313,7 @@ def parse_command(cmd):
     elif not cmd_name == ':':
         return None
 
-    parser = rangeparser.CommandLineParser(cmd[1:])
+    parser = parsers.cmd_line.CommandLineParser(cmd[1:])
     r_ = parser.parse_cmd_line()
 
     command = r_['commands'][0]['cmd']

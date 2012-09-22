@@ -1,6 +1,6 @@
 import unittest
 
-from vex.parsers.substitute import SubstituteLexer
+from vex.parsers.s_cmd import SubstituteLexer
 from vex.parsers.parsing import RegexToken
 from vex.parsers.parsing import Lexer
 from vex.parsers.parsing import EOF

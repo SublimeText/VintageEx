@@ -15,7 +15,7 @@ g_test_view = None
 g_executing_test_suite = None
 
 test_suites = {
-        'parser': ['vintage_ex_run_simple_tests', 'tests.test_parser'],
+        'parser': ['vintage_ex_run_simple_tests', 'vex.parsers.test_cmdline'],
         'range': ['vintage_ex_run_data_file_based_tests', 'tests.test_range'],
         'location': ['vintage_ex_run_data_file_based_tests', 'tests.test_location'],
         'substitute': ['vintage_ex_run_simple_tests', 'tests.test_substitute'],
