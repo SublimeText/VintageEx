@@ -92,7 +92,8 @@ EX_COMMANDS = {
     ('ls', 'ls'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 invocations=(),
-                                error_on=(ex_error.ERR_TRAILING_CHARS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,
+                                          ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('registers', 'reg'): ex_cmd_data(
                                 command='ex_list_registers',

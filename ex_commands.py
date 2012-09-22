@@ -17,8 +17,8 @@ from plat.windows import get_startup_info
 import ex_error
 import ex_range
 import shell
-from vex import substitute
-from vex import global_command
+from vex.parsers import global_command
+from vex.parsers import substitute
 from vex.parsers import rangeparser
 
 GLOBAL_RANGES = []

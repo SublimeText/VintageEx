@@ -1,6 +1,6 @@
 import unittest
 
-from vex.global_command import GlobalLexer
+from vex.parsers.global_command import GlobalLexer
 
 
 class TestGlobalLexer(unittest.TestCase):
@@ -22,3 +22,7 @@ class TestGlobalLexer(unittest.TestCase):
     def testCanEscapeBackSlashes(self):
         actual = self.lexer.parse(r'/\\/p#')
         self.assertEqual(actual, ['\\', 'p#'])
+
+
+if __name__ == '__main__':
+    unittest.main()

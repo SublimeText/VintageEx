@@ -1,9 +1,9 @@
 import unittest
 
-from vex.substitute import SubstituteLexer
-from vex.parsing import RegexToken
-from vex.parsing import Lexer
-from vex.parsing import EOF
+from vex.parsers.substitute import SubstituteLexer
+from vex.parsers.parsing import RegexToken
+from vex.parsers.parsing import Lexer
+from vex.parsers.parsing import EOF
 
 
 class TestRegexToken(unittest.TestCase):
