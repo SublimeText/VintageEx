@@ -1,2 +1,4 @@
-12.9.10
+22.9.12
+	* rewrite command line parser
+12.9.12
 	* implemented basic "/" and "?" commands
