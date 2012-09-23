@@ -5,7 +5,7 @@ from collections import namedtuple
 import re
 from itertools import takewhile
 
-import ex_error
+from vex import ex_error
 from vex import parsers
 
 

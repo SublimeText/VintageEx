@@ -5,7 +5,7 @@
 import sublime
 import sublime_plugin
 
-import ex_location
+from vex import ex_location
 
 
 def compute_flags(view, term):

@@ -14,9 +14,9 @@ from vintage import g_registers
 
 from plat.windows import get_oem_cp
 from plat.windows import get_startup_info
-import ex_error
-import ex_range
-import shell
+from vex import ex_error
+from vex import ex_range
+from vex import shell
 from vex import parsers
 
 GLOBAL_RANGES = []

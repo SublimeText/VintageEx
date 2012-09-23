@@ -107,4 +107,4 @@ def new_calculate_range(view, r):
     return [(left, right)]
 
 # Avoid circular import.
-import ex_location
+from vex import ex_location

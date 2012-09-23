@@ -6,10 +6,10 @@ from tests import select_bof
 from tests import select_eof
 from tests import select_line
 
-from ex_range import EX_RANGE
-from ex_range import new_calculate_range
-from ex_range import calculate_relative_ref
-from ex_range import calculate_address
+from vex.ex_range import EX_RANGE
+from vex.ex_range import new_calculate_range
+from vex.ex_range import calculate_relative_ref
+from vex.ex_range import calculate_address
 
 
 class TestCalculateRelativeRef(unittest.TestCase):

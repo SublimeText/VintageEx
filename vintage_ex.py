@@ -1,9 +1,9 @@
 import sublime
 import sublime_plugin
 
-from ex_command_parser import parse_command
-from ex_command_parser import EX_COMMANDS
-import ex_error
+from vex.ex_command_parser import parse_command
+from vex.ex_command_parser import EX_COMMANDS
+from vex import ex_error
 
 
 COMPLETIONS = sorted([x[0] for x in EX_COMMANDS.keys()])
