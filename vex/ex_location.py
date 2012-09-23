@@ -88,7 +88,7 @@ def reverse_search(view, what, start=0, end=-1, flags=0):
 
         # Don't search forever the same line.
         if last_match and line.contains(last_match):
-            match = find_last_match(view, what, lo, hi)
+            match = find_last_match(view, what, lo, hi, flags=flags)
             return view.rowcol(match.begin())[0] + 1
         
         last_match = sublime.Region(line.begin(), line.end())    
