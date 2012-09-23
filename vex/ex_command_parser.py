@@ -271,13 +271,13 @@ EX_COMMANDS = {
                                 error_on=(ex_error.ERR_TRAILING_CHARS,
                                           ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
-    ('split', 'sp'): ex_cmd_data(
-                                command='ex_split',
-                                invocations=(re.compile(r'^$',),
-                                ),
-                                error_on=(ex_error.ERR_TRAILING_CHARS,
-                                          ex_error.ERR_NO_RANGE_ALLOWED,)
-                                ),
+    # ('split', 'sp'): ex_cmd_data(
+    #                             command='ex_split',
+    #                             invocations=(re.compile(r'^$',),
+    #                             ),
+    #                             error_on=(ex_error.ERR_TRAILING_CHARS,
+    #                                       ex_error.ERR_NO_RANGE_ALLOWED,)
+    #                             ),
     (':', ':'): ex_cmd_data(
                         command='ex_goto',
                         invocations=(),
