@@ -3,11 +3,11 @@ import plat.linux
 import plat.windows
 
 
-def run_and_wait(cmd):
+def run_and_wait(view, cmd):
     if plat.HOST_PLATFORM == plat.WINDOWS:
-        plat.windows.run_and_wait(cmd)   
+        plat.windows.run_and_wait(view, cmd)   
     elif plat.HOST_PLATFORM == plat.LINUX:
-        plat.linux.run_and_wait(cmd)
+        plat.linux.run_and_wait(view, cmd)
     else:
         raise NotImplementedError
 
@@ -24,7 +24,7 @@ def filter_thru_shell(view, regions, cmd):
             raise NotImplementedError
 
         for r in reversed(regions):
-            rv = filter_func(view.substr(r), cmd)
+            rv = filter_func(view, view.substr(r), cmd)
             view.replace(edit, r, rv)
     finally:
         view.end_edit(edit)

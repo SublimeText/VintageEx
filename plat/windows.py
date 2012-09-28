@@ -23,7 +23,7 @@ def run_and_wait(cmd):
     subprocess.Popen(['cmd.exe', '/c', cmd + '&& pause']).wait()
 
 
-def filter_region(txt, command):
+def filter_region(view, txt, command):
     try:
         contents = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
         contents.write(txt.encode('utf-8'))

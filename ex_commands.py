@@ -129,7 +129,7 @@ class ExShellOut(sublime_plugin.TextCommand):
                                 regions=get_region_by_range(self.view, line_range=line_range),
                                 cmd=shell_cmd)
             else:
-                shell.run_and_wait(shell_cmd)
+                shell.run_and_wait(self.view, shell_cmd)
         except NotImplementedError:
             ex_error.handle_not_implemented()
 
@@ -148,8 +148,17 @@ class ExShell(sublime_plugin.TextCommand):
 
     def run(self, edit):
         if sublime.platform() == 'linux':
-            term = os.environ.get('COLORTERM') or os.environ.get("TERM")
-            self.open_shell([term, '-e', 'bash']).wait()
+            term = self.view.settings().get('vintageex_linux_terminal')
+            term = term or os.environ.get('COLORTERM') or os.environ.get("TERM")
+            if not term:
+                sublime.status_message("VintageEx: Not terminal name found.")
+                return
+            try:
+                self.open_shell([term, '-e', 'bash']).wait()
+            except Exception as e:
+                print e
+                sublime.status_message("VintageEx: Error while executing command through shell.")
+                return
         elif sublime.platform() == 'windows':
             self.open_shell(['cmd.exe', '/k']).wait()
         else:
@@ -170,9 +179,19 @@ class ExReadShellOut(sublime_plugin.TextCommand):
         if forced:
             if sublime.platform() == 'linux':
                 for s in self.view.sel():
-                    the_shell = os.path.expandvars("$SHELL")
-                    p = subprocess.Popen([the_shell, '-c', name],
-                                                        stdout=subprocess.PIPE)
+                    # TODO: make shell command configurable.
+                    the_shell = self.view.settings().get('linux_shell')
+                    the_shell = the_shell or os.path.expandvars("$SHELL")
+                    if not the_shell:
+                        sublime.status_message("VintageEx: No shell name found.")
+                        return
+                    try:
+                        p = subprocess.Popen([the_shell, '-c', name],
+                                                            stdout=subprocess.PIPE)
+                    except Exception as e:
+                        print e
+                        sublime.status_message("VintageEx: Error while executing command through shell.")
+                        return
                     self.view.insert(edit, s.begin(), p.communicate()[0][:-1])
             elif sublime.platform() == 'windows':
                 for s in self.view.sel():
