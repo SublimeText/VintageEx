@@ -3,7 +3,8 @@ import subprocess
 
 
 def run_and_wait(view, cmd):
-    term = os.path.expandvars("$COLORTERM") or os.path.expandvars("$TERM")
+    term = view.settings().get('vintageex_osx_terminal')
+    term = term or os.path.expandvars("$COLORTERM") or os.path.expandvars("$TERM")
     subprocess.Popen([
             term, '-e',
             "bash -c \"%s; read -p 'Press RETURN to exit.'\"" % cmd]).wait()
