@@ -160,7 +160,7 @@ class ExShell(sublime_plugin.TextCommand):
                 sublime.status_message("VintageEx: Error while executing command through shell.")
                 return
         elif sublime.platform() == 'osx':
-            term = self.view.settings().get('vintageex_linux_terminal')
+            term = self.view.settings().get('vintageex_osx_terminal')
             term = term or os.environ.get('COLORTERM') or os.environ.get("TERM")
             if not term:
                 sublime.status_message("VintageEx: Not terminal name found.")
