@@ -71,7 +71,6 @@ the variables ``$COLORTERM`` and ``$TERM`` will be read in turn when a terminal 
 Donations
 =========
 
-If you want to show your appreciation, you can tip me through www.gittip.com: guillermooo_.
+If you want to show your appreciation, you can tip me through Gittip: guillermooo_.
 
 .. _guillermooo: http://www.gittip.com/guillermooo/
-	
