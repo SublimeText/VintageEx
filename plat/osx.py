@@ -3,7 +3,7 @@ import subprocess
 
 
 def run_and_wait(view, cmd):
-    term = view.settings().get('vintageex_linux_terminal')
+    term = view.settings().get('vintageex_osx_terminal')
     term = term or os.path.expandvars("$COLORTERM") or os.path.expandvars("$TERM")
     subprocess.Popen([
             term, '-e',
@@ -11,7 +11,7 @@ def run_and_wait(view, cmd):
 
 
 def filter_region(view, text, command):
-    shell = view.settings().get('vintageex_linux_shell')
+    shell = view.settings().get('vintageex_osx_shell')
     shell = shell or os.path.expandvars("$SHELL")
     p = subprocess.Popen([shell, '-c', 'echo "%s" | %s' % (text, command)],
                          stdout=subprocess.PIPE)
