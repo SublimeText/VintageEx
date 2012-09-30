@@ -12,14 +12,8 @@ This whole package is distributed under the MIT license (see LICENSE.txt).
 Compatibility
 =============
 
-* Windows (good)
-* Linux (good)
-* OSX (less good)
-
-VintageEx aims at full cross-platform compatibility. Presently, most commands
-will work fine on all three OSes as long as they don't interact with shells.
-
-I cannot test under OS X, so patches and feedback are welcome.
+VintageEx aims at full cross-platform compatibility. Howerver, I cannot test
+under OS X, so patches and feedback are welcome.
 
 Installation
 ============
