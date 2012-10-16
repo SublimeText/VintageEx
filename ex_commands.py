@@ -748,11 +748,21 @@ class ExCquit(sublime_plugin.TextCommand):
 
 
 class ExExit(sublime_plugin.TextCommand):
-    def run(self, edit):
+    """Ex command(s): :x[it], :exi[t]
+
+    Like :wq, but write only when changes have been made.
+
+    TODO: Support ranges, like :w.
+    """
+    def run(self, edit, line_range=None):
         w = self.view.window()
-        w.run_command('save')
+
+        if w.active_view().is_dirty():
+            w.run_command('save')
+
         w.run_command('close')
-        if len(self.window.views()) == 0:
+
+        if len(w.views()) == 0:
             w.run_command('close')
 
 
@@ -771,3 +781,14 @@ class ExListRegisters(sublime_plugin.TextCommand):
         if idx == -1:
             return
         g_registers['"'] = g_registers.values()[idx]
+
+
+class ExNew(sublime_plugin.TextCommand):
+    """Ex command(s): :new
+
+    Create a new buffer.
+
+    TODO: Create new buffer by splitting the screen.
+    """
+    def run(self, edit, line_range=None):
+        self.view.window().run_command('new_file')

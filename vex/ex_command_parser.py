@@ -275,6 +275,12 @@ EX_COMMANDS = {
                                 error_on=(ex_error.ERR_TRAILING_CHARS,
                                           ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
+    ('new', 'new'): ex_cmd_data(
+                                command='ex_new',
+                                invocations=(re.compile(r'^$',),
+                                ),
+                                error_on=(ex_error.ERR_TRAILING_CHARS,)
+                                ),
     (':', ':'): ex_cmd_data(
                         command='ex_goto',
                         invocations=(),
