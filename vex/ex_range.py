@@ -39,7 +39,7 @@ def calculate_address(view, a):
                       # todo: 'text_range' key missing
                     )
 
-    a =  new_calculate_range(view, fake_range)[0][0] or -1
+    a, _ =  new_calculate_range(view, fake_range)[0][0] or -1
     # FIXME: 0 should be a valid address?
     if not (0 < a <= view.rowcol(view.size())[0] + 1):
         return None
@@ -47,6 +47,11 @@ def calculate_address(view, a):
 
 
 def new_calculate_range(view, r):
+    """Calculates line-based ranges (begin_row, end_row) and returns
+    a tuple: a list of ranges and a boolean indicating whether the ranges
+    where calculated based on a visual selection.
+    """
+
     # FIXME: make sure this works with whitespace between markers, and doublecheck
     # with Vim to see whether '<;>' is allowed.
     # '<,>' returns all selected line blocks
@@ -56,7 +61,7 @@ def new_calculate_range(view, r):
             start = view.rowcol(sel.begin())[0] + 1
             end = view.rowcol(sel.end())[0] + 1
             all_line_blocks.append((start, end))
-        return all_line_blocks
+        return all_line_blocks, True
         
     # todo: '< and other marks
     if r['left_ref'] and (r['left_ref'].startswith("'") or (r['right_ref'] and r['right_ref'].startswith("'"))):
@@ -104,7 +109,7 @@ def new_calculate_range(view, r):
         left = right = calculate_relative_ref(view, '.')
 
     # todo: reverse range automatically if needed
-    return [(left, right)]
+    return [(left, right)], False
 
 # Avoid circular import.
 from vex import ex_location

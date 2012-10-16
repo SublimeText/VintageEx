@@ -33,7 +33,7 @@ def filter_region(view, txt, command):
         script.write('@echo off\ntype %s | %s' % (contents.name, command))
         script.close()
 
-        p = subprocess.Popen(['cmd.exe', '/C', script.name],
+        p = subprocess.Popen([script.name],
                              stdout=subprocess.PIPE,
                              startupinfo=get_startup_info())
 

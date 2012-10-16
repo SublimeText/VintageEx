@@ -83,14 +83,21 @@ def get_region_by_range(view, line_range=None, split_visual=False):
         GLOBAL_RANGES = []
         return rv
 
+    regions = []
     if line_range:
-        regions = ex_range.new_calculate_range(view, line_range)
+        regions, visual_regions = ex_range.new_calculate_range(view, line_range)
     lines = []
     for region in regions:
         a, b = region
         r = sublime.Region(view.text_point(a - 1, 0),
-                           view.full_line(view.text_point(b - 1, 0)).end())
-        lines.extend(view.split_by_newlines(r))
+                           view.line(view.text_point(b - 1, 0)).end())
+        if not visual_regions or split_visual:
+            lines.extend(view.split_by_newlines(r))
+        else:
+            if view.substr(r)[-1] == "\n":
+                if r.begin() != r.end():
+                    r = sublime.Region(r.begin(), r.end() - 1)
+            lines.append(r)
 
     return lines
 
