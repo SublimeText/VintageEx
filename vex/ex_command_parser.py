@@ -70,7 +70,8 @@ EX_COMMANDS = {
     ('wall', 'wa'): ex_cmd_data(
                                 command='ex_write_all',
                                 invocations=(),
-                                error_on=(ex_error.ERR_TRAILING_CHARS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,
+                                          ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('pwd', 'pw'): ex_cmd_data(
                                 command='ex_print_working_dir',
@@ -82,12 +83,14 @@ EX_COMMANDS = {
     ('buffers', 'buffers'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 invocations=(),
-                                error_on=(ex_error.ERR_TRAILING_CHARS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,
+                                          ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('files', 'files'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
                                 invocations=(),
-                                error_on=(ex_error.ERR_TRAILING_CHARS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,
+                                          ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('ls', 'ls'): ex_cmd_data(
                                 command='ex_prompt_select_open_file',
@@ -98,7 +101,7 @@ EX_COMMANDS = {
     ('registers', 'reg'): ex_cmd_data(
                                 command='ex_list_registers',
                                 invocations=(),
-                                error_on=()
+                                error_on=(ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('map', 'map'): ex_cmd_data(
                                 command='ex_map',
@@ -141,7 +144,8 @@ EX_COMMANDS = {
     ('enew', 'ene'): ex_cmd_data(
                                 command='ex_new_file',
                                 invocations=(),
-                                error_on=(ex_error.ERR_TRAILING_CHARS,)
+                                error_on=(ex_error.ERR_TRAILING_CHARS,
+                                          ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('ascii', 'as'): ex_cmd_data(
                                 # This command is implemented in Packages/Vintage.
@@ -243,7 +247,7 @@ EX_COMMANDS = {
     ('edit', 'e'): ex_cmd_data(
                                 command='ex_edit',
                                 invocations=(re.compile(r"^$"),),
-                                error_on=()
+                                error_on=(ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
     ('cquit', 'cq'): ex_cmd_data(
                                 command='ex_cquit',
@@ -271,13 +275,6 @@ EX_COMMANDS = {
                                 error_on=(ex_error.ERR_TRAILING_CHARS,
                                           ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
-    # ('split', 'sp'): ex_cmd_data(
-    #                             command='ex_split',
-    #                             invocations=(re.compile(r'^$',),
-    #                             ),
-    #                             error_on=(ex_error.ERR_TRAILING_CHARS,
-    #                                       ex_error.ERR_NO_RANGE_ALLOWED,)
-    #                             ),
     (':', ':'): ex_cmd_data(
                         command='ex_goto',
                         invocations=(),

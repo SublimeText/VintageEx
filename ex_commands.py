@@ -218,19 +218,11 @@ class ExReadShellOut(sublime_plugin.TextCommand):
                 ex_error.handle_not_implemented()
         # Read a file into the current view.
         else:
-            # Read the current buffer's contents and insert below current line.
-            if not name:
-                new_contents = self.view.substr(
-                                        sublime.Region(0, self.view.size()))
-                if self.view.substr(target_line.b) != '\n':
-                    new_contents = '\n' + new_contents
-                self.view.insert(edit, target_point, new_contents)
-                return
-            # XXX read file "name"
-            # we need proper filesystem autocompletion here
-            else:
-                ex_error.handle_not_implemented()
-                return
+            # According to Vim's help, :r should read the current file's content
+            # if no file name is given, but Vim doesn't do that.
+            # TODO: implement reading a file into the buffer.
+            ex_error.handle_not_implemented()
+            return
 
 
 class ExPromptSelectOpenFile(sublime_plugin.TextCommand):
