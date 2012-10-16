@@ -799,3 +799,17 @@ class ExNew(sublime_plugin.TextCommand):
     """
     def run(self, edit, line_range=None):
         self.view.window().run_command('new_file')
+
+
+class ExYank(sublime_plugin.TextCommand):
+    """Ex command(s): :y[ank]
+    """
+    
+    def run(self, edit, line_range, register=None, count=None):
+        if not register:
+            register = '"'
+        regs = get_region_by_range(self.view, line_range)
+        text = '\n'.join([self.view.substr(line) for line in regs])
+        g_registers[register] = text
+        if register == '"':
+            g_registers['0'] = text

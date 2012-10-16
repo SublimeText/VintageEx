@@ -270,8 +270,7 @@ EX_COMMANDS = {
                                 ),
     ('only', 'on'): ex_cmd_data(
                                 command='ex_only',
-                                invocations=(re.compile(r'^$',),
-                                ),
+                                invocations=(re.compile(r'^$'),),
                                 error_on=(ex_error.ERR_TRAILING_CHARS,
                                           ex_error.ERR_NO_RANGE_ALLOWED,)
                                 ),
@@ -280,6 +279,13 @@ EX_COMMANDS = {
                                 invocations=(re.compile(r'^$',),
                                 ),
                                 error_on=(ex_error.ERR_TRAILING_CHARS,)
+                                ),
+    ('yank', 'y'): ex_cmd_data(
+                                command='ex_yank',
+                                invocations=(re.compile(r'^(?P<register>\d|[a-z])$'),
+                                             re.compile(r'^(?P<register>\d|[a-z]) (?P<count>\d+)$'),
+                                ),
+                                error_on=(),
                                 ),
     (':', ':'): ex_cmd_data(
                         command='ex_goto',
