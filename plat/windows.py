@@ -19,7 +19,7 @@ def get_startup_info():
     return startupinfo
 
 
-def run_and_wait(cmd):
+def run_and_wait(view, cmd):
     subprocess.Popen(['cmd.exe', '/c', cmd + '&& pause']).wait()
 
 

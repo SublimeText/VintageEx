@@ -25,6 +25,13 @@ CURRENT_LINE_RANGE = {'left_ref': '.', 'left_offset': 0, 'left_search_offsets': 
                       'right_ref': None, 'right_offset': 0, 'right_search_offsets': []}
 
 
+class VintageExState(object):
+    # When repeating searches, determines which search term to use: the current
+    # word or the latest search term.
+    # Values: find_under, search_pattern
+    search_buffer_type = 'find_under'
+
+
 def is_any_buffer_dirty(window):
     for v in window.views():
         if v.is_dirty():
@@ -117,7 +124,8 @@ class ExGoto(sublime_plugin.TextCommand):
         if not line_range['text_range']:
             # No-op: user issued ":".
             return
-        a, b = ex_range.new_calculate_range(self.view, line_range)[0]
+        ranges, _ = ex_range.new_calculate_range(self.view, line_range)
+        a, b = ranges[0]
         self.view.run_command('vi_goto_line', {'repeat': b})
         self.view.show(self.view.sel()[0])
 

@@ -6,6 +6,7 @@ import sublime
 import sublime_plugin
 
 from vex import ex_location
+import ex_commands
 
 
 def compute_flags(view, term):
@@ -86,14 +87,29 @@ class SearchImpl(object):
 
 class ViRepeatSearchBackward(sublime_plugin.TextCommand):
    def run(self, edit):
-       SearchImpl(self.view, "?" + SearchImpl.last_term,
-                  start_sel=self.view.sel()).search()
+        if ex_commands.VintageExState.search_buffer_type == 'pattern_search':
+            SearchImpl(self.view, "?" + SearchImpl.last_term,
+                      start_sel=self.view.sel()).search()
+        elif ex_commands.VintageExState.search_buffer_type == 'find_under':
+            self.view.window().run_command("find_prev", {"select_text": False})
 
 
 class ViRepeatSearchForward(sublime_plugin.TextCommand):
     def run(self, edit):
-        SearchImpl(self.view, SearchImpl.last_term,
-                   start_sel=self.view.sel()).search()
+        if ex_commands.VintageExState.search_buffer_type == 'pattern_search':
+            SearchImpl(self.view, SearchImpl.last_term,
+                       start_sel=self.view.sel()).search()
+        elif ex_commands.VintageExState.search_buffer_type == 'find_under':
+            self.view.window().run_command("find_next", {"select_text": False})
+
+
+class ViFindUnder(sublime_plugin.TextCommand):
+    def run(self, edit, forward=True):
+        ex_commands.VintageExState.search_buffer_type = 'find_under'
+        if forward:
+            self.view.window().run_command('find_under', {'select_text': False})
+        else:
+            self.view.window().run_command('find_under_prev', {'select_text': False})
 
 
 class ViSearch(sublime_plugin.TextCommand):
@@ -108,6 +124,7 @@ class ViSearch(sublime_plugin.TextCommand):
         self._restore_sel()
         try:
             SearchImpl(self.view, s, start_sel=self.original_sel).search()
+            ex_commands.VintageExState.search_buffer_type = 'pattern_search'
         except RuntimeError, e:
             if 'parsing' in str(e):
                 print "VintageEx: Regex parsing error. Incomplete pattern: %s" % s
