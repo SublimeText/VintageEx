@@ -6,7 +6,7 @@ import sublime
 
 
 class VimRange(object):
-    """Encapsulates calculation of regions based on supplied raw range info.
+    """Encapsulates calculation of view regions based on supplied raw range info.
     """
     def __init__(self, view, range_info, default=None):
         self.view = view

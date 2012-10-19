@@ -80,7 +80,7 @@ def gather_buffer_info(v):
     return [leaf, path]
 
 
-def get_region_by_range(view, line_range=None, single_lines=False):
+def get_region_by_range(view, line_range=None, as_lines=False):
     # If GLOBAL_RANGES exists, the ExGlobal command has been run right before
     # the current command, and we know we must process these lines.
     global GLOBAL_RANGES
@@ -91,20 +91,10 @@ def get_region_by_range(view, line_range=None, single_lines=False):
 
     if line_range:
         vim_range = ex_range.VimRange(view, line_range)
-        if single_lines:
+        if as_lines:
             return vim_range.lines()
         else:
             return vim_range.blocks()
-
-
-def ensure_line_block(view, r):
-    """returns a string containing lines terminated by a newline character.
-    """
-    if view.substr(r).endswith('\n'):
-        r = sublime.Region(r.begin(), r.end() - 1)
-    line_block = view.substr(view.line(r)) + '\n'
-
-    return line_block
 
 
 class ExGoto(sublime_plugin.TextCommand):
@@ -522,7 +512,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
 
         replace_count = 0 if (flags and 'g' in flags) else 1
         
-        target_region = get_region_by_range(self.view, line_range=line_range, single_lines=True)
+        target_region = get_region_by_range(self.view, line_range=line_range, as_lines=True)
         for r in reversed(target_region):
             line_text = self.view.substr(self.view.line(r))
             rv = re.sub(pattern, replacement, line_text, count=replace_count)
@@ -780,7 +770,7 @@ class ExNew(sublime_plugin.TextCommand):
 
     Create a new buffer.
 
-    TODO: Create new buffer by single_linesthe screen.
+    TODO: Create new buffer by splitting the screen.
     """
     def run(self, edit, line_range=None):
         self.view.window().run_command('new_file')
