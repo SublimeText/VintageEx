@@ -15,6 +15,7 @@ ERR_NO_RANGE_ALLOWED = 481 # Command can't take a range.
 ERR_UNSAVED_CHANGES = 37 # The buffer has been modified but not saved.
 ERR_ADDRESS_REQUIRED = 14 # Command needs an address.
 ERR_OTHER_BUFFER_HAS_CHANGES = 445 # :only, for example, may trigger this
+ERR_CANT_MOVE_LINES_ONTO_THEMSELVES = 134
 
 
 ERR_MESSAGES = {
@@ -26,7 +27,8 @@ ERR_MESSAGES = {
     ERR_NO_RANGE_ALLOWED: 'No range allowed.',
     ERR_UNSAVED_CHANGES: 'There are unsaved changes.',
     ERR_ADDRESS_REQUIRED: 'Invalid address.',
-    ERR_OTHER_BUFFER_HAS_CHANGES: "Other buffer contains changes."
+    ERR_OTHER_BUFFER_HAS_CHANGES: "Other buffer contains changes.",
+    ERR_CANT_MOVE_LINES_ONTO_THEMSELVES: "Move lines into themselves."
 }
 
 

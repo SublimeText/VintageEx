@@ -2,6 +2,40 @@
 """
 
 from collections import namedtuple
+import sublime
+
+
+class VimRange(object):
+    """Encapsulates calculation of regions based on supplied raw range info.
+    """
+    def __init__(self, view, range_info, default=None):
+        self.view = view
+        self.default = default
+        self.range_info = range_info
+
+    def blocks(self):
+        """Returns a list of blocks potentially encompassing multiple lines.
+        Returned blocks don't end in a newline char.
+        """
+        regions, visual_regions = new_calculate_range(self.view, self.range_info)
+        blocks = []
+        for a, b in regions:
+            r = sublime.Region(self.view.text_point(a - 1, 0),
+                               self.view.line(self.view.text_point(b - 1, 0)).end())
+            if self.view.substr(r)[-1] == "\n":
+                if r.begin() != r.end():
+                    r = sublime.Region(r.begin(), r.end() - 1)
+            blocks.append(r)
+        return blocks
+
+    def lines(self):
+        """Return a list of lines.
+        Returned lines don't end in a newline char.
+        """
+        lines = []
+        for block in self.blocks():
+            lines.extend(self.view.split_by_newlines(block))
+        return lines
 
 
 EX_RANGE = namedtuple('ex_range', 'left left_offset separator right right_offset')
@@ -60,6 +94,8 @@ def new_calculate_range(view, r):
         for sel in view.sel():
             start = view.rowcol(sel.begin())[0] + 1
             end = view.rowcol(sel.end())[0] + 1
+            if view.substr(sel.end() - 1) == '\n':
+                end -= 1
             all_line_blocks.append((start, end))
         return all_line_blocks, True
         

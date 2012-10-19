@@ -80,33 +80,21 @@ def gather_buffer_info(v):
     return [leaf, path]
 
 
-def get_region_by_range(view, line_range=None, split_visual=False):
+def get_region_by_range(view, line_range=None, single_lines=False):
     # If GLOBAL_RANGES exists, the ExGlobal command has been run right before
     # the current command, and we know we must process these lines.
-    # XXX move this further down into the range parsing?
     global GLOBAL_RANGES
     if GLOBAL_RANGES:
         rv = GLOBAL_RANGES[:]
         GLOBAL_RANGES = []
         return rv
 
-    regions = []
     if line_range:
-        regions, visual_regions = ex_range.new_calculate_range(view, line_range)
-    lines = []
-    for region in regions:
-        a, b = region
-        r = sublime.Region(view.text_point(a - 1, 0),
-                           view.line(view.text_point(b - 1, 0)).end())
-        if not visual_regions or split_visual:
-            lines.extend(view.split_by_newlines(r))
+        vim_range = ex_range.VimRange(view, line_range)
+        if single_lines:
+            return vim_range.lines()
         else:
-            if view.substr(r)[-1] == "\n":
-                if r.begin() != r.end():
-                    r = sublime.Region(r.begin(), r.end() - 1)
-            lines.append(r)
-
-    return lines
+            return vim_range.blocks()
 
 
 def ensure_line_block(view, r):
@@ -404,32 +392,28 @@ class ExMove(sublime_plugin.TextCommand):
             ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
             return
 
-        line_block = []
-        for r in get_region_by_range(self.view, line_range=line_range):
-            ss = ensure_line_block(self.view, r)
-            line_block.append(ss)
+        line_block = get_region_by_range(self.view, line_range=line_range)
+        line_block = [self.view.substr(r) for r in line_block]
 
-        offset = 0
-        for r in reversed(get_region_by_range(self.view, line_range, split_visual=True)):
-            if self.view.rowcol(r.begin())[0] + 1 < address:
-                offset +=  1
-            self.view.erase(edit, self.view.full_line(r))
-
-        text = ''.join(line_block)
+        text = '\n'.join(line_block) + '\n'
         if address != 0:
-            dest = self.view.line(self.view.text_point(
-                                                address - offset, 0)).end() + 1
+            dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         else:
             dest = 0
+
+        # Don't move lines onto themselves.
+        for sel in self.view.sel():
+            if sel.contains(dest):
+                ex_error.display_error(ex_error.ERR_CANT_MOVE_LINES_ONTO_THEMSELVES)
+                return
 
         if dest > self.view.size():
             dest = self.view.size()
             text = '\n' + text[:-1]
         self.view.insert(edit, dest, text)
 
-        self.view.sel().clear()
-        cursor_dest = self.view.line(dest + len(text) - 1).begin()
-        self.view.sel().add(sublime.Region(cursor_dest, cursor_dest))
+        for r in reversed(get_region_by_range(self.view, line_range)):
+            self.view.erase(edit, self.view.full_line(r))
 
 
 class ExCopy(sublime_plugin.TextCommand):
@@ -442,12 +426,10 @@ class ExCopy(sublime_plugin.TextCommand):
             ex_error.display_error(ex_error.ERR_INVALID_ADDRESS)
             return
 
-        line_block = []
-        for r in get_region_by_range(self.view, line_range=line_range):
-            ss = ensure_line_block(self.view, r)
-            line_block.append(ss)
+        line_block = get_region_by_range(self.view, line_range=line_range)
+        line_block = [self.view.substr(r) for r in line_block]
 
-        text = ''.join(line_block)
+        text = '\n'.join(line_block) + '\n'
         if address != 0:
             dest = self.view.line(self.view.text_point(address, 0)).end() + 1
         else:
@@ -538,15 +520,10 @@ class ExSubstitute(sublime_plugin.TextCommand):
             print "VintageEx [regex error]: %s ... in pattern '%s'" % (e.message, pattern)
             return
 
-        target_region = get_region_by_range(self.view, line_range=line_range)
         replace_count = 0 if (flags and 'g' in flags) else 1
+        
+        target_region = get_region_by_range(self.view, line_range=line_range, single_lines=True)
         for r in reversed(target_region):
-            # be explicit about replacing the line, because we might be looking
-            # at a Ctrl+D sequence of regions (not spanning a whole line)
-            # TODO: Improve this: make sure view.line() doesn't extend past
-            # the desired line. For example, in VISUAL LINE MODE.
-            if self.view.substr(r.end() - 1) == '\n':
-                r = sublime.Region(r.begin(), r.end() - 1)
             line_text = self.view.substr(self.view.line(r))
             rv = re.sub(pattern, replacement, line_text, count=replace_count)
             self.view.replace(edit, self.view.line(r), rv)
@@ -803,7 +780,7 @@ class ExNew(sublime_plugin.TextCommand):
 
     Create a new buffer.
 
-    TODO: Create new buffer by splitting the screen.
+    TODO: Create new buffer by single_linesthe screen.
     """
     def run(self, edit, line_range=None):
         self.view.window().run_command('new_file')
