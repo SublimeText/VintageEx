@@ -585,11 +585,12 @@ class ExGlobal(sublime_plugin.TextCommand):
             ExGlobal.most_recent_pat = global_pattern
         else:
             global_pattern = ExGlobal.most_recent_pat
+            
         # Make sure we always have a subcommand to exectute. This is what
         # Vim does too.
         subcmd = subcmd or 'print'
 
-        rs = get_region_by_range(self.view, line_range=line_range)
+        rs = get_region_by_range(self.view, line_range=line_range, as_lines=True)
 
         for r in rs:
             try:
