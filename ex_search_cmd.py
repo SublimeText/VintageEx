@@ -66,13 +66,31 @@ class SearchImpl(object):
                 if line_nr:
                     pt = self.view.text_point(line_nr - 1, 0)
                     line = self.view.full_line(pt)
-                    next_match = ex_location.find_last_match(self.view,
+                    if line.begin() != current_line.begin():
+                        next_match = ex_location.find_last_match(self.view,
                                                              self.cmd,
                                                              line.begin(),
                                                              line.end(),
                                                              self.flags)
         else:
             next_match = self.view.find(self.cmd, sel.end(), self.flags)
+        # handle search restart
+        if not next_match:
+            if self.reversed:
+                sublime.status_message("VintageEx: search hit TOP, continuing at BOTTOM")
+                line_nr = ex_location.reverse_search(self.view, self.cmd, flags=self.flags)
+                if line_nr:
+                    pt = self.view.text_point(line_nr - 1, 0)
+                    line = self.view.full_line(pt)
+                    next_match = ex_location.find_last_match(self.view,
+                                                             self.cmd,
+                                                             line.begin(),
+                                                             line.end(),
+                                                             self.flags)
+            else:
+                sublime.status_message("VintageEx: search hit BOTTOM, continuing at TOP")
+                next_match = self.view.find(self.cmd, 0, sel.end())
+        # handle result
         if next_match:
             self.view.sel().clear()
             if not self.remember:
