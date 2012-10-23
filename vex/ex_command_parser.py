@@ -299,7 +299,36 @@ EX_COMMANDS = {
                         ),
                         # FIXME: :!! is a different command to :!
                         error_on=(ex_error.ERR_NO_BANG_ALLOWED,),
-                        )
+                        ),
+    ('tabedit', 'tabe'): ex_cmd_data(
+                                    command='ex_tab_open',
+                                    invocations=(
+                                        re.compile(r'^(?P<file_name>.+)$'),
+                                    ),
+                                    error_on=(ex_error.ERR_NO_RANGE_ALLOWED,),
+                                    ),
+    ('tabnext', 'tabn'): ex_cmd_data(command='ex_tab_next',
+                                     invocations=(),
+                                     error_on=(ex_error.ERR_NO_RANGE_ALLOWED,)
+                                     ),
+    ('tabprev', 'tabp'): ex_cmd_data(command='ex_tab_prev',
+                                     invocations=(),
+                                     error_on=(ex_error.ERR_NO_RANGE_ALLOWED,)
+                                     ),
+    ('tabfirst', 'tabf'): ex_cmd_data(command='ex_tab_first',
+                                     invocations=(),
+                                     error_on=(ex_error.ERR_NO_RANGE_ALLOWED,)
+                                     ),
+    ('tablast', 'tabl'): ex_cmd_data(command='ex_tab_last',
+                                     invocations=(),
+                                     error_on=(ex_error.ERR_NO_RANGE_ALLOWED,)
+                                     ),
+    ('tabonly', 'tabo'): ex_cmd_data(command='ex_tab_only',
+                                     invocations=(),
+                                     error_on=(
+                                        ex_error.ERR_NO_RANGE_ALLOWED,
+                                        ex_error.ERR_TRAILING_CHARS,)
+                                     )
 }
 
 
