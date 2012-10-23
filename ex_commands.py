@@ -511,7 +511,7 @@ class ExSubstitute(sublime_plugin.TextCommand):
             return
 
         replace_count = 0 if (flags and 'g' in flags) else 1
-        
+
         target_region = get_region_by_range(self.view, line_range=line_range, as_lines=True)
         for r in reversed(target_region):
             line_text = self.view.substr(self.view.line(r))
@@ -585,7 +585,7 @@ class ExGlobal(sublime_plugin.TextCommand):
             ExGlobal.most_recent_pat = global_pattern
         else:
             global_pattern = ExGlobal.most_recent_pat
-            
+
         # Make sure we always have a subcommand to exectute. This is what
         # Vim does too.
         subcmd = subcmd or 'print'
@@ -780,7 +780,7 @@ class ExNew(sublime_plugin.TextCommand):
 class ExYank(sublime_plugin.TextCommand):
     """Ex command(s): :y[ank]
     """
-    
+
     def run(self, edit, line_range, register=None, count=None):
         if not register:
             register = '"'
@@ -789,3 +789,63 @@ class ExYank(sublime_plugin.TextCommand):
         g_registers[register] = text
         if register == '"':
             g_registers['0'] = text
+
+
+class TabControlCommand(sublime_plugin.WindowCommand):
+    def run(self, command, file_name=None, forced=False):
+        window = self.window
+        selfview = window.active_view()
+        max_index = len(window.views())
+        (group, index) = window.get_view_index(selfview)
+        if (command == "open"):
+            if file_name is None:  # TODO: file completion
+                window.run_command("show_overlay", {"overlay": "goto", "show_files": True, })
+            else:
+                cur_dir = os.path.dirname(selfview.file_name())
+                window.open_file(os.path.join(cur_dir, file_name))
+        elif command == "next":
+            window.run_command("select_by_index", {"index": (index + 1) % max_index}, )
+        elif command == "prev":
+            window.run_command("select_by_index", {"index": (index + max_index - 1) % max_index, })
+        elif command == "last":
+            window.run_command("select_by_index", {"index": max_index - 1, })
+        elif command == "first":
+            window.run_command("select_by_index", {"index": 0, })
+        elif command == "only":
+            for view in window.views_in_group(group):
+                if view.id() != selfview.id():
+                    window.focus_view(view)
+                    window.run_command("ex_quit", {"forced": forced})
+            window.focus_view(selfview)
+        else:
+            sublime.status_message("Unknown TabControl Command")
+
+
+class ExTabOpenCommand(sublime_plugin.WindowCommand):
+    def run(self, file_name=None):
+        self.window.run_command("tab_control", {"command": "open", "file_name": file_name}, )
+
+
+class ExTabNextCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.window.run_command("tab_control", {"command": "next"}, )
+
+
+class ExTabPrevCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.window.run_command("tab_control", {"command": "prev"}, )
+
+
+class ExTabLastCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.window.run_command("tab_control", {"command": "last"}, )
+
+
+class ExTabFirstCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        self.window.run_command("tab_control", {"command": "first"}, )
+
+
+class ExTabOnlyCommand(sublime_plugin.WindowCommand):
+    def run(self, forced=False):
+        self.window.run_command("tab_control", {"command": "only", "forced": forced, }, )
