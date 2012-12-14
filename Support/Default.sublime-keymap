@@ -8,6 +8,14 @@
 	},
 
 	{
+		"keys": ["@", ":"], "command": "vi_colon_repeat_last",
+		"context":
+		[
+			{ "key": "setting.command_mode", "operator": "equal", "operand": true }
+		]
+	},
+
+	{
 		"keys": [":"], "command": "vi_colon_input",
 		"args": {
 			"initial_text": ":'<,'>"
