@@ -15,7 +15,6 @@ EX_HISTORY = {
 }
 
 
-#______________________________________________________________________________
 def update_command_line_history(item, slot_name):
     if len(EX_HISTORY[slot_name]) >= EX_HISTORY_MAX_LENGTH:
         EX_HISTORY[slot_name] = EX_HISTORY[slot_name][1:]
@@ -24,11 +23,10 @@ def update_command_line_history(item, slot_name):
     EX_HISTORY[slot_name].append(item)
 
 
-#______________________________________________________________________________
 class ViColonInput(sublime_plugin.WindowCommand):
     def is_enabled(self):
         return len(self.window.views()) > 0
-        
+
     def __init__(self, window):
         sublime_plugin.WindowCommand.__init__(self, window)
 
@@ -43,7 +41,7 @@ class ViColonInput(sublime_plugin.WindowCommand):
         v.set_syntax_file('Packages/VintageEx/Support/VintageEx Cmdline.tmLanguage')
         v.settings().set('gutter', False)
         v.settings().set('rulers', [])
-    
+
     def on_done(self, cmd_line):
         if not getattr(self, 'non_interactive', None):
             update_command_line_history(cmd_line, 'cmdline')
@@ -64,21 +62,15 @@ class ViColonInput(sublime_plugin.WindowCommand):
         else:
             ex_error.display_error(ex_error.ERR_UNKNOWN_COMMAND, cmd_line)
 
-#______________________________________________________________________________
+
 class ViColonRepeatLast(sublime_plugin.WindowCommand):
     def is_enabled(self):
-        return (len(self.window.views()) > 0) and (len(EX_HISTORY['cmdline'])>0)
-
-    def __init__(self, window):
-        sublime_plugin.WindowCommand.__init__(self, window)
+        return (len(self.window.views()) > 0) and (len(EX_HISTORY['cmdline']) > 0)
 
     def run(self):
-        # non-interactive call
-        self.non_interactive = True
         self.window.run_command('vi_colon_input', {'cmd_line': EX_HISTORY['cmdline'][-1]})
-        return
 
-#______________________________________________________________________________
+
 class ExCompletionsProvider(sublime_plugin.EventListener):
     CACHED_COMPLETIONS = []
     CACHED_COMPLETION_PREFIXES = []
@@ -86,10 +78,10 @@ class ExCompletionsProvider(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
         if view.score_selector(0, 'text.excmdline') == 0:
             return []
-        
+
         if len(prefix) + 1 != view.size():
             return []
-        
+
         if prefix and prefix in self.CACHED_COMPLETION_PREFIXES:
             return self.CACHED_COMPLETIONS
 
@@ -99,7 +91,6 @@ class ExCompletionsProvider(sublime_plugin.EventListener):
         return self.CACHED_COMPLETIONS
 
 
-#______________________________________________________________________________
 class CycleCmdlineHistory(sublime_plugin.TextCommand):
     HISTORY_INDEX = None
     def run(self, edit, backwards=False):
@@ -110,8 +101,8 @@ class CycleCmdlineHistory(sublime_plugin.TextCommand):
 
         if CycleCmdlineHistory.HISTORY_INDEX == len(EX_HISTORY['cmdline']) or \
             CycleCmdlineHistory.HISTORY_INDEX < -len(EX_HISTORY['cmdline']):
-                CycleCmdlineHistory.HISTORY_INDEX = -1 if backwards else 0 
-        
+                CycleCmdlineHistory.HISTORY_INDEX = -1 if backwards else 0
+
         self.view.erase(edit, sublime.Region(0, self.view.size()))
         self.view.insert(edit, 0, \
                 EX_HISTORY['cmdline'][CycleCmdlineHistory.HISTORY_INDEX])
@@ -119,8 +110,8 @@ class CycleCmdlineHistory(sublime_plugin.TextCommand):
 
 class HistoryIndexRestorer(sublime_plugin.EventListener):
     def on_deactivated(self, view):
-        # due to views loading asynchronously, do not restore history index
-        # .on_activated(), but here instead. otherwise, the .score_selector()
+        # Because views load asynchronously, do not restore history index
+        # .on_activated(), but here instead. Otherwise, the .score_selector()
         # call won't yield the desired results.
         if view.score_selector(0, 'text.excmdline') > 0:
             CycleCmdlineHistory.HISTORY_INDEX = None
