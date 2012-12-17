@@ -65,6 +65,20 @@ class ViColonInput(sublime_plugin.WindowCommand):
             ex_error.display_error(ex_error.ERR_UNKNOWN_COMMAND, cmd_line)
 
 #______________________________________________________________________________
+class ViColonRepeatLast(sublime_plugin.WindowCommand):
+    def is_enabled(self):
+        return (len(self.window.views()) > 0) and (len(EX_HISTORY['cmdline'])>0)
+
+    def __init__(self, window):
+        sublime_plugin.WindowCommand.__init__(self, window)
+
+    def run(self):
+        # non-interactive call
+        self.non_interactive = True
+        self.window.run_command('vi_colon_input', {'cmd_line': EX_HISTORY['cmdline'][-1]})
+        return
+
+#______________________________________________________________________________
 class ExCompletionsProvider(sublime_plugin.EventListener):
     CACHED_COMPLETIONS = []
     CACHED_COMPLETION_PREFIXES = []
