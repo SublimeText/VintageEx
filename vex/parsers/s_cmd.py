@@ -36,12 +36,12 @@ class SubstituteLexer(Lexer):
             if self.c == '\\':
                 buf.append(self.c)
                 self.consume()
-                if self.c in '\\':
-                    # Don't store anything, we're escaping \.
-                    self.consume()
-                elif self.c == self.delimiter:
+                if self.c == self.delimiter:
                     # Overwrite the \ we've just stored.
                     buf[-1] = self.delimiter
+                    self.consume()
+                if self.c in '\\':
+                    buf.append(self.c) # BUGFIXED: still need to escape \ in python regex!
                     self.consume()
 
                 if self.c == EOF:
